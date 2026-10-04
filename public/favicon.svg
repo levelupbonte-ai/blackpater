@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <!-- Cyan to Deep Blue Gradient for B -->
+    <linearGradient id="bpBlue" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#00a8ff"/>
+      <stop offset="45%" stop-color="#0077e6"/>
+      <stop offset="100%" stop-color="#0052cc"/>
+    </linearGradient>
+    
+    <!-- Vivid Orange to Red-Orange Gradient for P -->
+    <linearGradient id="bpOrange" x1="10%" y1="15%" x2="90%" y2="85%">
+      <stop offset="0%" stop-color="#ff6b00"/>
+      <stop offset="60%" stop-color="#ff4500"/>
+      <stop offset="100%" stop-color="#e02400"/>
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Black Circular Ring -->
+  <circle cx="250" cy="250" r="232" fill="none" stroke="#0e0e10" stroke-width="24"/>
+
+  <!-- Logo Graphics Group -->
+  <g filter="url(#shadow)">
+    <!-- Stylized Sweeping "B" in Electric Blue -->
+    <!-- Sharp swoosh starting top left, looping down through middle and bottom -->
+    <path d="M 160 215 
+             C 178 188, 202 172, 235 172 
+             C 255 172, 268 182, 264 200 
+             C 258 218, 238 226, 212 228
+             L 160 231 Z
+             M 148 290 
+             C 165 258, 195 248, 228 248 
+             C 256 248, 272 262, 265 288 
+             C 256 318, 226 332, 185 332 
+             C 162 332, 142 324, 132 312 Z
+             M 162 188 
+             C 190 152, 232 140, 270 148 
+             C 245 160, 222 178, 208 202
+             C 230 198, 262 202, 282 216 
+             C 305 232, 308 260, 296 288 
+             C 280 326, 238 348, 182 348 
+             C 142 348, 116 330, 116 295 
+             C 116 265, 134 238, 160 220 
+             C 142 208, 135 192, 138 174 
+             C 142 152, 162 135, 192 124 
+             C 152 142, 126 182, 116 230 
+             L 116 348 
+             L 162 188 Z" 
+          fill="url(#bpBlue)" />
+
+    <!-- Stylized Aerodynamic "P" in Fiery Orange -->
+    <!-- Sweeping top curve that complements the circular perimeter and angled straight stem -->
+    <path d="M 285 220 
+             C 310 190, 345 180, 380 185 
+             C 408 190, 420 208, 412 232 
+             C 402 262, 368 280, 330 280 
+             L 300 280 Z
+             M 265 195 
+             C 302 165, 355 152, 405 162 
+             C 445 172, 468 202, 452 248 
+             C 432 305, 380 326, 320 326 
+             L 288 326 
+             L 245 365 
+             L 220 365 
+             L 282 175 
+             C 258 185, 235 200, 218 220 
+             L 235 188 
+             C 260 162, 305 142, 362 138 
+             C 320 148, 285 168, 265 195 Z" 
+          fill="url(#bpOrange)" />
+  </g>
+</svg>

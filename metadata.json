@@ -1,0 +1,8 @@
+{
+  "name": "BLACK_PATER — Jean-Pierre Lofumbwa · Le Prof",
+  "description": "Black_Pater — Jean-Pierre Lofumbwa, « Le Prof ». Congolese entrepreneur, content creator, educator and cultural ambassador based in the United States.",
+  "requestFramePermissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

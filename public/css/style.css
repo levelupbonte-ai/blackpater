@@ -1691,3 +1691,10 @@ body.menu-open .mmenu,
 .btn-executive:hover .btn-executive__arrow {
   transform: translateX(4px);
 }
+
+/* LevelUp Ecosystem credit */
+.lu-built-by{display:inline-flex;align-items:center;gap:.5rem;color:var(--bone);opacity:.6;text-decoration:none;transition:opacity .2s ease}
+.lu-built-by:hover,.lu-built-by:focus-visible{opacity:1}
+.lu-built-by:focus-visible{outline:2px solid var(--copper);outline-offset:3px;border-radius:2px}
+.lu-built-by__label{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase}
+.lu-built-by__logo{height:1rem;width:auto}

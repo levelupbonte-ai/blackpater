@@ -17,8 +17,16 @@ const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(__dirname));
-app.use(express.static(path.join(__dirname, 'public')));
+// Only the public/ folder is served as static files. The project root (server
+// code, package.json, scripts) must never be downloadable.
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  next();
+});
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
 
 // Stripe API: Check configuration status
 app.get('/api/stripe/config', (req, res) => {

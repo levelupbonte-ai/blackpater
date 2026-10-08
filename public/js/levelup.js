@@ -29,8 +29,15 @@
   }
 
   // Only https URLs (or same-origin paths) are accepted from the database.
+  // URLs end up in style attributes and <style> text: besides the scheme, refuse
+  // anything that could close the url() or the declaration (quotes, parens,
+  // backslash, semicolon, braces, whitespace, angle brackets).
   function safeUrl(u) {
-    return typeof u === 'string' && (/^https:\/\//.test(u) || /^\/[^/]/.test(u)) ? u : null;
+    return typeof u === 'string' &&
+      (/^https:\/\//.test(u) || /^\/[^/]/.test(u)) &&
+      !/[\s'"()\\;{}<>]/.test(u)
+      ? u
+      : null;
   }
 
   function applyMedia(map) {

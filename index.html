@@ -313,7 +313,7 @@ section{position:relative}
 .hero__ghost{position:absolute;left:50%;bottom:0;height:var(--sh);aspect-ratio:1408/1117;transform:translateX(-50%) scale(1.1);z-index:0;opacity:.17;filter:grayscale(1) blur(22px) contrast(1.3);
   -webkit-mask-image:radial-gradient(closest-side,#000 25%,transparent 100%);mask-image:radial-gradient(closest-side,#000 25%,transparent 100%)}
 .hero__ghost .im{width:100%;height:100%;background-size:cover}
-.hero__title{position:absolute;z-index:1;left:50%;top:var(--ty,4svh);transform:translate3d(-50%,0,0);margin:0;font-family:var(--display);font-weight:400;text-transform:uppercase;line-height:.84;white-space:nowrap;font-size:var(--fs,14vw);letter-spacing:.02em;text-align:center;pointer-events:none;width:100%}.hero__title .line{display:inline-block;overflow:visible!important;padding:0!important;margin:0!important;vertical-align:top}.hero__title .ch{display:inline-block;color:#f4eee3!important;-webkit-text-fill-color:#f4eee3!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;transform:none!important;animation:none!important;text-shadow:0 4px 30px rgba(0,0,0,.75)}@keyframes chIn{to{transform:none}}
+.hero__title{position:absolute;z-index:1;left:50%;top:var(--ty,clamp(120px,18svh,220px));transform:translate3d(-50%,0,0);margin:0;font-family:var(--display);font-weight:400;text-transform:uppercase;line-height:.84;white-space:nowrap;font-size:var(--fs,14vw);letter-spacing:.02em;text-align:center;pointer-events:none;width:100%}.hero__title .line{display:inline-block;overflow:visible!important;padding:0!important;margin:0!important;vertical-align:top}.hero__title .ch{display:inline-block;color:#f4eee3!important;-webkit-text-fill-color:#f4eee3!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;transform:none!important;animation:none!important;text-shadow:0 4px 30px rgba(0,0,0,.75)}@keyframes chIn{to{transform:none}}
 .hero__stage{position:absolute;z-index:2;left:50%;bottom:0;height:var(--sh);aspect-ratio:1408/1117;transform:translate3d(-50%,0,0);will-change:transform;touch-action:pan-y;opacity:1;transition:opacity .35s ease}
 .subject{position:absolute;inset:0;width:100%;height:100%;background-size:contain;background-position:50% 100%;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .subject--base{filter:grayscale(.72) sepia(.2) brightness(.7) contrast(1.1)}
@@ -348,7 +348,7 @@ section{position:relative}
 .hero__tricolor i:nth-child(1){background:var(--congo-b)}.hero__tricolor i:nth-child(2){background:var(--congo-y)}.hero__tricolor i:nth-child(3){background:var(--congo-r)}
 @media (max-width:760px){
   .hero{--sh:min(74svh,640px)}
-  .hero__title{--ty:clamp(20px,4.5svh,48px);line-height:.82}
+  .hero__title{--ty:clamp(100px,16svh,160px);line-height:.82}
   .hero__top{display:block}
   .hero__side{display:none}
   .hero__stmt{font-size:1.15rem}
@@ -385,14 +385,16 @@ section{position:relative}
 .mix li h3{position:relative;font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(2.4rem,5.4vw,5.6rem);line-height:.92;transition:transform .8s var(--ease),color .5s}
 .mix li:hover h3{transform:translateX(18px);color:var(--copper)}
 .mix li p{position:relative;font-family:var(--serif);font-style:italic;font-size:clamp(1rem,1.25vw,1.3rem);color:var(--bone-dim);text-align:right;max-width:20ch;line-height:1.15}
-.bridge{margin-top:clamp(60px,8vw,120px);display:grid;grid-template-columns:auto 1fr;gap:clamp(18px,3vw,44px);align-items:start}
+.stats{margin-top:clamp(50px,7vw,100px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(16px,2.5vw,36px)}
+.stats>div{border-top:1px solid var(--bone-faint);padding-top:18px;display:flex;flex-direction:column}
+.stats b,.stats .stats__val{display:block;font-family:var(--display);font-weight:400;font-size:clamp(2.8rem,5.5vw,5.6rem);line-height:.9;text-transform:uppercase;color:var(--copper);letter-spacing:.02em;white-space:nowrap}
+.stats span,.stats .stats__txt{display:block;color:var(--bone-dim);font-size:.95rem;line-height:1.45}
+.stats .stats__txt{margin-top:10px;max-width:28ch}
+.stats .stats__txt b{font-family:var(--sans);font-size:.82rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--bone);margin-bottom:4px;white-space:normal}
+.bridge{margin-top:clamp(50px,7vw,100px);display:grid;grid-template-columns:auto 1fr;gap:clamp(18px,3vw,44px);align-items:start}
 .bridge .tri i{height:100%;width:4px}
 .bridge .tri{align-self:stretch}
 .bridge p{font-family:var(--serif);font-size:clamp(1.4rem,2.2vw,2.2rem);line-height:1.2;max-width:28em}
-.stats{margin-top:clamp(50px,6vw,90px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,30px)}
-.stats>div{border-top:1px solid var(--bone-faint);padding-top:18px}
-.stats b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(2.8rem,6vw,6rem);line-height:.9;text-transform:uppercase;color:var(--copper)}
-.stats span{display:block;margin-top:10px;color:var(--bone-dim);font-size:.92rem;max-width:22ch}
 
 /* ==========================================================================
    JOURNEY — pinned documentary timeline
@@ -727,8 +729,9 @@ section{position:relative}
 @media (max-width:760px){
   .about__roles{grid-template-columns:1fr}
   .mix li{grid-template-columns:1fr}.mix li p{text-align:left;max-width:none}
-  .stats{grid-template-columns:1fr}
-  .stats>div{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:baseline}
+  .stats{grid-template-columns:1fr;gap:20px}
+  .stats>div{display:grid;grid-template-columns:minmax(110px,auto) 1fr;gap:18px 24px;align-items:baseline}
+  .stats .stats__txt{margin-top:0;max-width:none}
   .soc__grid{grid-template-columns:repeat(2,1fr)}
   .scard--a,.scard--b,.scard--c,.scard--d,.scard--e,.scard--f,.scard--g{grid-column:span 1}
   .scard--a{grid-column:span 2}.scard--g{grid-column:span 2}
@@ -907,57 +910,56 @@ section{position:relative}
 
 
 @keyframes pressPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
-.press__head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;margin-bottom:clamp(36px,6vw,60px)}
-.press__head-text h2{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(2.8rem,7.5vw,6rem);line-height:.92;letter-spacing:.02em;margin:0}
-.press__head-text p{font-family:var(--serif);font-style:italic;color:var(--bone-dim);font-size:clamp(1.1rem,2vw,1.45rem);margin-top:14px}
-.press__head-links{display:flex;gap:12px;flex-wrap:wrap}
+.press__head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:clamp(36px,5vw,56px);flex-wrap:wrap}
+.press__kicker{font-family:var(--display);font-size:clamp(.9rem,1.4vw,1.1rem);letter-spacing:.22em;text-transform:uppercase;color:var(--copper);display:block;margin-bottom:8px}
+.press__head-text h2{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(2.8rem,7.5vw,5.6rem);line-height:.92;letter-spacing:.02em;margin:0}
+.press__head-text p{font-family:var(--serif);font-style:italic;color:var(--bone-dim);font-size:clamp(1.05rem,1.8vw,1.35rem);margin-top:12px;max-width:56ch}
+.press__head-action{display:flex;align-items:center}
 .press__cta-btn{display:inline-flex;align-items:center;gap:10px;padding:12px 24px;border-radius:99px;background:var(--bone);color:var(--ink);font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600;transition:transform .4s var(--ease),background .3s,color .3s}
 .press__cta-btn:hover{background:var(--copper);color:#fff;transform:translateY(-2px)}
 .press__cta-btn--sec{background:transparent;color:var(--bone);border:1px solid var(--bone-faint)}
 .press__cta-btn--sec:hover{border-color:var(--copper);background:rgba(201,138,82,.12);color:var(--copper)}
 
-/* Publication Badges */
-.press__pub-badge{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:3px 10px;
-  border-radius:99px;
-  font-size:.66rem;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  font-weight:700;
-  margin-bottom:12px;
-  width:fit-content;
-}
-.badge--usa{background:rgba(27,111,214,.18);color:#6db2ff;border:1px solid rgba(27,111,214,.4)}
-.badge--academic{background:rgba(247,214,24,.15);color:#f7d618;border:1px solid rgba(247,214,24,.4)}
-.badge--editorial{background:rgba(206,17,38,.18);color:#ff7b72;border:1px solid rgba(206,17,38,.4)}
-.badge--dossier{background:rgba(201,138,82,.18);color:var(--copper);border:1px solid rgba(201,138,82,.4)}
-.badge--culture{background:rgba(0,168,132,.18);color:#34d399;border:1px solid rgba(0,168,132,.4)}
+/* Clean Typographic Kickers (Zero-Pill Discipline) */
+.press__pub-kicker{display:flex;align-items:center;gap:8px;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);font-weight:600;margin-bottom:12px}
+.press__pub-kicker .sep{opacity:.4;color:var(--bone-dim)}
 
-/* Multi-Card Responsive Publications Grid */
+/* Responsive Publications Grid */
 .press__pubs-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
-  gap:clamp(22px,2.8vw,34px);
-  margin-bottom:clamp(48px,8vw,90px);
+  grid-template-columns:repeat(3, 1fr);
+  gap:clamp(20px,2.5vw,32px);
 }
-@media (max-width:760px){.press__pubs-grid{grid-template-columns:1fr}}
+@media (max-width:1024px){.press__pubs-grid{grid-template-columns:repeat(2, 1fr)}}
+@media (max-width:680px){.press__pubs-grid{grid-template-columns:1fr}}
+
 .press__pub-card{
   border:1px solid rgba(239,232,220,.12);
   background:radial-gradient(circle at 10% 10%,rgba(32,26,23,.75),rgba(15,12,11,.92));
-  padding:clamp(26px,3.5vw,36px);
+  padding:clamp(26px,3.2vw,36px);
   border-radius:10px;
   display:flex;
   flex-direction:column;
   justify-content:space-between;
-  transition:transform .4s var(--ease),border-color .4s,box-shadow .4s;
+  transition:transform .45s cubic-bezier(.16, 1, .3, 1),border-color .35s ease,box-shadow .45s cubic-bezier(.16, 1, .3, 1);
   position:relative;
   opacity:1 !important;
-  transform:none !important;
+  transform:translate3d(0, 0, 0) scale(1);
+  will-change:transform;
 }
-.press__pub-card:hover{transform:translateY(-4px) !important;border-color:var(--copper);box-shadow:0 12px 32px rgba(0,0,0,.4)}
+@media (hover: hover) and (pointer: fine) {
+  .press__pub-card:hover,
+  .press__pub-card:focus-within {
+    transform: translateY(-6px) scale(1.025) !important;
+    border-color: var(--copper);
+    box-shadow: 0 16px 36px rgba(0,0,0,.5), 0 0 24px rgba(212,163,115,.15);
+    z-index: 2;
+  }
+  .press__pub-card:active {
+    transform: translateY(-2px) scale(1.01) !important;
+    transition-duration: .15s;
+  }
+}
 .press__pub-card--alt{background:radial-gradient(circle at 90% 10%,rgba(110,20,35,.2),rgba(15,12,11,.92))}
 .press__pub-card--gold{background:radial-gradient(circle at 80% 10%,rgba(201,138,82,.22),rgba(15,12,11,.92));border-color:rgba(201,138,82,.25)}
 .press__pub-card--blue{background:radial-gradient(circle at 80% 10%,rgba(27,111,214,.18),rgba(15,12,11,.92));border-color:rgba(27,111,214,.25)}
@@ -969,6 +971,58 @@ section{position:relative}
 .press__pub-footer{margin-top:auto;border-top:1px solid var(--bone-faint);padding-top:16px}
 .press__pub-link{font-size:.76rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--copper);display:inline-flex;align-items:center;gap:8px;transition:color .3s}
 .press__pub-link:hover{color:var(--bone)}
+
+/* Collapsible Pro Drawer & Action Strip */
+.press__more-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:clamp(20px,2.5vw,32px);
+  margin-top:clamp(20px,2.5vw,32px);
+  transition:opacity .4s ease,transform .4s ease;
+}
+.press__more-grid[hidden]{display:none!important}
+@media (max-width:1024px){.press__more-grid{grid-template-columns:repeat(2, 1fr)}}
+@media (max-width:680px){.press__more-grid{grid-template-columns:1fr}}
+
+.press__actions{
+  margin-top:clamp(32px,5vw,52px);
+  padding-top:24px;
+  border-top:1px solid var(--bone-faint);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:18px;
+}
+.press__toggle-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 24px;
+  border:1px solid var(--copper);
+  border-radius:99px;
+  background:rgba(212,163,115,.06);
+  color:var(--copper);
+  font-size:.74rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .3s ease;
+}
+.press__toggle-btn:hover{background:var(--copper);color:var(--ink);transform:translateY(-2px)}
+.press__all-link{
+  font-size:.76rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  font-weight:600;
+  color:var(--bone);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition:color .3s,transform .3s;
+}
+.press__all-link:hover{color:var(--copper);transform:translateX(4px)}
 
 /* Editorial Quote */
 .press__quote{padding:clamp(40px,6.5vw,76px) clamp(24px,5vw,60px);background:radial-gradient(70% 60% at 50% 30%,rgba(110,20,35,.35),var(--ink) 80%);border:1px solid rgba(155,29,51,.4);border-radius:8px;text-align:center;position:relative;margin-bottom:clamp(48px,8vw,90px)}
@@ -1069,10 +1123,181 @@ section{position:relative}
 .mmenu .lang{margin-top:24px;align-self:flex-start}
 
 /* ==========================================================================
-   TRANSPARENT INFRARED SCANNER CURSOR
+   BESPOKE BLACK PATER CURSOR — HAUTE COUTURE DUAL-LAYER KINETIC SYSTEM
    ========================================================================== */
+@media (hover: hover) and (pointer: fine) {
+  *, *::before, *::after {
+    cursor: none !important;
+  }
 
-@media (hover:hover) and (pointer:fine){}
+  .bp-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 9999999;
+    user-select: none;
+    transition: opacity .3s cubic-bezier(.16, 1, .3, 1);
+  }
+
+  .bp-cursor.is-hidden {
+    opacity: 0;
+  }
+
+  .bp-cursor__dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    background: var(--copper, #d4a373);
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 8px rgba(212, 163, 115, .95), 0 0 16px rgba(176, 117, 63, .6), 0 0 2px #fff;
+    transition: width .25s cubic-bezier(.16, 1, .3, 1),
+                height .25s cubic-bezier(.16, 1, .3, 1),
+                background-color .25s ease,
+                box-shadow .25s ease,
+                opacity .2s ease;
+    will-change: transform;
+    z-index: 2;
+  }
+
+  .bp-cursor__ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(212, 163, 115, .5);
+    background: radial-gradient(circle, rgba(212, 163, 115, .09) 0%, rgba(176, 117, 63, .02) 65%, transparent 80%);
+    box-shadow: 0 0 18px rgba(212, 163, 115, .15);
+    pointer-events: none;
+    box-sizing: border-box;
+    transition: width .32s cubic-bezier(.16, 1, .3, 1),
+                height .32s cubic-bezier(.16, 1, .3, 1),
+                border-color .28s ease,
+                background-color .28s ease,
+                box-shadow .28s ease,
+                border-radius .28s ease;
+    will-change: transform;
+    z-index: 1;
+  }
+
+  .bp-cursor__ring-ticks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+  }
+
+  .bp-cursor__ring-ticks .tick {
+    position: absolute;
+    background: rgba(212, 163, 115, .7);
+    pointer-events: none;
+    transition: transform .25s ease, opacity .25s ease;
+  }
+
+  .bp-cursor__ring-ticks .tick--t { top: -3px; left: 50%; width: 1.5px; height: 3px; transform: translateX(-50%); }
+  .bp-cursor__ring-ticks .tick--b { bottom: -3px; left: 50%; width: 1.5px; height: 3px; transform: translateX(-50%); }
+  .bp-cursor__ring-ticks .tick--l { left: -3px; top: 50%; width: 3px; height: 1.5px; transform: translateY(-50%); }
+  .bp-cursor__ring-ticks .tick--r { right: -3px; top: 50%; width: 3px; height: 1.5px; transform: translateY(-50%); }
+
+  /* Interactive Hover State */
+  .bp-cursor.is-hover .bp-cursor__ring {
+    width: 62px;
+    height: 62px;
+    border-color: rgba(212, 163, 115, .95);
+    background: radial-gradient(circle, rgba(212, 163, 115, .22) 0%, rgba(176, 117, 63, .08) 70%, transparent 100%);
+    box-shadow: 0 0 30px rgba(212, 163, 115, .32);
+  }
+
+  .bp-cursor.is-hover .bp-cursor__dot {
+    width: 4px;
+    height: 4px;
+    background: #ffffff;
+    box-shadow: 0 0 10px #ffffff, 0 0 18px rgba(212, 163, 115, .8);
+  }
+
+  .bp-cursor.is-hover .bp-cursor__ring-ticks {
+    opacity: .95;
+  }
+
+  /* Click / Active State */
+  .bp-cursor.is-down .bp-cursor__ring {
+    width: 26px;
+    height: 26px;
+    border-color: var(--copper);
+    background: rgba(176, 117, 63, .3);
+  }
+
+  .bp-cursor.is-down .bp-cursor__dot {
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    box-shadow: 0 0 14px #ffffff;
+  }
+
+  /* Input Typing State */
+  .bp-cursor.is-input .bp-cursor__ring {
+    width: 2px;
+    height: 24px;
+    border-radius: 1px;
+    border: none;
+    background: var(--copper);
+    box-shadow: 0 0 8px rgba(212, 163, 115, .8);
+  }
+
+  .bp-cursor.is-input .bp-cursor__dot,
+  .bp-cursor.is-input .bp-cursor__ring-ticks {
+    opacity: 0;
+  }
+
+  /* Contextual Action Label */
+  .bp-cursor__label {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    font-family: var(--display, 'League Gothic', sans-serif);
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink, #0a0807);
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity .25s ease;
+    white-space: nowrap;
+    z-index: 3;
+  }
+
+  .bp-cursor.has-label .bp-cursor__label {
+    opacity: 1;
+  }
+
+  .bp-cursor.has-label .bp-cursor__ring {
+    width: 78px;
+    height: 78px;
+    background: var(--copper, #d4a373);
+    border-color: var(--copper, #d4a373);
+    box-shadow: 0 0 34px rgba(212, 163, 115, .55);
+  }
+
+  .bp-cursor.has-label .bp-cursor__dot,
+  .bp-cursor.has-label .bp-cursor__ring-ticks {
+    opacity: 0;
+  }
+}
+
+@media (pointer: coarse), (hover: none) {
+  .bp-cursor {
+    display: none !important;
+  }
+}
 
 
 
@@ -1785,15 +2010,15 @@ body.menu-open .mmenu,
         </ul>
       </div>
 
+      <div class="stats">
+        <div class="fade"><span class="stats__val">2021</span><span class="stats__txt" data-i18n="st1">He moved to the United States to pursue his studies.</span></div>
+        <div class="fade" style="--d:100ms"><span class="stats__val">07</span><span class="stats__txt" data-i18n="st2">Platforms where the community gathers.</span></div>
+        <div class="fade" style="--d:200ms"><span class="stats__val">05</span><span class="stats__txt"><b><span data-i18n="st3t">Languages</span></b><span data-i18n="st3">A passion for learning, teaching and translating.</span></span></div>
+      </div>
+
       <div class="bridge">
         <div class="tri" aria-hidden="true"><i style="background:var(--congo-b)"></i><i style="background:var(--congo-y)"></i><i style="background:var(--congo-r)"></i></div>
         <p class="fade" data-i18n="a_bridge">He uses his platforms to celebrate Congolese and African culture, share his own experience, and build a bridge between the diaspora and the culture it comes from.</p>
-      </div>
-
-      <div class="stats">
-        <div class="fade"><b>2021</b><span data-i18n="st1">He moved to the United States to pursue his studies.</span></div>
-        <div class="fade" style="--d:100ms"><b>07</b><span data-i18n="st2">Platforms where the community gathers.</span></div>
-        <div class="fade" style="--d:200ms"><b data-i18n="st3t">Languages</b><span data-i18n="st3">A passion for learning, teaching and translating.</span></div>
       </div>
     </div>
   </div>
@@ -1804,61 +2029,59 @@ body.menu-open .mmenu,
   <div class="wrap">
     <div class="press__head">
       <div class="press__head-text">
+        <span class="press__kicker">Revue de Presse & Distinctions</span>
         <h2 id="pressT" data-i18n="press_title">Presse & Grandes Publications</h2>
-        <p data-i18n="press_subtitle">Revue de presse américaine, distinctions académiques et dossiers culturels dédiés à Jean-Pierre Lofumbwa (« Le Prof »)</p>
+        <p data-i18n="press_subtitle">Sélection de publications américaines, honneurs académiques et chroniques culturelles dédiés à Jean-Pierre Lofumbwa (« Le Prof »).</p>
       </div>
-      <div class="press__head-links">
-        <a class="press__cta-btn" href="https://voyageutah.com/interview/rising-stars-meet-black_pater-lofumbwa-of-salt-lake-city/" target="_blank" rel="noopener">
-          <span>VoyageUtah (USA) ↗</span>
-        </a>
-        <a class="press__cta-btn press__cta-btn--sec" href="https://connected.ccis.edu/2024/01/columbia-college-fall-semester-2023-deans-list-announced/" target="_blank" rel="noopener">
-          <span>Columbia College (Dean's List) ↗</span>
-        </a>
-        <a class="press__cta-btn press__cta-btn--sec" href="https://benimuwawa.substack.com/p/black-pater-le-soldat-digital-du" target="_blank" rel="noopener">
-          <span>Substack (Béni Muwawa) ↗</span>
-        </a>
-        <a class="press__cta-btn press__cta-btn--sec" href="https://komelate-blog.netlify.app/black-pater-biographie/" target="_blank" rel="noopener">
-          <span>Komelate (Dossiers) ↗</span>
-        </a>
-        <a class="press__cta-btn press__cta-btn--sec" href="https://www.collegesidekick.com/study-docs/7290959" target="_blank" rel="noopener">
-          <span>CollegeSidekick ↗</span>
-        </a>
-        <a class="press__cta-btn press__cta-btn--sec" href="/articles">
-          <span>Explorer Tous les Articles →</span>
+      <div class="press__head-action">
+        <a class="press__cta-btn" href="/articles">
+          <span>Explorer les 9 articles →</span>
         </a>
       </div>
     </div>
 
-    <!-- Complete Publication Showcase (VoyageUtah, Columbia College, Substack, Komelate Series, CollegeSidekick) -->
+    <!-- Spotlight: 3 Flagship Publications -->
     <div class="press__pubs-grid">
       <!-- Article 1: VoyageUtah -->
-      <article class="press__pub-card">
+      <article class="press__pub-card" data-cursor="LIRE">
         <div>
-          <span class="press__pub-badge badge--usa">Presse Américaine · Utah</span>
+          <div class="press__pub-kicker">
+            <span>Presse USA</span>
+            <span class="sep">/</span>
+            <span>Salt Lake City</span>
+            <span class="sep">/</span>
+            <span>2024</span>
+          </div>
           <div class="press__pub-header">
-            <span class="press__pub-source">VoyageUtah Magazine · Salt Lake City</span>
+            <span class="press__pub-source">VoyageUtah Magazine</span>
             <span class="press__pub-date">Août 2024</span>
           </div>
           <h3 class="press__pub-title" data-i18n="pub1_title">Rising Stars: Meet Black_Pater Lofumbwa of Salt Lake City</h3>
-          <p class="press__pub-excerpt" data-i18n="pub1_desc">Grand entretien dans le média américain VoyageUtah retraçant le parcours de Jean-Pierre Lofumbwa : du titre de lauréat national #1 de la RDC (85% Latin-Philo en 2015) à son installation à Salt Lake City en tant qu'étudiant international, éducateur et ambassadeur culturel.</p>
+          <p class="press__pub-excerpt" data-i18n="pub1_desc">Grand entretien dans le média américain VoyageUtah : de son rang de major national en RDC (85% Latin-Philo) à son parcours universitaire et son rôle d'ambassadeur culturel en Utah.</p>
         </div>
         <div class="press__pub-footer">
           <a class="press__pub-link" href="https://voyageutah.com/interview/rising-stars-meet-black_pater-lofumbwa-of-salt-lake-city/" target="_blank" rel="noopener">
-            <span data-i18n="pub1_btn">Lire l'Article Complet sur VoyageUtah ↗</span>
+            <span data-i18n="pub1_btn">Lire l'Article sur VoyageUtah ↗</span>
           </a>
         </div>
       </article>
 
       <!-- Article 2: Columbia College Dean's List Announcement -->
-      <article class="press__pub-card press__pub-card--gold">
+      <article class="press__pub-card press__pub-card--gold" data-cursor="LIRE">
         <div>
-          <span class="press__pub-badge badge--academic">Distinction Universitaire · USA</span>
+          <div class="press__pub-kicker">
+            <span>Excellence Académique</span>
+            <span class="sep">/</span>
+            <span>Dean's List</span>
+            <span class="sep">/</span>
+            <span>USA</span>
+          </div>
           <div class="press__pub-header">
-            <span class="press__pub-source">Columbia College Connected (ccis.edu)</span>
+            <span class="press__pub-source">Columbia College Connected</span>
             <span class="press__pub-date">Janvier 2024</span>
           </div>
-          <h3 class="press__pub-title">Columbia College Fall Semester 2023 Dean's List Announced</h3>
-          <p class="press__pub-excerpt">Reconnaissance institutionnelle d'excellence académique : Jean-Pierre Lofumbwa est officiellement nommé au tableau d'honneur académique (Dean's List) du Columbia College pour le semestre d'automne 2023, sanctionnant une moyenne universitaire exemplaire (GPA &gt; 3.5).</p>
+          <h3 class="press__pub-title">Tableau d'Honneur Universitaire (Dean's List)</h3>
+          <p class="press__pub-excerpt">Reconnaissance institutionnelle d'excellence académique : Jean-Pierre Lofumbwa est officiellement nommé au tableau d'honneur (GPA &gt; 3.5) sanctionnant ses études universitaires aux USA.</p>
         </div>
         <div class="press__pub-footer">
           <a class="press__pub-link" href="https://connected.ccis.edu/2024/01/columbia-college-fall-semester-2023-deans-list-announced/" target="_blank" rel="noopener">
@@ -1868,15 +2091,21 @@ body.menu-open .mmenu,
       </article>
 
       <!-- Article 3: Béni Muwawa Substack -->
-      <article class="press__pub-card press__pub-card--alt">
+      <article class="press__pub-card press__pub-card--alt" data-cursor="LIRE">
         <div>
-          <span class="press__pub-badge badge--editorial">Chronique Éditoriale · Diaspora</span>
+          <div class="press__pub-kicker">
+            <span>Chronique Éditoriale</span>
+            <span class="sep">/</span>
+            <span>Diaspora</span>
+            <span class="sep">/</span>
+            <span>Culture</span>
+          </div>
           <div class="press__pub-header">
-            <span class="press__pub-source">Tribune d'Analyse · Par Béni Muwawa</span>
-            <span class="press__pub-date">Substack Culture</span>
+            <span class="press__pub-source">Tribune d'Analyse · Béni Muwawa</span>
+            <span class="press__pub-date">Substack</span>
           </div>
           <h3 class="press__pub-title" data-i18n="pub2_title">Black Pater : Le soldat digital du Congo</h3>
-          <p class="press__pub-excerpt" data-i18n="pub2_desc">Tribune d'analyse consacrée à Jean-Pierre Lofumbwa, salué comme un « soldat digital » au service de l'image, de l'histoire et de la résilience du Congo. L'article met en lumière sa capacité unique à allier pédagogie rigoureuse, fierté culturelle et modernité pour unir la jeunesse congolaise et la diaspora mondiale.</p>
+          <p class="press__pub-excerpt" data-i18n="pub2_desc">Tribune d'analyse consacrée à Jean-Pierre Lofumbwa, salué pour sa pédagogie rigoureuse et son leadership digital fédérant la jeunesse congolaise et la diaspora mondiale.</p>
         </div>
         <div class="press__pub-footer">
           <a class="press__pub-link" href="https://benimuwawa.substack.com/p/black-pater-le-soldat-digital-du" target="_blank" rel="noopener">
@@ -1884,17 +2113,24 @@ body.menu-open .mmenu,
           </a>
         </div>
       </article>
+    </div>
 
+    <!-- Collapsible Archive (Remaining 6 articles) -->
+    <div class="press__more-grid" id="pressMoreGrid" hidden>
       <!-- Article 4: Komelate Blog - Biographie -->
-      <article class="press__pub-card press__pub-card--gold">
+      <article class="press__pub-card press__pub-card--gold" data-cursor="LIRE">
         <div>
-          <span class="press__pub-badge badge--dossier">Dossier Biographique · Komelate</span>
+          <div class="press__pub-kicker">
+            <span>Dossier Biographique</span>
+            <span class="sep">/</span>
+            <span>Komelate</span>
+          </div>
           <div class="press__pub-header">
             <span class="press__pub-source">Komelate Blog Officiel</span>
-            <span class="press__pub-date">Série Portraits 2024</span>
+            <span class="press__pub-date">2024</span>
           </div>
-          <h3 class="press__pub-title">Jean-Pierre Lofumbwa (Black Pater) : Biographie complète</h3>
-          <p class="press__pub-excerpt">Dossier exhaustif retraçant les étapes clés de son existence : de son couronnement académique en RDC à son rôle d'ambassadeur de la culture congolaise aux USA, en passant par sa pédagogie multilingue et son impact communautaire.</p>
+          <h3 class="press__pub-title">Jean-Pierre Lofumbwa : Biographie complète</h3>
+          <p class="press__pub-excerpt">Dossier exhaustif retraçant les étapes clés : lauréat en RDC, intégration universitaire aux USA, pédagogie et impact communautaire.</p>
         </div>
         <div class="press__pub-footer">
           <a class="press__pub-link" href="https://komelate-blog.netlify.app/black-pater-biographie/" target="_blank" rel="noopener">
@@ -1904,69 +2140,85 @@ body.menu-open .mmenu,
       </article>
 
       <!-- Article 5: Komelate Blog - Parcours RDC à l'Utah -->
-      <article class="press__pub-card">
+      <article class="press__pub-card" data-cursor="LIRE">
         <div>
-          <span class="press__pub-badge badge--dossier">Récit de Vie & Parcours</span>
+          <div class="press__pub-kicker">
+            <span>Récit de Vie</span>
+            <span class="sep">/</span>
+            <span>Résilience</span>
+          </div>
           <div class="press__pub-header">
             <span class="press__pub-source">Komelate Blog Officiel</span>
-            <span class="press__pub-date">Série Trajectoires</span>
+            <span class="press__pub-date">Trajectoires</span>
           </div>
           <h3 class="press__pub-title">De Kinshasa à Salt Lake City : Parcours de résilience</h3>
-          <p class="press__pub-excerpt" chronic="true">Chronique inspirante du parcours migratoire et universitaire de Black Pater : le défi de l'acclimatation en Utah, la persévérance face au choc culturel et l'affirmation d'une identité panafricaine rayonnante.</p>
+          <p class="press__pub-excerpt">Chronique inspirante du défi migratoire et universitaire, l'acclimatation en Utah et l'affirmation d'une identité panafricaine rayonnante.</p>
         </div>
         <div class="press__pub-footer">
           <a class="press__pub-link" href="https://komelate-blog.netlify.app/black-pater-rdc-utah-parcours/" target="_blank" rel="noopener">
-            <span>Découvrir le Parcours sur Komelate ↗</span>
+            <span>Découvrir le Parcours ↗</span>
           </a>
         </div>
       </article>
 
       <!-- Article 6: Komelate Blog - Culture & Danse -->
-      <article class="press__pub-card press__pub-card--alt">
+      <article class="press__pub-card press__pub-card--alt" data-cursor="LIRE">
         <div>
-          <span class="press__pub-badge badge--culture">Culture & Rayonnement</span>
+          <div class="press__pub-kicker">
+            <span>Patrimoine & Danse</span>
+            <span class="sep">/</span>
+            <span>Banafro</span>
+          </div>
           <div class="press__pub-header">
             <span class="press__pub-source">Komelate Blog Officiel</span>
-            <span class="press__pub-date">Série Art & Héritage</span>
+            <span class="press__pub-date">Art & Héritage</span>
           </div>
           <h3 class="press__pub-title">L'Ambassadeur de la culture congolaise : Danse & Banafro</h3>
-          <p class="press__pub-excerpt">Focus sur son travail de promotion des danses et musiques congolaises : comment Jean-Pierre Lofumbwa utilise les rythmes du pays et l'énergie Banafro pour reconnecter la diaspora avec ses racines profondes.</p>
+          <p class="press__pub-excerpt">Focus sur la valorisation des rythmes et danses du Congo pour reconnecter la jeunesse de la diaspora avec ses racines africaines.</p>
         </div>
         <div class="press__pub-footer">
           <a class="press__pub-link" href="https://komelate-blog.netlify.app/black-pater-culture-danse-banafro/" target="_blank" rel="noopener">
-            <span>Consulter l'Article Culturel ↗</span>
+            <span>Consulter l'Article ↗</span>
           </a>
         </div>
       </article>
 
       <!-- Article 7: Komelate Blog - Études & Polyglotte -->
-      <article class="press__pub-card press__pub-card--gold">
+      <article class="press__pub-card press__pub-card--gold" data-cursor="LIRE">
         <div>
-          <span class="press__pub-badge badge--academic">Pédagogie & Langues</span>
+          <div class="press__pub-kicker">
+            <span>Pédagogie</span>
+            <span class="sep">/</span>
+            <span>Polyglotte</span>
+          </div>
           <div class="press__pub-header">
             <span class="press__pub-source">Komelate Blog Officiel</span>
-            <span class="press__pub-date">Série Éducation</span>
+            <span class="press__pub-date">Éducation</span>
           </div>
-          <h3 class="press__pub-title">Le Prof : Excellence académique & passion des langues</h3>
-          <p class="press__pub-excerpt">Exploration de sa vocation d'enseignant et de traducteur (« Molakisi ») : son engagement pour l'apprentissage des langues, la vulgarisation historique et l'émancipation intellectuelle des jeunes apprenants.</p>
+          <h3 class="press__pub-title">Le Prof : Rigueur académique & passion des 5 langues</h3>
+          <p class="press__pub-excerpt">Exploration de sa vocation d'enseignant et traducteur (« Molakisi ») et son engagement pour l'émancipation intellectuelle des apprenants.</p>
         </div>
         <div class="press__pub-footer">
           <a class="press__pub-link" href="https://komelate-blog.netlify.app/le-prof-black-pater-etudes-langues/" target="_blank" rel="noopener">
-            <span>Lire l'Article Pédagogique ↗</span>
+            <span>Lire l'Article ↗</span>
           </a>
         </div>
       </article>
 
       <!-- Article 8: Komelate Blog - Créateur Digital -->
-      <article class="press__pub-card">
+      <article class="press__pub-card" data-cursor="LIRE">
         <div>
-          <span class="press__pub-badge badge--dossier">Impact Communautaire</span>
+          <div class="press__pub-kicker">
+            <span>Impact Communautaire</span>
+            <span class="sep">/</span>
+            <span>Médias</span>
+          </div>
           <div class="press__pub-header">
             <span class="press__pub-source">Komelate Blog Officiel</span>
-            <span class="press__pub-date">Série Société Digitale</span>
+            <span class="press__pub-date">Société Digitale</span>
           </div>
           <h3 class="press__pub-title">Black Pater : Bâtisseur de communauté et voix de la diaspora</h3>
-          <p class="press__pub-excerpt">Analyse de sa communauté fédérée autour de valeurs d'entraide, d'éducation et de bienveillance : un pont digital vivant entre l'Afrique centrale et le monde occidental.</p>
+          <p class="press__pub-excerpt">Analyse d'une communauté soudée autour de valeurs d'entraide, d'éducation et de bienveillance entre le Congo et le monde.</p>
         </div>
         <div class="press__pub-footer">
           <a class="press__pub-link" href="https://komelate-blog.netlify.app/createur-contenu-multilingue-diaspora/" target="_blank" rel="noopener">
@@ -1976,60 +2228,41 @@ body.menu-open .mmenu,
       </article>
 
       <!-- Article 9: CollegeSidekick - Academic Document -->
-      <article class="press__pub-card press__pub-card--blue">
+      <article class="press__pub-card press__pub-card--blue" data-cursor="LIRE">
         <div>
-          <span class="press__pub-badge badge--academic">Documents d'Études · Recherche</span>
+          <div class="press__pub-kicker">
+            <span>Archives Académiques</span>
+            <span class="sep">/</span>
+            <span>Recherche</span>
+          </div>
           <div class="press__pub-header">
             <span class="press__pub-source">CollegeSidekick · Study Docs</span>
-            <span class="press__pub-date">Fiche d'Études 7290959</span>
+            <span class="press__pub-date">Fiche 7290959</span>
           </div>
           <h3 class="press__pub-title">Documents universitaires de Jean-Pierre Lofumbwa</h3>
-          <p class="press__pub-excerpt">Archives et documents d'études académiques partagés sur CollegeSidekick attestant du travail méthodologique et de la rigueur universitaire de l'étudiant à Columbia College.</p>
+          <p class="press__pub-excerpt">Travaux et méthodologie d'études universitaires partagés sur CollegeSidekick attestant de sa rigueur académique aux USA.</p>
         </div>
         <div class="press__pub-footer">
           <a class="press__pub-link" href="https://www.collegesidekick.com/study-docs/7290959" target="_blank" rel="noopener">
-            <span>Consulter les Documents sur CollegeSidekick ↗</span>
+            <span>Consulter les Documents ↗</span>
           </a>
         </div>
       </article>
     </div>
 
-    <div style="text-align: center; margin-top: 10px;">
-      <a class="btn-executive btn-executive--primary" href="/articles" style="display: inline-flex; max-width: 480px; margin: 0 auto; text-align: left;">
-        <div class="btn-executive__spark" aria-hidden="true"></div>
-        <div class="btn-executive__content">
-          <span class="btn-executive__main">Accéder à la Page Complète des Articles</span>
-          <span class="btn-executive__sub">Dossiers de presse, distinctions et sources intégrales</span>
-        </div>
-        <div class="btn-executive__icon-wrap" aria-hidden="true">
-          <svg viewBox="0 0 24 24" class="btn-executive__arrow"><path fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </div>
+    <!-- Pro Action Strip -->
+    <div class="press__actions">
+      <button type="button" class="press__toggle-btn" id="pressToggleBtn" aria-expanded="false" aria-controls="pressMoreGrid">
+        <span class="press__toggle-text">Voir les 6 autres publications</span>
+        <span class="press__toggle-arrow">↓</span>
+      </button>
+      <a class="press__all-link" href="/articles">
+        <span>Consulter l'archive complète sur la page dédiée →</span>
       </a>
     </div>
   </div>
 </section>
 
-<!-- ===================== PHOTO STRIP ===================== -->
-<section class="strip" aria-label="Black Pater in Motion">
-  <div class="strip__row">
-    <div class="strip__set">
-      <figure><im-g class="im im-wall"></im-g><figcaption>Le Prof — Jean-Pierre Lofumbwa</figcaption></figure>
-      <figure class="ph--cut"><div class="im im-cut"></div><figcaption>Salt Lake City, Utah</figcaption></figure>
-      <figure><im-g class="im im-steps"></im-g><figcaption>Excellence Académique · Columbia College</figcaption></figure>
-      <figure><im-g class="im im-vibe"></im-g><figcaption>Ambassadeur Culturel · RDC</figcaption></figure>
-      <figure><im-g class="im im-chair"></im-g><figcaption>Pédagogie & Panafricanisme</figcaption></figure>
-      <figure><im-g class="im im-org"></im-g><figcaption>De Kinshasa aux États-Unis</figcaption></figure>
-    </div>
-    <div class="strip__set" aria-hidden="true">
-      <figure><im-g class="im im-wall"></im-g><figcaption>Le Prof — Jean-Pierre Lofumbwa</figcaption></figure>
-      <figure class="ph--cut"><div class="im im-cut"></div><figcaption>Salt Lake City, Utah</figcaption></figure>
-      <figure><im-g class="im im-steps"></im-g><figcaption>Excellence Académique · Columbia College</figcaption></figure>
-      <figure><im-g class="im im-vibe"></im-g><figcaption>Ambassadeur Culturel · RDC</figcaption></figure>
-      <figure><im-g class="im im-chair"></im-g><figcaption>Pédagogie & Panafricanisme</figcaption></figure>
-      <figure><im-g class="im im-org"></im-g><figcaption>De Kinshasa aux États-Unis</figcaption></figure>
-    </div>
-  </div>
-</section>
 
 <!-- ===================== JOURNEY ===================== -->
 <section class="journey" id="journey" aria-label="Journey">
@@ -3095,6 +3328,30 @@ function buildNames() {
   flowUI(pfNamesEl, pfCountEl, flows.pf.shown, pfN);
 }
 
+/* Press publications drawer toggle */
+(function initPressToggle() {
+  const btn = $('#pressToggleBtn');
+  const grid = $('#pressMoreGrid');
+  if (!btn || !grid) return;
+  btn.addEventListener('click', () => {
+    const isClosed = grid.hidden;
+    grid.hidden = !isClosed;
+    btn.setAttribute('aria-expanded', String(isClosed));
+    const txt = $('.press__toggle-text', btn);
+    const arr = $('.press__toggle-arrow', btn);
+    const isFr = (document.documentElement.lang || 'fr') === 'fr';
+    if (txt) {
+      txt.textContent = isClosed ? (isFr ? 'Réduire l\'affichage' : 'Collapse publications') : (isFr ? 'Voir les 6 autres publications' : 'View 6 other publications');
+    }
+    if (arr) {
+      arr.textContent = isClosed ? '↑' : '↓';
+    }
+    if (isClosed && HAS_ST) {
+      setTimeout(() => ScrollTrigger.refresh(), 100);
+    }
+  });
+})();
+
 /* ==========================================================================
    BOOT
    ========================================================================== */
@@ -3110,5 +3367,6 @@ onScroll(); if (!HAS_ST) runTracked();
 </script>
 <script src="/js/levelup-config.js"></script>
 <script src="/js/levelup.js" defer></script>
+<script src="/js/cursor.js" defer></script>
 </body>
 </html>

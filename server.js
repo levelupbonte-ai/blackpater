@@ -23,10 +23,46 @@ app.disable('x-powered-by');
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   next();
 });
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
+
+// Explicit Favicon routes for Google Search Central & Search Preview crawlers
+app.get('/favicon.ico', (req, res) => {
+  res.type('image/x-icon');
+  res.setHeader('Cache-Control', 'public, max-age=604800');
+  res.sendFile(path.join(__dirname, 'public', 'favicon.ico'));
+});
+
+app.get(['/favicon-192x192.png', '/android-chrome-192x192.png', '/favicon.png'], (req, res) => {
+  res.type('image/png');
+  res.setHeader('Cache-Control', 'public, max-age=604800');
+  res.sendFile(path.join(__dirname, 'public', 'favicon-192x192.png'));
+});
+
+app.get('/favicon-48x48.png', (req, res) => {
+  res.type('image/png');
+  res.setHeader('Cache-Control', 'public, max-age=604800');
+  res.sendFile(path.join(__dirname, 'public', 'favicon-48x48.png'));
+});
+
+app.get('/favicon-96x96.png', (req, res) => {
+  res.type('image/png');
+  res.setHeader('Cache-Control', 'public, max-age=604800');
+  res.sendFile(path.join(__dirname, 'public', 'favicon-96x96.png'));
+});
+
+app.get('/apple-touch-icon.png', (req, res) => {
+  res.type('image/png');
+  res.setHeader('Cache-Control', 'public, max-age=604800');
+  res.sendFile(path.join(__dirname, 'public', 'apple-touch-icon.png'));
+});
+
+app.get('/logo.png', (req, res) => {
+  res.type('image/png');
+  res.setHeader('Cache-Control', 'public, max-age=604800');
+  res.sendFile(path.join(__dirname, 'public', 'logo.png'));
+});
 
 // Stripe API: Check configuration status
 app.get('/api/stripe/config', (req, res) => {
@@ -101,6 +137,16 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       message: error.message || 'Erreur lors de la création de la session Stripe.'
     });
   }
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
 });
 
 app.get('/', (req, res) => {

@@ -853,38 +853,59 @@ section{position:relative}
 /* ==========================================================================
    NAVIGATION HEADER
    ========================================================================== */
-.nav{position:fixed;top:0;left:0;right:0;z-index:90;height:var(--nav-h);padding:0 var(--pad);display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);background:rgba(12,10,9,.82);border-bottom:1px solid var(--bone-faint);transition:background .35s,border-color .35s,transform .4s var(--ease)}
-.nav.is-scrolled{background:rgba(12,10,9,.96);border-bottom-color:rgba(239,232,220,.12)}
-.nav__brand{font-family:var(--display);font-size:1.85rem;letter-spacing:.04em;line-height:1;position:relative;z-index:3;color:var(--bone);display:inline-flex;align-items:center;transition:color .3s}
-.nav__brand:hover{color:var(--copper)}
-.nav__links{display:flex;align-items:center;gap:clamp(16px,2.2vw,36px)}
-.nav__links a{font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;font-weight:500;color:var(--bone-dim);position:relative;padding:6px 0;transition:color .3s var(--ease)}
-.nav__links a::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:1px;background:var(--copper);transform:scaleX(0);transform-origin:right;transition:transform .4s var(--ease)}
+/* ==========================================================================
+   PRO EXECUTIVE NAVBAR & BRANDING
+   ========================================================================== */
+.nav-wrapper{position:fixed;top:0;left:0;right:0;z-index:90;transition:transform .4s var(--ease)}
+.nav-tricolor-line{height:2px;width:100%;background:linear-gradient(90deg,#1b6fd6 0%,#1b6fd6 33.3%,#f7d618 33.3%,#f7d618 66.6%,#ce1126 66.6%,#ce1126 100%);opacity:.85}
+.nav{position:relative;height:var(--nav-h);padding:0 var(--pad);display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);background:rgba(12,10,9,.82);border-bottom:1px solid rgba(239,232,220,.08);transition:background .35s,border-color .35s,box-shadow .35s}
+.nav.is-scrolled{background:rgba(12,10,9,.96);border-bottom-color:rgba(201,138,82,.22);box-shadow:0 16px 36px -10px rgba(0,0,0,.7)}
+
+.nav__brand{display:inline-flex;align-items:center;text-decoration:none;cursor:pointer}
+.nav__brand-name{font-family:var(--display);font-size:1.95rem;letter-spacing:.05em;line-height:1;color:var(--bone);transition:color .3s var(--ease)}
+.nav__brand:hover .nav__brand-name{color:var(--copper)}
+
+.nav__links{display:flex;align-items:center;gap:clamp(16px,2vw,34px)}
+.nav__links a{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-weight:500;color:var(--bone-dim);position:relative;padding:8px 0;transition:color .3s var(--ease);display:inline-flex;align-items:center;gap:6px}
+.nav__links a::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:1.5px;background:var(--copper);transform:scaleX(0);transform-origin:right;transition:transform .35s var(--ease)}
 .nav__links a:hover,.nav__links a:focus-visible{color:var(--bone)}
 .nav__links a:hover::after,.nav__links a:focus-visible::after{transform:scaleX(1);transform-origin:left}
+.nav__links a.is-active{color:var(--copper)!important;font-weight:600}
+.nav__links a.is-active::after{transform:scaleX(1)!important;transform-origin:left!important}
 
-.lang{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bone-faint);border-radius:99px;padding:3px 10px;background:rgba(255,255,255,.03)}
-.lang button{font-size:.7rem;letter-spacing:.14em;font-weight:600;color:var(--bone-dim);transition:color .3s;padding:2px 4px}
-.lang button[aria-pressed="true"]{color:var(--copper)}
+.nav__actions{display:flex;align-items:center;gap:16px}
+
+.lang{display:inline-flex;align-items:center;gap:3px;border:1px solid rgba(239,232,220,.14);border-radius:99px;padding:3px 6px;background:rgba(255,255,255,.04)}
+.lang button{font-size:.68rem;letter-spacing:.14em;font-weight:600;color:var(--bone-dim);border-radius:99px;padding:3px 8px;transition:all .25s}
+.lang button.active,.lang button[aria-pressed="true"]{background:rgba(201,138,82,.25);color:var(--bone);border:1px solid rgba(201,138,82,.4)}
 .lang button:hover{color:var(--bone)}
-.lang span{display:inline-block;width:1px;height:10px;background:var(--bone-faint)}
+.lang span{display:inline-block;width:1px;height:10px;background:rgba(239,232,220,.12)}
 
-.burger{display:none;width:44px;height:44px;position:relative;z-index:92;background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important;flex-direction:column;justify-content:center;align-items:center;gap:6px}
+.burger{display:none;width:44px;height:44px;position:relative;z-index:96;background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important;flex-direction:column;justify-content:center;align-items:center;gap:6px}
 .burger i{width:24px;height:1.5px;background:var(--bone);transition:transform .35s var(--ease),opacity .25s}
 .burger[aria-expanded="true"] i:first-child{transform:translateY(3.75px) rotate(45deg)}
 .burger[aria-expanded="true"] i:last-child{transform:translateY(-3.75px) rotate(-45deg)}
 
-@media (max-width:880px){
+@media (max-width:980px){
   .nav__links{display:none!important}
   .burger{display:flex!important}
 }
 
-/* Mobile Menu Overlay */
-.mmenu{position:fixed;inset:0;z-index:85;background:rgba(12,10,9,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);display:flex;flex-direction:column;justify-content:center;padding:clamp(30px,6vw,60px) var(--pad);opacity:0;pointer-events:none;transform:translateY(-10px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
+/* Mobile Drawer Overlay */
+.mmenu{position:fixed;inset:0;z-index:95;background:rgba(12,10,9,.98);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);display:flex;flex-direction:column;padding:24px var(--pad) 28px;opacity:0;pointer-events:none;transform:translateY(-12px);transition:opacity .35s var(--ease),transform .35s var(--ease);overflow-y:auto}
 .mmenu.is-open{opacity:1;pointer-events:auto;transform:none}
-.mmenu a{font-family:var(--display);font-size:clamp(2.4rem,10vw,4.2rem);text-transform:uppercase;color:var(--bone);margin-bottom:12px;line-height:1;transition:color .3s,transform .3s}
-.mmenu a:hover{color:var(--copper);transform:translateX(10px)}
-.mmenu .lang{margin-top:24px;align-self:flex-start}
+.mmenu__top{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:1px solid rgba(239,232,220,.08);margin-bottom:24px}
+.mmenu__links{display:flex;flex-direction:column;gap:6px;margin-bottom:24px}
+.mmenu__links a{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;border-bottom:1px solid rgba(239,232,220,.05);transition:all .25s var(--ease)}
+.mmenu__links a:hover,.mmenu__links a.is-active{background:rgba(201,138,82,.1);border-color:rgba(201,138,82,.3)}
+.mmenu__link-text{font-family:var(--display);font-size:clamp(1.3rem,5vw,1.65rem);text-transform:uppercase;color:var(--bone);letter-spacing:.04em;line-height:1;display:flex;align-items:center;gap:10px}
+.mmenu__links a.is-active .mmenu__link-text{color:var(--copper)}
+.mmenu__link-idx{font-family:var(--sans);font-size:.7rem;color:var(--copper);letter-spacing:.12em;font-weight:600}
+.mmenu__link-arrow{color:var(--bone-dim);opacity:.6}
+.mmenu__bottom{margin-top:auto;padding-top:16px;border-top:1px solid rgba(239,232,220,.08);display:flex;flex-direction:column;gap:14px}
+.mmenu__socials{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.mmenu__socials a{font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bone-dim);transition:color .2s}
+.mmenu__socials a:hover{color:var(--copper)}
 
 /* ==========================================================================
    BESPOKE BLACK PATER CURSOR — HAUTE COUTURE DUAL-LAYER KINETIC SYSTEM

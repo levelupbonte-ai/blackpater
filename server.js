@@ -86,24 +86,21 @@ app.get('/api/stripe/config', (req, res) => {
 
 // Stripe API: Create Checkout Session
 app.post('/api/stripe/create-checkout-session', async (req, res) => {
+  const { email, name, note } = req.body || {};
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const host = req.headers['x-forwarded-host'] || req.headers.host || `localhost:${PORT}`;
+  const origin = `${protocol}://${host}`.replace(/\/+$/, '');
+
+  if (!stripe) {
+    return res.json({
+      status: 'pending_keys',
+      configured: false,
+      message: 'Paiement en ligne Stripe : la clé secrète STRIPE_SECRET_KEY n’est pas encore configurée sur le serveur.',
+    });
+  }
+
   try {
-    const { email, name, note } = req.body || {};
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-    const host = req.headers['x-forwarded-host'] || req.headers.host || `localhost:${PORT}`;
-    const origin = `${protocol}://${host}`;
-
-    if (!stripe) {
-      // Return clear status when Stripe is ready in the codebase but awaiting user's live secret key
-      return res.json({
-        status: 'pending_keys',
-        configured: false,
-        message: 'Stripe est prêt et sécurisé. Ajoutez votre STRIPE_SECRET_KEY dans les variables d’environnement pour lancer le paiement en direct.',
-        fallbackUrl: `https://wa.me/17205490926?text=${encodeURIComponent("Bonjour Jean-Pierre, je souhaite souscrire à l'offre à 1$ (Accompagnement & Démarches Voyage).")}`
-      });
-    }
-
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       mode: 'payment',
       customer_email: email && email.includes('@') ? email : undefined,
       line_items: [
@@ -112,8 +109,7 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
             currency: 'usd',
             product_data: {
               name: 'Black Pater — Accompagnement & Démarches Voyage (Offre 1$)',
-              description: 'Accès complet : démarches de voyage, bourses, visas, opportunités réelles et contact direct WhatsApp.',
-              images: [`${origin}/og-preview.png`],
+              description: 'Accès complet : démarches de voyage, bourses, visas, opportunités réelles.',
             },
             unit_amount: 100, // 100 cents = $1.00 USD
           },
@@ -137,10 +133,76 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     });
   } catch (error) {
     console.error('Stripe Checkout Error:', error);
-    return res.status(500).json({
+    let userMessage = error.message || 'Erreur lors de la création de la session Stripe.';
+    if (error.type === 'StripeAuthenticationError') {
+      userMessage = 'Clé secrète Stripe invalide. Vérifiez STRIPE_SECRET_KEY.';
+    }
+    return res.status(200).json({
       status: 'error',
-      message: error.message || 'Erreur lors de la création de la session Stripe.'
+      message: userMessage,
+      stripeError: error.message,
+      stripeCode: error.code || error.type || 'UNKNOWN',
     });
+  }
+});
+
+// Mobile Money API: Orange Money, MTN, Airtel, Wave, M-Pesa
+app.post('/api/mobile-money/create-session', async (req, res) => {
+  const { email, name, phone, operator } = req.body || {};
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const host = req.headers['x-forwarded-host'] || req.headers.host || `localhost:${PORT}`;
+  const origin = `${protocol}://${host}`.replace(/\/+$/, '');
+
+  const customLink = process.env.MOBILE_MONEY_PAYMENT_LINK;
+  if (customLink && customLink.startsWith('http')) {
+    return res.json({ status: 'success', configured: true, url: customLink });
+  }
+
+  const flwSecretKey = (process.env.FLUTTERWAVE_SECRET_KEY || '').trim();
+  if (!flwSecretKey) {
+    return res.json({
+      status: 'pending_keys',
+      configured: false,
+      message: 'Le module Mobile Money (Orange Money, MTN, Airtel, M-Pesa, Wave) est prêt dans le code. Ajoutez votre clé FLUTTERWAVE_SECRET_KEY dans les variables d’environnement pour activer le paiement.',
+      supportedOperators: ['Orange Money', 'MTN Mobile Money', 'Airtel Money', 'Vodacom M-Pesa', 'Wave']
+    });
+  }
+
+  try {
+    const txRef = `BP-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+    const flwResponse = await fetch('https://api.flutterwave.com/v3/payments', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${flwSecretKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        tx_ref: txRef,
+        amount: '1',
+        currency: 'USD',
+        redirect_url: `${origin}/abonnements?payment=success&provider=mobile_money`,
+        payment_options: 'mobilemoneysn,mobilemoneyfranco,mobilemoneyuganda,mobilemoneyrwanda,mobilemoneyzambia,mobilemoneyghana,card,ussd,banktransfer',
+        customer: {
+          email: email && email.includes('@') ? email : 'contact@blackpater.com',
+          name: name || 'Abonné Black Pater',
+          phonenumber: phone || ''
+        },
+        customizations: {
+          title: 'Black Pater — Accompagnement & Démarches ($1)',
+          description: 'Paiement direct sécurisé Orange Money, MTN MoMo, Airtel Money, Wave, M-Pesa',
+          logo: `${origin}/logo.png`
+        },
+        meta: { operator: operator || 'all', platform: 'blackpater.com' }
+      })
+    });
+    const flwData = await flwResponse.json();
+    if (flwData.status === 'success' && flwData.data && flwData.data.link) {
+      return res.json({ status: 'success', configured: true, url: flwData.data.link });
+    }
+    return res.json({ status: 'error', message: flwData.message || 'Erreur lors de l’initialisation Mobile Money.' });
+  } catch (err) {
+    console.error('Mobile money error:', err);
+    return res.json({ status: 'error', message: err.message || 'Erreur de connexion Mobile Money.' });
   }
 });
 

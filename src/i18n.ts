@@ -9,6 +9,11 @@ export const translations = {
     nav_culture: 'Culture',
     nav_socials: 'Médias',
     nav_contact: 'Contact',
+    nav_cta: 'Souscrire · 1$',
+    nav_official_tag: 'Site Officiel',
+    nav_prof_title: 'Le Prof · Éducateur',
+    nav_mobile_offer_title: 'Accompagnement Démarches Voyage ($1)',
+    nav_mobile_offer_sub: 'Paiement 100% en ligne (Stripe & Mobile Money)',
 
     // Hero
     hero_status: 'Ambassadeur Culturel · Salt Lake City, Utah',
@@ -148,6 +153,11 @@ export const translations = {
     nav_culture: 'Culture',
     nav_socials: 'Media',
     nav_contact: 'Contact',
+    nav_cta: 'Subscribe · $1',
+    nav_official_tag: 'Official Website',
+    nav_prof_title: 'The Prof · Educator',
+    nav_mobile_offer_title: 'Travel Guidance Program ($1)',
+    nav_mobile_offer_sub: '100% online secure payment (Stripe & Mobile Money)',
 
     // Hero
     hero_status: 'Cultural Ambassador · Salt Lake City, Utah',

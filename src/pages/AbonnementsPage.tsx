@@ -4,8 +4,10 @@ import { useLanguage } from '../context/LanguageContext';
 export const AbonnementsPage: React.FC = () => {
   const { t } = useLanguage();
   const [modalOpen, setModalOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'mobile_money'>('card');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -25,33 +27,41 @@ export const AbonnementsPage: React.FC = () => {
     setErrorMsg(null);
 
     try {
-      const res = await fetch('/api/stripe/create-checkout-session', {
+      const endpoint =
+        paymentMethod === 'card'
+          ? '/api/stripe/create-checkout-session'
+          : '/api/mobile-money/create-session';
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ email, name, phone }),
       });
 
-      const data = await res.json();
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        console.error('Non-JSON response from checkout endpoint:', parseErr);
+      }
 
-      if (data.status === 'success' && data.url) {
+      if (data && data.status === 'success' && data.url) {
         window.location.href = data.url;
-      } else if (data.status === 'pending_keys' || data.fallbackUrl) {
-        // Stripe waiting for live secret key: seamlessly connect to WhatsApp
-        const fallback =
-          data.fallbackUrl ||
-          `https://wa.me/17205490926?text=${encodeURIComponent(
-            `Bonjour Jean-Pierre, je m'appelle ${name} (${email}) et je souhaite souscrire à l'offre à 1$ (Accompagnement Voyage).`
-          )}`;
-        window.location.href = fallback;
+      } else if (data && data.status === 'pending_keys') {
+        setErrorMsg(
+          data.message ||
+            'La passerelle de paiement en ligne est en cours de configuration sur le serveur. Veuillez réessayer dans quelques instants.'
+        );
+      } else if (data && data.status === 'error') {
+        setErrorMsg(data.message || 'Une erreur est survenue lors de la création de la session de paiement.');
+      } else if (!res.ok) {
+        setErrorMsg(`Erreur serveur (${res.status}). Veuillez vérifier la configuration et réessayer.`);
       } else {
-        setErrorMsg(data.message || 'Une erreur est survenue lors de l’initialisation.');
+        setErrorMsg(data?.message || 'Une erreur est survenue lors de l’initialisation du paiement.');
       }
     } catch (err: any) {
-      // Network or connection error: direct to WhatsApp
-      const fallback = `https://wa.me/17205490926?text=${encodeURIComponent(
-        `Bonjour Jean-Pierre, je m'appelle ${name} (${email}) et je souhaite souscrire à l'offre à 1$ (Accompagnement Voyage).`
-      )}`;
-      window.location.href = fallback;
+      console.error('Checkout fetch error:', err);
+      setErrorMsg('Impossible de joindre le serveur de paiement. Veuillez vérifier votre connexion.');
     } finally {
       setLoading(false);
     }
@@ -85,13 +95,11 @@ export const AbonnementsPage: React.FC = () => {
                 {t('sub_alert_desc')}
               </p>
               <a
-                href="https://wa.me/17205490926?text=Bonjour%20Jean-Pierre,%20mon%20paiement%20a%20%C3%A9t%C3%A9%20confirm%C3%A9.%20Je%20souhaite%20d%C3%A9marrer%20mon%20accompagnement."
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/contact"
                 className="btn-executive btn-executive--primary"
                 style={{ display: 'inline-flex', padding: '14px 28px', fontSize: '1.05rem', margin: '0 auto' }}
               >
-                {t('sub_alert_btn')}
+                Accéder à mon espace VIP &rarr;
               </a>
             </div>
           )}
@@ -136,39 +144,54 @@ export const AbonnementsPage: React.FC = () => {
               </li>
               <li className="sub-card__item">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" strokeWidth="2.5" stroke="currentColor" fill="none" /></svg>
-                <span><b>Ligne WhatsApp VIP prioritaire</b> avec l'équipe de Jean-Pierre Lofumbwa pour un suivi sans intermédiaire douteux</span>
+                <span><b>Accès VIP direct</b> à l'accompagnement personnalisé de Jean-Pierre Lofumbwa</span>
               </li>
             </ul>
 
             <button
               type="button"
-              onClick={() => setModalOpen(true)}
+              onClick={() => {
+                setErrorMsg(null);
+                setModalOpen(true);
+              }}
               className="sub-card__btn sub-card__btn--primary"
-              style={{ fontSize: '1.2rem', padding: '16px 24px', cursor: 'pointer' }}
-              data-cursor="CHOISIR"
+              style={{ fontSize: '1.2rem', padding: '16px 24px', cursor: 'pointer', width: '100%' }}
+              data-cursor="PAYER"
             >
-              {t('sub_btn')}
+              SOUSCRIRE EN LIGNE POUR 1$
             </button>
 
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <a
-                href="https://wa.me/17205490926?text=Bonjour%20Jean-Pierre,%20j'aimerais%20des%20informations%20sur%20l'offre%20d'accompagnement%20%C3%A0%201$."
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: 'var(--bone-dim)', fontSize: '0.92rem', textDecoration: 'underline', textUnderlineOffset: '4px' }}
-                data-cursor="WHATSAPP"
-              >
-                {t('sub_wa_consult')}
-              </a>
+            {/* Supported Payment Badges */}
+            <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid rgba(239, 232, 220, 0.08)', textAlign: 'center' }}>
+              <span style={{ display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--bone-dim)', marginBottom: '10px' }}>
+                Paiement 100% en ligne disponible
+              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', alignItems: 'center' }}>
+                <span style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', padding: '4px 10px', fontSize: '0.78rem', color: '#fff' }}>
+                  💳 Cartes Visa / Mastercard
+                </span>
+                <span style={{ background: 'rgba(255,102,0,0.12)', border: '1px solid rgba(255,102,0,0.4)', borderRadius: '4px', padding: '4px 10px', fontSize: '0.78rem', color: '#ff8533' }}>
+                  🟠 Orange Money
+                </span>
+                <span style={{ background: 'rgba(255,204,0,0.12)', border: '1px solid rgba(255,204,0,0.4)', borderRadius: '4px', padding: '4px 10px', fontSize: '0.78rem', color: '#ffd633' }}>
+                  🟡 MTN Mobile Money
+                </span>
+                <span style={{ background: 'rgba(255,0,0,0.12)', border: '1px solid rgba(255,0,0,0.4)', borderRadius: '4px', padding: '4px 10px', fontSize: '0.78rem', color: '#ff6666' }}>
+                  🔴 Airtel Money
+                </span>
+                <span style={{ background: 'rgba(0,153,255,0.12)', border: '1px solid rgba(0,153,255,0.4)', borderRadius: '4px', padding: '4px 10px', fontSize: '0.78rem', color: '#66b2ff' }}>
+                  🔵 Vodacom M-Pesa / Wave
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Checkout Modal */}
+      {/* 100% Online Checkout Modal */}
       {modalOpen && (
         <div
-          id="stripeModal"
+          id="checkoutModal"
           style={{
             position: 'fixed',
             inset: 0,
@@ -188,13 +211,13 @@ export const AbonnementsPage: React.FC = () => {
             style={{
               background: '#171311',
               border: '1px solid rgba(201,138,82,0.4)',
-              borderRadius: '12px',
-              maxWidth: '480px',
+              borderRadius: '14px',
+              maxWidth: '520px',
               width: '100%',
-              padding: '32px',
+              padding: 'clamp(24px, 5vw, 36px)',
               position: 'relative',
               color: 'var(--bone)',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.85)',
             }}
           >
             <button
@@ -216,22 +239,80 @@ export const AbonnementsPage: React.FC = () => {
               &times;
             </button>
 
+            <span className="label" style={{ color: 'var(--copper)', letterSpacing: '0.14em', marginBottom: '6px', display: 'block', fontSize: '0.76rem' }}>
+              PAIEMENT 100% EN LIGNE SÉCURISÉ
+            </span>
             <h3 style={{ fontFamily: 'var(--display)', fontSize: '2rem', textTransform: 'uppercase', marginBottom: '8px', color: '#fff' }}>
               Adhésion au Programme — $1
             </h3>
-            <p style={{ fontSize: '0.92rem', color: 'var(--bone-dim)', lineHeight: 1.5, marginBottom: '24px' }}>
-              Renseignez vos coordonnées pour finaliser votre accès immédiat à l'accompagnement de Jean-Pierre Lofumbwa.
+            <p style={{ fontSize: '0.9rem', color: 'var(--bone-dim)', lineHeight: 1.5, marginBottom: '20px' }}>
+              Choisissez votre méthode de paiement pour ouvrir votre session en direct.
             </p>
 
+            {/* Payment Method Selector Tabs */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '22px' }}>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('card')}
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: '8px',
+                  border: paymentMethod === 'card' ? '2px solid var(--copper)' : '1px solid rgba(239,232,220,0.15)',
+                  background: paymentMethod === 'card' ? 'rgba(201,138,82,0.18)' : 'rgba(255,255,255,0.03)',
+                  color: paymentMethod === 'card' ? '#fff' : 'var(--bone-dim)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: '0.92rem', marginBottom: '3px' }}>
+                  💳 Carte Bancaire
+                </div>
+                <div style={{ fontSize: '0.74rem', opacity: 0.8 }}>
+                  Visa, Mastercard, Apple Pay, Google Pay
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('mobile_money')}
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: '8px',
+                  border: paymentMethod === 'mobile_money' ? '2px solid var(--copper)' : '1px solid rgba(239,232,220,0.15)',
+                  background: paymentMethod === 'mobile_money' ? 'rgba(201,138,82,0.18)' : 'rgba(255,255,255,0.03)',
+                  color: paymentMethod === 'mobile_money' ? '#fff' : 'var(--bone-dim)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: '0.92rem', marginBottom: '3px' }}>
+                  📱 Mobile Money Afrique
+                </div>
+                <div style={{ fontSize: '0.74rem', opacity: 0.8 }}>
+                  Orange Money, MTN, Airtel, M-Pesa, Wave
+                </div>
+              </button>
+            </div>
+
+            {/* Method Details Notice */}
+            {paymentMethod === 'mobile_money' && (
+              <div style={{ background: 'rgba(201,138,82,0.08)', border: '1px solid rgba(201,138,82,0.25)', borderRadius: '8px', padding: '12px 14px', fontSize: '0.82rem', color: 'var(--bone)', marginBottom: '18px', lineHeight: 1.45 }}>
+                <span style={{ fontWeight: 600, color: 'var(--copper)' }}>Réseaux acceptés : </span>
+                Orange Money (RDC, CI, SN, etc.), MTN MoMo, Airtel Money, Vodacom M-Pesa et Wave. Vous recevrez la notification push sur votre téléphone.
+              </div>
+            )}
+
             {errorMsg && (
-              <div style={{ background: 'rgba(206,17,38,0.2)', border: '1px solid #ce1126', padding: '10px 14px', borderRadius: '6px', fontSize: '0.85rem', color: '#fff', marginBottom: '16px' }}>
+              <div style={{ background: 'rgba(206,17,38,0.2)', border: '1px solid #ce1126', padding: '12px 14px', borderRadius: '8px', fontSize: '0.86rem', color: '#fff', marginBottom: '16px', lineHeight: 1.4 }}>
                 {errorMsg}
               </div>
             )}
 
-            <form onSubmit={handleCheckoutSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
+            <form onSubmit={handleCheckoutSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '18px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--bone-dim)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--bone-dim)', marginBottom: '6px' }}>
                   Nom complet
                 </label>
                 <input
@@ -245,8 +326,8 @@ export const AbonnementsPage: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--bone-dim)', marginBottom: '6px' }}>
-                  Adresse Email
+                <label style={{ display: 'block', fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--bone-dim)', marginBottom: '6px' }}>
+                  Adresse Email (pour recevoir le reçu & l'accès)
                 </label>
                 <input
                   type="email"
@@ -258,25 +339,45 @@ export const AbonnementsPage: React.FC = () => {
                 />
               </div>
 
+              {paymentMethod === 'mobile_money' && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--bone-dim)', marginBottom: '6px' }}>
+                    Numéro de téléphone Mobile Money (optionnel)
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="Ex : +243 81 234 5678 ou 0812345678"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    style={{ width: '100%', padding: '12px 14px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(239,232,220,0.2)', borderRadius: '6px', color: '#fff', fontSize: '0.95rem' }}
+                  />
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={loading}
                 className="sub-card__btn sub-card__btn--primary"
-                style={{ width: '100%', padding: '14px', fontSize: '1.05rem', cursor: loading ? 'wait' : 'pointer' }}
+                style={{ width: '100%', padding: '14px', fontSize: '1.05rem', cursor: loading ? 'wait' : 'pointer', marginTop: '6px' }}
               >
-                {loading ? 'Connexion en cours...' : 'Valider & Payer — $1'}
+                {loading
+                  ? 'Redirection vers le paiement en cours...'
+                  : paymentMethod === 'card'
+                  ? 'Payer 1$ en ligne par Carte (Stripe)'
+                  : 'Payer 1$ en ligne par Mobile Money'}
               </button>
             </form>
 
-            <div style={{ textAlign: 'center', fontSize: '0.88rem', color: 'var(--bone-dim)' }}>
-              <a
-                href={`https://wa.me/17205490926?text=${encodeURIComponent(`Bonjour Jean-Pierre, je m'appelle ${name || 'un abonné'} et je souhaite finaliser mon adhésion au programme d'accompagnement à 1$.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: 'var(--copper)', textDecoration: 'underline' }}
-              >
-                Ou finaliser directement sur WhatsApp ↗
-              </a>
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '12px', marginTop: '16px', textAlign: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 600, color: 'var(--copper)', marginBottom: '6px' }}>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                </svg>
+                <span>Sécurité Bancaire Maximale Certifiée (PCI-DSS Niveau 1)</span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--bone-dim)', lineHeight: 1.45 }}>
+                Chiffrement militaire AES-256 bits • Validation directe par notification OTP sur votre téléphone auprès de votre opérateur (Orange, MTN, Airtel, Wave) • Aucune coordonnée confidentielle n’est stockée.
+              </p>
             </div>
           </div>
         </div>

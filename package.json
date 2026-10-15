@@ -3,14 +3,25 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node server.js",
-    "lint": "node --check server.js",
-    "build": "node -e \"console.log('Build succeeded')\"",
-    "start": "node server.js"
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "vite build",
+    "preview": "vite preview",
+    "start": "vite preview"
   },
   "dependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
     "express": "^4.21.2",
+    "lucide-react": "^1.57.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "sharp": "^0.35.5",
-    "stripe": "^23.0.0"
+    "stripe": "^23.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0"
   }
 }

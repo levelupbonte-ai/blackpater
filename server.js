@@ -3,6 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import Stripe from 'stripe';
 
+import fs from 'fs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -17,14 +19,17 @@ const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Only the public/ folder is served as static files. The project root (server
-// code, package.json, scripts) must never be downloadable.
 app.disable('x-powered-by');
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   next();
 });
+
+const distPath = path.join(__dirname, 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath, { maxAge: '1d' }));
+}
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
 
 // Explicit Favicon routes for Google Search Central & Search Preview crawlers
@@ -149,32 +154,16 @@ app.get('/robots.txt', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
 });
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+const indexHtmlPath = fs.existsSync(path.join(distPath, 'index.html'))
+  ? path.join(distPath, 'index.html')
+  : path.join(__dirname, 'index.html');
 
-app.get(['/abonnements', '/abonnements.html'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'abonnements.html'));
-});
-
-app.get(['/articles', '/articles.html'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'articles.html'));
-});
-
-app.get(['/biographie', '/biographie.html'], (req, res) => {
-  res.redirect('/#about');
-});
-
-app.get(['/medias', '/medias.html'], (req, res) => {
-  res.redirect('/#socials');
-});
-
-app.get(['/contact', '/contact.html'], (req, res) => {
-  res.redirect('/#contact');
+app.get(['/', '/abonnements', '/articles', '/biographie', '/medias', '/contact'], (req, res) => {
+  res.sendFile(indexHtmlPath);
 });
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(indexHtmlPath);
 });
 
 app.listen(PORT, '0.0.0.0', () => {

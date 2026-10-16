@@ -98,7 +98,7 @@ export const CoverFlow: React.FC = () => {
                     cursor: isActive ? 'default' : 'pointer',
                     transition: 'transform 0.65s cubic-bezier(0.22, 0.8, 0.2, 1), opacity 0.5s ease',
                   }}
-                  data-cursor={isActive ? 'LIRE' : 'EXPLORE'}
+                  data-cursor={isActive ? 'Lire le récit' : 'Explorer'}
                 >
                   <div
                     className="im"

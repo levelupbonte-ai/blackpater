@@ -19,7 +19,7 @@ export const ExecutiveButtons: React.FC<ExecutiveButtonsProps> = ({ onNavigate }
             onNavigate('/abonnements');
           }}
           className="btn-executive btn-executive--primary"
-          data-cursor="CHOISIR"
+          data-cursor="S'abonner"
         >
           <div className="btn-executive__spark" />
           <div className="btn-executive__content">
@@ -50,7 +50,7 @@ export const ExecutiveButtons: React.FC<ExecutiveButtonsProps> = ({ onNavigate }
             onNavigate('/articles');
           }}
           className="btn-executive btn-executive--outline"
-          data-cursor="LIRE"
+          data-cursor="Lire les guides"
         >
           <div className="btn-executive__spark" />
           <div className="btn-executive__content">

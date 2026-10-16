@@ -64,7 +64,7 @@ export const PressSection: React.FC<PressSectionProps> = ({ onNavigate }) => {
                   ? 'press__pub-card--alt'
                   : ''
               }`}
-              data-cursor="LIRE"
+              data-cursor="Consulter la publication"
             >
               <div>
                 <div className="press__pub-header">

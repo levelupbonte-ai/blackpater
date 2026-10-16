@@ -21,7 +21,7 @@ export const SocialsGrid: React.FC = () => {
               rel="noopener noreferrer"
               className={`scard ${item.gridSpan || ''}`}
               style={{ '--b': item.color } as any}
-              data-cursor="EXPLORE"
+              data-cursor="Ouvrir le profil"
             >
               <div className="scard__arrow">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

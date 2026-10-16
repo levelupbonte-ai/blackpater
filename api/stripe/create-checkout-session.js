@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       body = {};
     }
   }
-  const { email, name, note } = body || {};
+  const { email, name, note, planName, amount } = body || {};
 
   const rawSecretKey = process.env.STRIPE_SECRET_KEY || '';
   const stripeSecretKey = cleanKey(rawSecretKey);
@@ -70,6 +70,11 @@ export default async function handler(req, res) {
   }
   origin = origin.replace(/\/+$/, '');
 
+  // Calculate amount in cents (default to $1.00)
+  const parsedAmount = Math.max(1, Math.round(Number(amount || 1)));
+  const unitAmountInCents = parsedAmount * 100;
+  const itemTitle = planName ? `Black Pater — ${planName}` : 'Black Pater — Accompagnement & Démarches Voyage ($1)';
+
   try {
     const stripe = new Stripe(stripeSecretKey);
 
@@ -81,10 +86,10 @@ export default async function handler(req, res) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Black Pater — Accompagnement & Démarches Voyage (Offre 1$)',
-              description: 'Accès complet : démarches de voyage, bourses, visas, opportunités réelles et contact direct WhatsApp.',
+              name: itemTitle,
+              description: 'Accès complet : démarches de voyage, bourses, visas, opportunités réelles et contact direct.',
             },
-            unit_amount: 100, // $1.00 USD
+            unit_amount: unitAmountInCents,
           },
           quantity: 1,
         },
@@ -92,6 +97,7 @@ export default async function handler(req, res) {
       metadata: {
         customer_name: name || 'Abonné Black Pater',
         customer_note: note || '',
+        plan_name: planName || 'Standard',
         platform: 'blackpater.com',
       },
       success_url: `${origin}/abonnements?payment=success&session_id={CHECKOUT_SESSION_ID}`,

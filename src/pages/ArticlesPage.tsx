@@ -112,7 +112,7 @@ export const ArticlesPage: React.FC<ArticlesPageProps> = ({ onNavigate }) => {
                     ? 'press__pub-card--alt'
                     : ''
                 }`}
-                data-cursor="LIRE"
+                data-cursor="Consulter l'article"
               >
                 <div>
                   <div className="press__pub-header">

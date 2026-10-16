@@ -27,7 +27,7 @@ export const ContactSection: React.FC = () => {
                 href="https://wa.me/17205490926"
                 target="_blank"
                 rel="noopener noreferrer"
-                data-cursor="WHATSAPP"
+                data-cursor="💬 Contacter sur WhatsApp"
               >
                 <span className="k">{t('contact_phone_label')}</span>
                 <span className="v">+1 720 549 0926</span>
@@ -45,7 +45,7 @@ export const ContactSection: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="wa"
-              data-cursor="WHATSAPP"
+              data-cursor="💬 Écrire sur WhatsApp"
             >
               <svg className="l" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2z" />

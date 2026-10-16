@@ -374,7 +374,7 @@ export const PhoneSimulator: React.FC = () => {
               textTransform: 'uppercase',
               fontWeight: 600,
             }}
-            data-cursor="WHATSAPP"
+            data-cursor="💬 Écrire sur WhatsApp"
           >
             {t('phone_wa_direct')}
           </a>

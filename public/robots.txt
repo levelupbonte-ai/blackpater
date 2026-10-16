@@ -22,3 +22,4 @@ User-agent: Applebot
 Allow: /
 
 Sitemap: https://blackpater.com/sitemap.xml
+Host: https://blackpater.com

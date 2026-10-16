@@ -29,18 +29,21 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="/logo.svg">
 
+<meta name="application-name" content="Black Pater">
+<meta name="apple-mobile-web-app-title" content="Black Pater">
+
 <!-- OpenGraph & Twitter Social Cards -->
 <meta property="og:type" content="profile">
 <meta property="og:url" content="https://blackpater.com/">
 <meta property="og:title" content="Black Pater (blackpater) — Jean-Pierre Lofumbwa · Le Prof | Site Officiel">
 <meta property="og:description" content="Site officiel de Black Pater (blackpater / Jean-Pierre Lofumbwa). Éducateur congolais, honneur Dean's List Columbia College, créateur de contenu & ambassadeur culturel en Utah.">
-<meta property="og:image" content="/og-image.png">
-<meta property="og:image:secure_url" content="/og-image.png">
+<meta property="og:image" content="https://blackpater.com/og-image.png">
+<meta property="og:image:secure_url" content="https://blackpater.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:alt" content="Black Pater — Jean-Pierre Lofumbwa Official Website">
-<meta property="og:logo" content="/logo.png">
+<meta property="og:logo" content="https://blackpater.com/logo.png">
 <meta property="og:site_name" content="Black Pater Official">
 <meta property="profile:first_name" content="Jean-Pierre">
 <meta property="profile:last_name" content="Lofumbwa">
@@ -49,7 +52,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Black Pater (blackpater) — Jean-Pierre Lofumbwa · Le Prof | Site Officiel">
 <meta name="twitter:description" content="Site officiel de Black Pater (Jean-Pierre Lofumbwa). Éducateur congolais, étudiant d'honneur Dean's List Columbia College, créateur de contenu & ambassadeur culturel en Utah.">
-<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:image" content="https://blackpater.com/og-image.png">
 <meta name="twitter:image:alt" content="Black Pater Logo and Brand Card">
 
 <meta name="theme-color" content="#0c0a09">
@@ -196,6 +199,26 @@
         "https://www.facebook.com/BlackPaterOfficiel",
         "https://www.linkedin.com/in/jean-pierre-lofumbwa-3a5585141/"
       ]
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://blackpater.com/#webapp",
+      "name": "Black Pater",
+      "alternateName": ["blackpater", "BlackPater App", "Plateforme Black Pater"],
+      "url": "https://blackpater.com/",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript and HTML5 support",
+      "description": "Plateforme officielle de Black Pater (Jean-Pierre Lofumbwa) : accompagnement visa & études internationales, guides officiels, articles et ressources culturelles.",
+      "offers": {
+        "@type": "Offer",
+        "price": "1",
+        "priceCurrency": "USD",
+        "name": "Abonnement Accompagnement & Guides Officiels"
+      },
+      "publisher": {
+        "@id": "https://blackpater.com/#organization"
+      }
     }
   ]
 }
@@ -203,7 +226,26 @@
 </head>
 <body id="top">
 <div class="grain" aria-hidden="true"></div>
-<div id="root"></div>
+<noscript>
+  <div style="padding: 24px; font-family: sans-serif; background: #0c0a09; color: #efe8dc; line-height: 1.6;">
+    <h1>Black Pater (Jean-Pierre Lofumbwa · Le Prof) — Site Officiel & Guides</h1>
+    <p>Bienvenue sur la plateforme officielle de <strong>Black Pater</strong> (blackpater / Jean-Pierre Lofumbwa), éducateur congolais, étudiant d'honneur inscrit sur la Dean's List de Columbia College (Fall 2023), créateur de contenu et ambassadeur culturel basé à Salt Lake City (Utah, USA).</p>
+    <p><em>Note d'autorité : Black Pater (blackpater) est une personnalité publique et marque éducative réelle, distincte de Blackwater ou Black Panther.</em></p>
+    <nav aria-label="Navigation principale">
+      <ul>
+        <li><a href="https://blackpater.com/abonnements" style="color: #c98a52;">Abonnements & Guides Officiels (Démarches de visa, études & opportunités)</a></li>
+        <li><a href="https://blackpater.com/articles" style="color: #c98a52;">Articles, Publications & Revue de Presse (VoyageUtah, CCIS, Komelate)</a></li>
+      </ul>
+    </nav>
+  </div>
+</noscript>
+<div id="root">
+  <div style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;" aria-hidden="true">
+    <h1>Black Pater (blackpater) — Jean-Pierre Lofumbwa · Le Prof | Site Officiel</h1>
+    <p>Site officiel de Black Pater (blackpater / Jean-Pierre Lofumbwa). Éducateur congolais, honneur Dean's List Columbia College, créateur de contenu & ambassadeur culturel en Utah.</p>
+    <p>Guides officiels visas, bourses d'études USA, opportunités de voyage, articles biographiques et revue de presse internationale.</p>
+  </div>
+</div>
 <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

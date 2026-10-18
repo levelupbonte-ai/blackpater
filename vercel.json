@@ -3,14 +3,146 @@
   "framework": "vite",
   "buildCommand": "vite build",
   "outputDirectory": "dist",
-  "rewrites": [
+  "trailingSlash": false,
+  "redirects": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "source": "/index.html",
+      "destination": "/",
+      "statusCode": 301
     },
     {
+      "source": "/abonnements.html",
+      "destination": "/abonnements",
+      "statusCode": 301
+    },
+    {
+      "source": "/articles.html",
+      "destination": "/articles",
+      "statusCode": 301
+    },
+    {
+      "source": "/biographie",
+      "destination": "/#about",
+      "statusCode": 301
+    },
+    {
+      "source": "/biographie.html",
+      "destination": "/#about",
+      "statusCode": 301
+    },
+    {
+      "source": "/medias",
+      "destination": "/#socials",
+      "statusCode": 301
+    },
+    {
+      "source": "/medias.html",
+      "destination": "/#socials",
+      "statusCode": 301
+    },
+    {
+      "source": "/contact",
+      "destination": "/#contact",
+      "statusCode": 301
+    },
+    {
+      "source": "/contact.html",
+      "destination": "/#contact",
+      "statusCode": 301
+    },
+    {
+      "source": "/legal",
+      "destination": "/legal/conditions-de-vente",
+      "statusCode": 301
+    },
+    {
+      "source": "/cgv",
+      "destination": "/legal/conditions-de-vente",
+      "statusCode": 301
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/articles",
+      "destination": "/articles/index.html"
+    },
+    {
+      "source": "/abonnements",
+      "destination": "/abonnements/index.html"
+    },
+    {
+      "source": "/abonnements/accompagnement-voyage",
+      "destination": "/abonnements/accompagnement-voyage/index.html"
+    },
+    {
+      "source": "/paiement/confirmation",
+      "destination": "/paiement/confirmation/index.html"
+    },
+    {
+      "source": "/paiement/annule",
+      "destination": "/paiement/annule/index.html"
+    },
+    {
+      "source": "/legal/conditions-de-vente",
+      "destination": "/legal/conditions-de-vente/index.html"
+    },
+    {
+      "source": "/legal/remboursement",
+      "destination": "/legal/remboursement/index.html"
+    },
+    {
+      "source": "/legal/confidentialite",
+      "destination": "/legal/confidentialite/index.html"
+    }
+  ],
+  "headers": [
+    {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/media/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
     }
   ]
 }

@@ -1,52 +1,60 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Language } from '../types';
-import { translations } from '../i18n';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { translations, type TranslationKey } from '../i18n';
+import { frenchTypography } from '../lib/typography';
 
-interface LanguageContextType {
+export type Language = 'fr' | 'en';
+
+interface LanguageContextValue {
   lang: Language;
   setLang: (l: Language) => void;
-  t: (key: keyof typeof translations.fr, fallback?: string) => string;
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
 }
 
-const LanguageContext = createContext<LanguageContextType>({
+const STORAGE_KEY = 'bp_lang';
+
+function initialLang(): Language {
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (saved === 'fr' || saved === 'en') return saved;
+  } catch {
+    /* storage blocked */
+  }
+  return 'fr';
+}
+
+const LanguageContext = createContext<LanguageContextValue>({
   lang: 'fr',
   setLang: () => {},
-  t: (k) => k,
+  t: (k) => k
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [lang, setLangState] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('bp_lang') as Language;
-      if (saved === 'fr' || saved === 'en') return saved;
-    }
-    return 'fr';
-  });
+  const [lang, setLangState] = useState<Language>(initialLang);
 
-  const setLang = (newLang: Language) => {
-    setLangState(newLang);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('bp_lang', newLang);
-      document.documentElement.lang = newLang;
+  const setLang = useCallback((next: Language) => {
+    setLangState(next);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      /* storage blocked: the choice lasts for this visit */
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      document.documentElement.lang = lang;
-    }
+    document.documentElement.lang = lang;
   }, [lang]);
 
-  const t = (key: keyof typeof translations.fr, fallback?: string): string => {
-    const dict = translations[lang] || translations.fr;
-    return dict[key] || fallback || key;
-  };
-
-  return (
-    <LanguageContext.Provider value={{ lang, setLang, t }}>
-      {children}
-    </LanguageContext.Provider>
+  const t = useCallback(
+    (key: TranslationKey, vars?: Record<string, string | number>) => {
+      let s: string = translations[lang][key] ?? translations.fr[key] ?? key;
+      if (vars) for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(String(v));
+      return lang === 'fr' ? frenchTypography(s) : s;
+    },
+    [lang]
   );
+
+  const value = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t]);
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
 export const useLanguage = () => useContext(LanguageContext);

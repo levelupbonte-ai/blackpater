@@ -1,0 +1,91 @@
+// Shared strings: navigation, footer, generic UI, payment errors.
+export const fr = {
+  skip_to_content: 'Aller au contenu',
+  nav_label: 'Navigation principale',
+  nav_home: 'Accueil',
+  nav_offers: 'Accompagnement',
+  nav_articles: 'Articles',
+  nav_about: 'À propos',
+  nav_journey: 'Parcours',
+  nav_culture: 'Culture',
+  nav_socials: 'Médias',
+  nav_contact: 'Contact',
+  nav_menu_open: 'Ouvrir le menu',
+  nav_menu_close: 'Fermer le menu',
+  nav_menu_title: 'Menu',
+  lang_label: 'Langue',
+  lang_switch: 'Choisir la langue',
+  breadcrumbs: "Fil d'Ariane",
+  opens_new_tab: '(nouvel onglet)',
+
+  foot_tag: 'Culture. Éducation. Storytelling. Ambassadeur culturel congolais.',
+  foot_nav: 'Navigation',
+  foot_media: 'Revue de presse',
+  foot_socials: 'Réseaux officiels',
+  foot_legal_title: 'Informations',
+  foot_terms: 'Conditions de vente',
+  foot_refund: 'Remboursement',
+  foot_privacy: 'Confidentialité',
+  foot_rights: 'Tous droits réservés.',
+  foot_disambig: 'Jean-Pierre Lofumbwa (« Le Prof »). Personnalité distincte de Blackwater et de Black Panther.',
+  foot_payments: 'Paiements en ligne traités par Stripe.',
+
+  wa_contact_message: "Bonjour Jean-Pierre, j'ai découvert votre site officiel et je souhaite entrer en contact avec vous.",
+  wa_question_message: "Bonjour Jean-Pierre, j'ai une question sur l'accompagnement « Démarches Voyage » avant de payer.",
+
+  notfound_title: 'Page introuvable',
+  notfound_lead: "Cette page n'existe pas ou a été déplacée. Les contenus du site restent accessibles depuis le menu.",
+  notfound_home: "Retour à l'accueil",
+
+  // Payment errors (generic, never provider messages)
+  err_payments_unavailable: 'Le paiement en ligne est momentanément indisponible. Merci de réessayer un peu plus tard.',
+  err_rate_limited: 'Trop de tentatives en peu de temps. Patientez une minute puis réessayez.',
+  err_timeout: "La connexion est lente et le paiement n'a pas pu s'ouvrir. Vous pouvez réessayer : vous ne serez pas débité deux fois.",
+  err_network: "Connexion impossible. Vérifiez votre réseau puis réessayez : vous ne serez pas débité deux fois.",
+  err_checkout_failed: "Le paiement n'a pas pu être préparé. Réessayez dans un instant : vous ne serez pas débité deux fois."
+};
+
+export const en: Record<keyof typeof fr, string> = {
+  skip_to_content: 'Skip to content',
+  nav_label: 'Main navigation',
+  nav_home: 'Home',
+  nav_offers: 'Guidance',
+  nav_articles: 'Articles',
+  nav_about: 'About',
+  nav_journey: 'Journey',
+  nav_culture: 'Culture',
+  nav_socials: 'Media',
+  nav_contact: 'Contact',
+  nav_menu_open: 'Open menu',
+  nav_menu_close: 'Close menu',
+  nav_menu_title: 'Menu',
+  lang_label: 'Language',
+  lang_switch: 'Choose language',
+  breadcrumbs: 'Breadcrumb',
+  opens_new_tab: '(opens in a new tab)',
+
+  foot_tag: 'Culture. Education. Storytelling. Congolese cultural ambassador.',
+  foot_nav: 'Navigation',
+  foot_media: 'Press',
+  foot_socials: 'Official channels',
+  foot_legal_title: 'Information',
+  foot_terms: 'Terms of sale',
+  foot_refund: 'Refunds',
+  foot_privacy: 'Privacy',
+  foot_rights: 'All rights reserved.',
+  foot_disambig: 'Jean-Pierre Lofumbwa (“Le Prof”). Not affiliated with Blackwater or Black Panther.',
+  foot_payments: 'Online payments processed by Stripe.',
+
+  wa_contact_message: 'Hello Jean-Pierre, I found your official website and would like to get in touch.',
+  wa_question_message: 'Hello Jean-Pierre, I have a question about the “Travel & Visa Guidance” offer before paying.',
+
+  notfound_title: 'Page not found',
+  notfound_lead: 'This page does not exist or has moved. Everything on the site is still available from the menu.',
+  notfound_home: 'Back to home',
+
+  err_payments_unavailable: 'Online payment is temporarily unavailable. Please try again a little later.',
+  err_rate_limited: 'Too many attempts in a short time. Please wait a minute and try again.',
+  err_timeout: 'The connection is slow and the payment page could not open. You can try again — you will not be charged twice.',
+  err_network: 'Could not connect. Check your network and try again — you will not be charged twice.',
+  err_checkout_failed: 'The payment could not be prepared. Please try again in a moment — you will not be charged twice.'
+};

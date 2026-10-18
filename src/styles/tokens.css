@@ -1,0 +1,66 @@
+/* Design tokens — Black Pater brand: ink + bone + copper, League Gothic display. */
+:root {
+  color-scheme: dark;
+
+  /* Colour */
+  --ink: #0c0a09;
+  --char: #171311;
+  --char-2: #201a17;
+  --surface: #13100e;
+  --surface-2: #1a1613;
+  --bone: #efe8dc;
+  --bone-dim: rgba(239, 232, 220, 0.66); /* 6.9:1 on --ink */
+  --bone-mute: rgba(239, 232, 220, 0.5); /* large / non-essential text only */
+  --bone-faint: rgba(239, 232, 220, 0.14);
+  --line: rgba(239, 232, 220, 0.12);
+  --line-strong: rgba(239, 232, 220, 0.24);
+  --bronze: #b0753f;
+  --copper: #c98a52; /* 6.6:1 on --ink */
+  --copper-soft: rgba(201, 138, 82, 0.14);
+  --burg: #6e1423;
+  --burg-hi: #9b1d33;
+  --success: #7fbf8e;
+  --danger: #e88b7d;
+  --congo-b: #1b6fd6;
+  --congo-y: #f7d618;
+  --congo-r: #ce1126;
+
+  /* Type */
+  --display: 'League Gothic', 'Anton', 'Impact', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --serif: 'Instrument Serif', 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --fs-xl: clamp(1.6rem, 1.3rem + 1.4vw, 2.4rem);
+  --fs-2xl: clamp(2.4rem, 1.6rem + 3.4vw, 4.4rem);
+  --fs-3xl: clamp(3rem, 1.8rem + 5.6vw, 6.4rem);
+  --tracking-label: 0.18em;
+
+  /* Space (4px base) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+  --s-10: 128px;
+  --section: clamp(72px, 9vw, 144px);
+  --pad: clamp(16px, 4.2vw, 64px);
+  --content: 1320px;
+  --prose: 68ch;
+
+  /* Shape & motion */
+  --radius-s: 4px;
+  --radius: 8px;
+  --radius-l: 14px;
+  --shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
+  --ease: cubic-bezier(0.22, 0.8, 0.2, 1);
+  --ease-io: cubic-bezier(0.7, 0, 0.2, 1);
+  --nav-h: 68px;
+}

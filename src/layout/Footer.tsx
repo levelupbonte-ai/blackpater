@@ -1,0 +1,134 @@
+import React from 'react';
+import { Link } from '../app/router';
+import { useLanguage } from '../context/LanguageContext';
+import type { TranslationKey } from '../i18n';
+import { CONTACT_EMAIL, WHATSAPP_DISPLAY, whatsappLink } from '../lib/contact';
+import { LevelUpCredit } from './LevelUpCredit';
+
+const NAV: Array<{ to: string; key: TranslationKey }> = [
+  { to: '/', key: 'nav_home' },
+  { to: '/abonnements', key: 'nav_offers' },
+  { to: '/articles', key: 'nav_articles' },
+  { to: '/#about', key: 'nav_about' },
+  { to: '/#journey', key: 'nav_journey' },
+  { to: '/#culture', key: 'nav_culture' },
+  { to: '/#socials', key: 'nav_socials' },
+  { to: '/#contact', key: 'nav_contact' }
+];
+
+const PRESS = [
+  { href: 'https://voyageutah.com/interview/rising-stars-meet-black_pater-lofumbwa-of-salt-lake-city/', label: 'VoyageUtah' },
+  { href: 'https://connected.ccis.edu/2024/01/columbia-college-fall-semester-2023-deans-list-announced/', label: 'Columbia College — Dean’s List' },
+  { href: 'https://benimuwawa.substack.com/p/black-pater-le-soldat-digital-du', label: 'Substack — Béni Muwawa' },
+  { href: 'https://komelate-blog.netlify.app/black-pater-biographie/', label: 'Komelate' },
+  { href: 'https://www.collegesidekick.com/study-docs/7290959', label: 'CollegeSidekick' }
+];
+
+const SOCIAL = [
+  { href: 'https://www.tiktok.com/@black_pater', label: 'TikTok' },
+  { href: 'https://www.instagram.com/black_pater/', label: 'Instagram' },
+  { href: 'https://www.youtube.com/@black_pater', label: 'YouTube' },
+  { href: 'https://www.facebook.com/BlackPaterOfficiel', label: 'Facebook' },
+  { href: 'https://twitter.com/black_pater', label: 'X' },
+  { href: 'https://www.linkedin.com/in/jean-pierre-lofumbwa-3a5585141/', label: 'LinkedIn' }
+];
+
+const LEGAL: Array<{ to: string; key: TranslationKey }> = [
+  { to: '/legal/conditions-de-vente', key: 'foot_terms' },
+  { to: '/legal/remboursement', key: 'foot_refund' },
+  { to: '/legal/confidentialite', key: 'foot_privacy' }
+];
+
+export const Footer: React.FC = () => {
+  const { t } = useLanguage();
+  const year = new Date().getFullYear();
+  return (
+    <footer className='foot'>
+      <div className='container'>
+        <div className='foot__grid'>
+          <div className='foot__brand'>
+            <p className='foot__logo'>BLACK PATER</p>
+            <p className='foot__desc'>
+              Jean-Pierre Lofumbwa · « Le Prof »
+              <br />
+              {t('foot_tag')}
+            </p>
+            <ul className='foot__contact'>
+              <li>
+                <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+              </li>
+              <li>
+                <a href={whatsappLink()} target='_blank' rel='noopener noreferrer'>
+                  WhatsApp · {WHATSAPP_DISPLAY}
+                  <span className='sr-only'> {t('opens_new_tab')}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <nav className='foot__col' aria-labelledby='foot-nav'>
+            <h2 className='foot__title' id='foot-nav'>
+              {t('foot_nav')}
+            </h2>
+            <ul className='foot__links'>
+              {NAV.map((n) => (
+                <li key={n.to}>
+                  <Link to={n.to}>{t(n.key)}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className='foot__col'>
+            <h2 className='foot__title'>{t('foot_media')}</h2>
+            <ul className='foot__links'>
+              {PRESS.map((p) => (
+                <li key={p.href}>
+                  <a href={p.href} target='_blank' rel='noopener noreferrer'>
+                    {p.label}
+                    <span className='sr-only'> {t('opens_new_tab')}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className='foot__col'>
+            <h2 className='foot__title'>{t('foot_socials')}</h2>
+            <ul className='foot__links'>
+              {SOCIAL.map((p) => (
+                <li key={p.href}>
+                  <a href={p.href} target='_blank' rel='noopener noreferrer'>
+                    {p.label}
+                    <span className='sr-only'> {t('opens_new_tab')}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className='foot__legal'>
+          <nav aria-label={t('foot_legal_title')}>
+            <ul className='foot__legal-links'>
+              {LEGAL.map((l) => (
+                <li key={l.to}>
+                  <Link to={l.to}>{t(l.key)}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <p className='foot__pay'>{t('foot_payments')}</p>
+        </div>
+
+        <div className='foot__bot'>
+          <p>
+            © {year} Black Pater (Jean-Pierre Lofumbwa). {t('foot_rights')}
+          </p>
+          <p className='foot__disambig'>{t('foot_disambig')}</p>
+          <LevelUpCredit />
+        </div>
+      </div>
+    </footer>
+  );
+};

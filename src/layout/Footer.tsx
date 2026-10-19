@@ -18,7 +18,7 @@ const NAV: Array<{ to: string; key: TranslationKey }> = [
 
 const PRESS = [
   { href: 'https://voyageutah.com/interview/rising-stars-meet-black_pater-lofumbwa-of-salt-lake-city/', label: 'VoyageUtah' },
-  { href: 'https://connected.ccis.edu/2024/01/columbia-college-fall-semester-2023-deans-list-announced/', label: 'Columbia College — Dean’s List' },
+  { href: 'https://connected.ccis.edu/2024/01/columbia-college-fall-semester-2023-deans-list-announced/', label: 'Columbia College' },
   { href: 'https://benimuwawa.substack.com/p/black-pater-le-soldat-digital-du', label: 'Substack — Béni Muwawa' },
   { href: 'https://komelate-blog.netlify.app/black-pater-biographie/', label: 'Komelate' },
   { href: 'https://www.collegesidekick.com/study-docs/7290959', label: 'CollegeSidekick' }
@@ -47,7 +47,13 @@ export const Footer: React.FC = () => {
       <div className='container'>
         <div className='foot__grid'>
           <div className='foot__brand'>
-            <p className='foot__logo'>BLACK PATER</p>
+            <p className='foot__logo'>
+              <img src='/logo.svg' alt='' width={34} height={34} className='nav__brand-icon' />
+              <span className='brand-wordmark'>
+                <span className='brand-b'>Black</span>
+                <span className='brand-p'>Pater</span>
+              </span>
+            </p>
             <p className='foot__desc'>
               Jean-Pierre Lofumbwa · « Le Prof »
               <br />
@@ -122,7 +128,7 @@ export const Footer: React.FC = () => {
 
         <div className='foot__bot'>
           <p>
-            © {year} Black Pater (Jean-Pierre Lofumbwa). {t('foot_rights')}
+            © {year} BlackPater (Jean-Pierre Lofumbwa). {t('foot_rights')}
           </p>
           <LevelUpCredit />
         </div>

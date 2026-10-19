@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '../context/LanguageContext';
+import { ThemeProvider } from '../context/ThemeContext';
 import { RouterProvider, useRouter } from './router';
 import { SiteLayout } from '../layout/SiteLayout';
 import { HomePage } from '../pages/home/HomePage';
@@ -55,11 +56,13 @@ const Routes: React.FC = () => {
 };
 
 export const App: React.FC = () => (
-  <LanguageProvider>
-    <RouterProvider>
-      <SiteLayout>
-        <Routes />
-      </SiteLayout>
-    </RouterProvider>
-  </LanguageProvider>
+  <ThemeProvider>
+    <LanguageProvider>
+      <RouterProvider>
+        <SiteLayout>
+          <Routes />
+        </SiteLayout>
+      </RouterProvider>
+    </LanguageProvider>
+  </ThemeProvider>
 );

@@ -130,9 +130,9 @@ export const ARTICLES: Article[] = [
     title: '« Le Prof » Black Pater : éducation, langues et excellence',
     titleEn: '“Le Prof” Black Pater: education, languages and excellence',
     excerpt:
-      'La méthode Molakisi : comment Jean-Pierre Lofumbwa pratique et enseigne cinq langues (français, anglais, lingala, swahili, tshiluba) et rend accessibles les démarches académiques et administratives.',
+      'La méthode Molakisi : comment Jean-Pierre Lofumbwa pratique et enseigne quatre langues (anglais, français, espagnol, lingala) et rend accessibles les démarches académiques et administratives.',
     excerptEn:
-      'The Molakisi method: how Jean-Pierre Lofumbwa practises and teaches five languages (French, English, Lingala, Swahili, Tshiluba) and makes academic and administrative procedures accessible.',
+      'The Molakisi method: how Jean-Pierre Lofumbwa practises and teaches four languages (English, French, Spanish, Lingala) and makes academic and administrative procedures accessible.',
     url: 'https://komelate-blog.netlify.app/le-prof-black-pater-etudes-langues/',
     cta: 'Lire l’analyse',
     ctaEn: 'Read the analysis'

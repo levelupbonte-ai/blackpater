@@ -33,20 +33,18 @@ export const DigitalPresence: React.FC = () => {
 
   const send = (e: React.FormEvent) => {
     e.preventDefault();
-    window.open(whatsappLink(text.trim() || t('phone_wa_default')), '_blank', 'noopener,noreferrer');
+    window.location.href = whatsappLink(text.trim() || t('phone_wa_default'));
   };
 
   return (
-    <section className='dig' id='phone' aria-labelledby='dig-title'>
-      <div className='wrap'>
-        <div className='section-head'>
-          <div>
-            <p className='eyebrow'>{t('phone_kicker')}</p>
-            <h2 id='dig-title' className='section-head__title'>
-              {t('phone_title')}
-            </h2>
-          </div>
-          <p className='section-head__aside'>{t('phone_subtitle')}</p>
+    <section className='dig section' id='phone' aria-labelledby='dig-title'>
+      <div className='container'>
+        <div className='section-header-center'>
+          <p className='eyebrow'>{t('phone_kicker')}</p>
+          <h2 id='dig-title' className='section-title'>
+            {t('phone_title')}
+          </h2>
+          <p className='section-subtitle'>{t('phone_subtitle')}</p>
         </div>
 
         <div className='dig__tabs' role='group' aria-label={t('phone_tabs')}>

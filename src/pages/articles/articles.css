@@ -1,4 +1,4 @@
-/* Articles page. */
+/* Articles page — Modern Portfolio Style */
 .articles__toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -9,52 +9,52 @@
   border-bottom: 1px solid var(--line);
 }
 .articles__filters {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: var(--s-2);
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 .articles__filters button {
-  min-height: 40px;
-  padding: 8px 16px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  font-size: var(--fs-xs);
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: var(--radius-s);
+  font-size: 0.82rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--bone-dim);
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  transition: background 0.18s ease, color 0.18s ease;
 }
 .articles__filters button:hover {
   color: var(--bone);
-  border-color: var(--bone-dim);
 }
 .articles__filters button[aria-pressed='true'] {
-  background: var(--bone);
-  border-color: var(--bone);
-  color: var(--ink);
+  background: var(--accent-primary);
+  color: #ffffff;
 }
 .articles__search input {
   width: min(320px, 100%);
-  min-height: 44px;
-  padding: 10px 14px;
+  min-height: 42px;
+  padding: 9px 14px;
   border: 1px solid var(--line-strong);
-  border-radius: var(--radius);
+  border-radius: var(--radius-s);
   background: var(--surface);
   color: var(--bone);
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  font-size: 0.95rem;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 .articles__search input::placeholder {
   color: var(--bone-mute);
 }
 .articles__search input:focus-visible {
   outline: none;
-  border-color: var(--copper);
-  box-shadow: 0 0 0 3px rgba(201, 138, 82, 0.25);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 .articles__count {
-  margin: var(--s-5) 0;
+  margin: var(--s-4) 0;
 }
 .articles__empty {
   display: grid;
@@ -64,7 +64,7 @@
   color: var(--bone-dim);
 }
 .articles__quote {
-  margin-top: clamp(56px, 7vw, 96px);
+  margin-top: clamp(48px, 6vw, 80px);
 }
 @media (max-width: 640px) {
   .articles__search,

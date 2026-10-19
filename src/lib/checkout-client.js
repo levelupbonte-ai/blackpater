@@ -11,9 +11,10 @@
  *    the same attempt id, so the server returns the same Checkout Session.
  */
 
+import { getOffer } from '../../shared/offers.js';
+import { isAttemptId, isConfirmationPath, isSessionId, isStripeCheckoutUrl, parseCheckoutRequest } from '../../shared/validation.js';
+
 const STORAGE_PREFIX = 'bp_checkout:';
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const SESSION_RE = /^cs_(test|live)_[A-Za-z0-9]{10,200}$/;
 
 export const CHECKOUT_ENDPOINT = '/api/stripe/create-checkout-session';
 
@@ -50,8 +51,8 @@ export function readCheckoutAttempt(storage, offerId) {
   if (!raw) return null;
   try {
     const v = JSON.parse(raw);
-    if (v && UUID_RE.test(v.attemptId)) {
-      return { attemptId: v.attemptId, sessionId: SESSION_RE.test(v.sessionId || '') ? v.sessionId : null };
+    if (v && isAttemptId(v.attemptId)) {
+      return { attemptId: v.attemptId, sessionId: isSessionId(v.sessionId) ? v.sessionId : null };
     }
   } catch {
     /* corrupted entry: start a new attempt */
@@ -78,6 +79,7 @@ export function createCheckoutController(options) {
     timeoutMs = 15000,
     endpoint = CHECKOUT_ENDPOINT
   } = options;
+  if (!getOffer(offerId)) throw new Error('Unknown offer');
   const key = STORAGE_PREFIX + offerId;
   let memoryAttempt = null;
   let inflight = null;
@@ -96,6 +98,10 @@ export function createCheckoutController(options) {
   }
 
   async function post(attempt) {
+    // Same schema as the server: nothing unvalidated leaves the browser.
+    const payload = { offerId, attemptId: attempt.attemptId };
+    if (attempt.sessionId) payload.sessionId = attempt.sessionId;
+    if (!parseCheckoutRequest(payload).ok) throw Object.assign(new Error('invalid_request'), { name: 'ValidationError' });
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -104,7 +110,7 @@ export function createCheckoutController(options) {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         signal: controller.signal,
-        body: JSON.stringify({ offerId, attemptId: attempt.attemptId, sessionId: attempt.sessionId || undefined })
+        body: JSON.stringify(payload)
       });
       let data = null;
       try {
@@ -131,17 +137,19 @@ export function createCheckoutController(options) {
         ({ res, data } = await post(attempt));
       }
 
-      if (res.ok && data?.status === 'redirect' && typeof data.url === 'string' && data.url.startsWith('https://')) {
-        save({ attemptId: attempt.attemptId, sessionId: SESSION_RE.test(data.sessionId || '') ? data.sessionId : null });
+      // Only Stripe-hosted Checkout, or this site's confirmation page.
+      if (res.ok && data?.status === 'redirect' && isStripeCheckoutUrl(data.url)) {
+        save({ attemptId: attempt.attemptId, sessionId: isSessionId(data.sessionId) ? data.sessionId : null });
         return { type: 'redirect', url: data.url };
       }
-      if (res.ok && data?.status === 'paid' && typeof data.redirect === 'string' && data.redirect.startsWith('/paiement/confirmation?')) {
+      if (res.ok && data?.status === 'paid' && isConfirmationPath(data.redirect)) {
         return { type: 'paid', redirect: data.redirect };
       }
       if (res.status === 503) return { type: 'error', code: 'payments_unavailable' };
       if (res.status === 429) return { type: 'error', code: 'rate_limited' };
       return { type: 'error', code: 'checkout_failed' };
     } catch (err) {
+      if (err && err.name === 'ValidationError') return { type: 'error', code: 'checkout_failed' };
       return { type: 'error', code: err && err.name === 'AbortError' ? 'timeout' : 'network' };
     }
   }

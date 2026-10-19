@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { normalizePath } from '../../shared/routes.js';
+import { safeInternalPath } from '../../shared/validation.js';
 
 interface Location {
   path: string;
@@ -22,8 +23,14 @@ function readLocation(): Location {
 const RouterContext = createContext<RouterValue>({ path: '/', search: '', hash: '', navigate: () => {} });
 
 function scrollToHash(hash: string) {
-  if (!hash) return false;
-  const el = document.getElementById(decodeURIComponent(hash.slice(1)));
+  if (!hash || hash.length > 200) return false;
+  let id: string;
+  try {
+    id = decodeURIComponent(hash.slice(1));
+  } catch {
+    return false; // malformed %-escape in a hand-typed URL
+  }
+  const el = document.getElementById(id);
   if (!el) return false;
   el.scrollIntoView({ block: 'start' });
   return true;
@@ -39,11 +46,11 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const navigated = useRef(false);
 
   const navigate = useCallback((to: string, opts: { replace?: boolean } = {}) => {
-    const url = new URL(to, window.location.href);
-    if (url.origin !== window.location.origin) {
-      window.location.assign(url.href);
-      return;
-    }
+    // In-site navigation only: "/path", never "//host", "javascript:" or another
+    // origin (external links are plain <a href> elements).
+    const path = safeInternalPath(to, '');
+    if (!path) return;
+    const url = new URL(path, window.location.origin);
     const next = { path: normalizePath(url.pathname), search: url.search, hash: url.hash };
     const method = opts.replace ? 'replaceState' : 'pushState';
     window.history[method](null, '', `${url.pathname}${url.search}${url.hash}`);

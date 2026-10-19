@@ -1,8 +1,8 @@
 import { getOffer } from '../../shared/offers.js';
 import { getStripe } from './stripe.js';
 import { createRateLimiter } from './memory.js';
-import { SESSION_ID_RE } from './checkout.js';
-import { getClientIp, getQuery, methodNotAllowed, sendJson } from './http.js';
+import { readSessionIdParam } from '../../shared/validation.js';
+import { getClientIp, methodNotAllowed, sendJson } from './http.js';
 
 /**
  * Maps a Checkout Session to what the confirmation page may show.
@@ -18,6 +18,16 @@ export function sessionState(session) {
   }
   if (session.status === 'expired') return 'expired';
   return 'open';
+}
+
+function readStrictSessionId(rawUrl) {
+  const raw = String(rawUrl || '');
+  if (raw.length > 600) return '';
+  const q = raw.indexOf('?');
+  const search = q === -1 ? '' : raw.slice(q + 1);
+  const keys = [...new URLSearchParams(search).keys()];
+  if (keys.length !== 1 || keys[0] !== 'session_id') return '';
+  return readSessionIdParam(search);
 }
 
 /**
@@ -36,8 +46,10 @@ export function createSessionStatusHandler(deps = {}) {
     const rl = limiter(getClientIp(req));
     if (!rl.ok) return sendJson(res, 429, { error: 'rate_limited' }, { 'Retry-After': String(rl.retryAfter) });
 
-    const sessionId = getQuery(req).get('session_id') || '';
-    if (!SESSION_ID_RE.test(sessionId)) return sendJson(res, 400, { error: 'invalid_request' });
+    // Only `?session_id=cs_...`, once, in the Stripe format — validated before
+    // anything is sent to Stripe.
+    const sessionId = readStrictSessionId(req.url);
+    if (!sessionId) return sendJson(res, 400, { error: 'invalid_request' });
 
     const stripe = stripeFor();
     if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });

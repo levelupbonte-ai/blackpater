@@ -1,0 +1,100 @@
+/* Legal pages (terms, refunds, privacy). */
+.legal__grid {
+  display: grid;
+  grid-template-columns: minmax(200px, 3fr) minmax(0, 9fr);
+  gap: clamp(32px, 6vw, 96px);
+  padding-block: clamp(40px, 6vw, 88px) var(--section);
+}
+.legal__aside {
+  align-self: start;
+  position: sticky;
+  top: calc(var(--nav-h) + 32px);
+}
+.legal__docs {
+  display: grid;
+  gap: 2px;
+  border-left: 1px solid var(--line);
+}
+.legal__docs a {
+  display: block;
+  padding: 8px 0 8px 16px;
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+  color: var(--bone-dim);
+  transition: color 0.2s, border-color 0.2s;
+}
+.legal__docs a:hover {
+  color: var(--bone);
+}
+.legal__docs a[aria-current='page'] {
+  color: var(--bone);
+  border-left-color: var(--copper);
+}
+.legal__updated {
+  margin-top: var(--s-5);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  color: var(--bone-dim);
+}
+.legal__body {
+  max-width: var(--prose);
+}
+.legal__section + .legal__section {
+  margin-top: var(--s-7);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+}
+.legal__section h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  line-height: 1.2;
+}
+.legal__section p,
+.legal__section ul {
+  margin-top: var(--s-3);
+  color: var(--bone-dim);
+  line-height: 1.75;
+}
+.legal__section ul {
+  display: grid;
+  gap: var(--s-2);
+  padding-left: 1.2em;
+  list-style: disc;
+}
+.legal__section li::marker {
+  color: var(--copper);
+}
+.legal__section strong {
+  color: var(--bone);
+  font-weight: 600;
+}
+.legal__section a {
+  color: var(--copper);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 860px) {
+  .legal__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .legal__aside {
+    position: static;
+  }
+  .legal__docs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    border: 0;
+  }
+  .legal__docs a {
+    padding: 6px 14px;
+    margin: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: var(--fs-sm);
+  }
+  .legal__docs a[aria-current='page'] {
+    border-color: var(--copper);
+  }
+}

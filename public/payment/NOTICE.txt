@@ -1,0 +1,13 @@
+Accepted-payment marks shown under the pay button.
+
+visa.svg, mastercard.svg, applepay.svg, googlepay.svg
+  From Simple Icons (https://simpleicons.org), CC0-1.0.
+
+americanexpress.svg
+  From payment-icons by Muffin Research Labs
+  (https://github.com/muffinresearch/payment-icons), MPL-2.0 — see LICENSE-MPL-2.0.txt.
+  The source of this file is the SVG itself.
+
+All files were cropped to their bounding box and recoloured to the site palette.
+The marks remain trademarks of their owners and are shown only to indicate the
+payment methods accepted at checkout.

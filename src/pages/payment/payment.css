@@ -1,0 +1,86 @@
+/* Payment result pages. */
+.pay {
+  background: radial-gradient(60% 50% at 50% 0%, rgba(201, 138, 82, 0.1), transparent 70%);
+}
+.pay__inner {
+  padding-block: clamp(48px, 8vw, 120px);
+}
+.pay-card {
+  margin-top: var(--s-4);
+  padding: clamp(28px, 4vw, 48px);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+.pay-card--success {
+  border-color: rgba(127, 191, 142, 0.45);
+  background: linear-gradient(180deg, rgba(127, 191, 142, 0.07), transparent 50%), var(--surface);
+}
+.pay-card__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  color: var(--copper);
+}
+.pay-card--success .pay-card__icon {
+  border-color: rgba(127, 191, 142, 0.6);
+  color: var(--success);
+}
+.pay-card__icon svg {
+  width: 24px;
+  height: 24px;
+}
+.pay-card__title {
+  margin-top: var(--s-5);
+  font-family: var(--display);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: clamp(2.6rem, 1.8rem + 3vw, 4.4rem);
+  line-height: 0.92;
+}
+.pay-card__text {
+  margin-top: var(--s-4);
+  max-width: 60ch;
+  color: var(--bone-dim);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+}
+.pay-card__actions {
+  margin-top: var(--s-6);
+}
+.pay-card__actions svg {
+  width: 18px;
+  height: 18px;
+}
+.pay-ref {
+  margin: var(--s-5) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+}
+.pay-ref dt {
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--bone-dim);
+}
+.pay-ref dd {
+  margin: 0;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+.pay-next {
+  margin-top: var(--s-7);
+}
+.pay-steps {
+  margin-top: var(--s-4);
+}

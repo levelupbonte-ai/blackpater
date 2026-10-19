@@ -118,14 +118,12 @@ export const Footer: React.FC = () => {
               ))}
             </ul>
           </nav>
-          <p className='foot__pay'>{t('foot_payments')}</p>
         </div>
 
         <div className='foot__bot'>
           <p>
             © {year} Black Pater (Jean-Pierre Lofumbwa). {t('foot_rights')}
           </p>
-          <p className='foot__disambig'>{t('foot_disambig')}</p>
           <LevelUpCredit />
         </div>
       </div>

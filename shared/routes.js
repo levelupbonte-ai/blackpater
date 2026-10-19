@@ -62,12 +62,12 @@ export const ROUTES = [
       fr: {
         title: 'Accompagnement — Offres de Black Pater (Jean-Pierre Lofumbwa)',
         description:
-          "L'accompagnement de Jean-Pierre Lofumbwa (Black Pater) pour préparer vos démarches de voyage, bourses, études et visas. Paiement unique et sécurisé par Stripe."
+          "L'accompagnement de Jean-Pierre Lofumbwa (Black Pater) pour préparer vos démarches de voyage, bourses, études et visas. Paiement unique."
       },
       en: {
         title: 'Guidance — Offers by Black Pater (Jean-Pierre Lofumbwa)',
         description:
-          'Guidance from Jean-Pierre Lofumbwa (Black Pater) to prepare your travel, scholarship, study and visa procedures. One-time, secure payment by Stripe.'
+          'Guidance from Jean-Pierre Lofumbwa (Black Pater) to prepare your travel, scholarship, study and visa procedures. One-time payment.'
       }
     }
   },
@@ -80,12 +80,12 @@ export const ROUTES = [
       fr: {
         title: 'Accompagnement & Démarches Voyage — 1 $ | Black Pater',
         description:
-          'Informations vérifiées, orientation et échange direct sur WhatsApp pour vos démarches de voyage, bourses, études et visas. 1 $, paiement unique sécurisé par Stripe, sans renouvellement.'
+          'Informations vérifiées, orientation et échange direct sur WhatsApp pour vos démarches de voyage, bourses, études et visas. 1 $, paiement unique, sans renouvellement.'
       },
       en: {
         title: 'Travel & Visa Guidance — $1 | Black Pater',
         description:
-          'Verified information, orientation and direct WhatsApp contact for your travel, scholarship, study and visa procedures. $1 one-time secure payment by Stripe, no renewal.'
+          'Verified information, orientation and direct WhatsApp contact for your travel, scholarship, study and visa procedures. $1 one-time payment, no renewal.'
       }
     }
   },
@@ -95,8 +95,8 @@ export const ROUTES = [
     file: 'paiement/confirmation/index.html',
     indexable: false,
     meta: {
-      fr: { title: 'Confirmation de paiement — Black Pater', description: 'Vérification de votre paiement sécurisé par Stripe.' },
-      en: { title: 'Payment confirmation — Black Pater', description: 'Verifying your secure Stripe payment.' }
+      fr: { title: 'Confirmation de paiement — Black Pater', description: 'Confirmation de votre paiement.' },
+      en: { title: 'Payment confirmation — Black Pater', description: 'Your payment confirmation.' }
     }
   },
   {

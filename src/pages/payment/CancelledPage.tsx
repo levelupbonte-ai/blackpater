@@ -2,8 +2,7 @@ import React from 'react';
 import './payment.css';
 import { Link } from '../../app/router';
 import { useLanguage } from '../../context/LanguageContext';
-import { Icon, WhatsAppIcon } from '../../components/Icon';
-import { whatsappLink } from '../../lib/contact';
+import { Icon } from '../../components/Icon';
 import { OFFERS } from '../../../shared/offers.js';
 
 export const CancelledPage: React.FC = () => {
@@ -29,14 +28,6 @@ export const CancelledPage: React.FC = () => {
             </Link>
           </div>
         </div>
-        <p className='pay-help'>
-          <span>{t('pay_cancel_help')}</span>
-          <a className='arrow-link' href={whatsappLink(t('wa_question_message'))} target='_blank' rel='noopener noreferrer'>
-            <WhatsAppIcon />
-            {t('pay_ask_whatsapp')}
-            <span className='sr-only'> {t('opens_new_tab')}</span>
-          </a>
-        </p>
       </div>
     </div>
   );

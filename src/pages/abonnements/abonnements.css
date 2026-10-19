@@ -109,39 +109,6 @@
     width: 100%;
   }
 }
-
-.assure {
-  margin-top: clamp(40px, 5vw, 72px);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(16px, 2.5vw, 32px);
-}
-.assure li {
-  display: flex;
-  gap: var(--s-4);
-  padding-top: var(--s-5);
-  border-top: 1px solid var(--line-strong);
-}
-.assure svg {
-  width: 22px;
-  height: 22px;
-  flex: none;
-  color: var(--copper);
-}
-.assure h3 {
-  font-size: var(--fs-base);
-  font-weight: 600;
-}
-.assure p {
-  margin-top: 4px;
-  color: var(--bone-dim);
-  font-size: 0.95rem;
-}
-@media (max-width: 860px) {
-  .assure {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 .offers__question {
   margin-top: clamp(40px, 5vw, 64px);
   display: flex;

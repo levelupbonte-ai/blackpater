@@ -2,8 +2,7 @@
 export const fr = {
   offers_kicker: 'Accompagnement',
   offers_title: 'Préparer votre projet, sereinement',
-  offers_lead:
-    'Informations vérifiées, orientation et échange direct avec l’équipe de Jean-Pierre Lofumbwa pour vos démarches de voyage, bourses, études et visas.',
+  offers_lead: 'Informations vérifiées, orientation et échange direct avec l’équipe de Jean-Pierre Lofumbwa pour vos démarches de voyage, bourses, études et visas.',
   offers_list_label: 'Offres disponibles',
   offers_card_tag: 'Offre disponible',
   offers_card_desc:
@@ -12,12 +11,6 @@ export const fr = {
   offers_card_point_2: 'Guide des erreurs éliminatoires à éviter',
   offers_card_point_3: 'Échange direct sur WhatsApp',
   offers_card_cta: 'Découvrir l’offre',
-  offers_assure_1_title: 'Paiement unique',
-  offers_assure_1_text: 'Aucun abonnement, aucun renouvellement automatique.',
-  offers_assure_2_title: 'Paiement sécurisé',
-  offers_assure_2_text: 'Traité par Stripe : carte bancaire, Apple Pay ou Google Pay.',
-  offers_assure_3_title: 'Contact direct',
-  offers_assure_3_text: 'Questions et suivi sur WhatsApp avec l’équipe de Jean-Pierre.',
   offers_question: 'Une question avant de vous décider ?',
   offers_question_cta: 'Écrire sur WhatsApp',
 
@@ -29,24 +22,16 @@ export const fr = {
   offer_fact_2: 'Sans renouvellement',
   offer_fact_3: 'Suivi sur WhatsApp',
   offer_price_note: 'USD · paiement unique',
-  offer_no_renewal: 'Sans abonnement — aucun renouvellement automatique.',
-  offer_includes_short: 'Accès à l’ensemble de l’accompagnement décrit ci-dessous.',
   offer_cta: 'Payer {price}',
-  offer_cta_redirecting: 'Redirection vers le paiement sécurisé…',
+  offer_cta_redirecting: 'Redirection…',
   offer_cta_retry: 'Réessayer le paiement',
-  offer_cta_unavailable: 'Paiement momentanément indisponible',
-  offer_cta_hint: 'Vous finalisez le paiement sur la page sécurisée de Stripe, où votre e-mail vous est demandé pour le reçu.',
-  offer_unavailable_text: 'Le paiement en ligne est momentanément indisponible. Revenez un peu plus tard — votre question peut déjà être posée sur WhatsApp.',
-  offer_trust_stripe: 'Paiement sécurisé par Stripe. Vos données bancaires ne transitent jamais par ce site.',
-  offer_trust_methods: 'Carte bancaire, Apple Pay ou Google Pay, selon votre appareil.',
+  offer_methods_label: 'Moyens de paiement acceptés',
+  offer_cta_unavailable: 'Bientôt disponible',
   offer_terms_before: 'En continuant, vous acceptez les ',
   offer_terms_link: 'conditions de vente',
   offer_terms_middle: ' et la ',
   offer_refund_link: 'politique de remboursement',
   offer_terms_after: '.',
-  offer_question: 'Une question avant de payer ?',
-  offer_question_cta: 'Écrire sur WhatsApp',
-  offer_panel_label: 'Achat',
 
   offer_incl_kicker: 'Ce qui est inclus',
   offer_incl_title: 'Un accompagnement concret, du dossier à l’arrivée',
@@ -65,12 +50,12 @@ export const fr = {
 
   offer_how_kicker: 'Déroulement',
   offer_how_title: 'Comment ça se passe',
-  offer_step_1_title: 'Paiement sécurisé',
-  offer_step_1_text: 'Vous réglez une seule fois sur la page Stripe. Aucune donnée bancaire n’est conservée sur ce site.',
-  offer_step_2_title: 'Confirmation immédiate',
-  offer_step_2_text: 'Le paiement est vérifié automatiquement : vous obtenez votre référence, et Stripe vous envoie un reçu par e-mail.',
+  offer_step_1_title: 'Paiement',
+  offer_step_1_text: 'Un seul règlement, en quelques secondes.',
+  offer_step_2_title: 'Confirmation',
+  offer_step_2_text: 'Votre référence s’affiche aussitôt et un reçu vous est envoyé par e-mail.',
   offer_step_3_title: 'Premier échange sur WhatsApp',
-  offer_step_3_text: 'Vous écrivez à l’équipe de Jean-Pierre avec votre référence, et l’accompagnement commence.',
+  offer_step_3_text: 'Vous écrivez à l’équipe de Jean-Pierre avec votre référence : l’accompagnement commence.',
 
   offer_who_kicker: 'Qui vous accompagne',
   offer_who_title: 'Jean-Pierre Lofumbwa, « Le Prof »',
@@ -86,21 +71,15 @@ export const fr = {
   offer_faq_1_a:
     'Des informations vérifiées sur les procédures de voyage et de visa (F-1, B1/B2), une veille sur les bourses et programmes internationaux, le guide des erreurs éliminatoires, des conseils pratiques sur le coût de la vie et le logement, une orientation sur les admissions et équivalences, et un échange direct sur WhatsApp avec l’équipe de Jean-Pierre Lofumbwa.',
   offer_faq_2_q: 'Que se passe-t-il après le paiement ?',
-  offer_faq_2_a:
-    'Vous revenez sur ce site, qui vérifie votre paiement auprès de Stripe et affiche votre référence. Il vous suffit ensuite d’écrire sur WhatsApp avec cette référence pour démarrer. Stripe vous envoie également un reçu à l’adresse e-mail indiquée lors du paiement.',
+  offer_faq_2_a: 'Vous arrivez sur une page de confirmation qui affiche votre référence. Écrivez-nous sur WhatsApp avec cette référence pour démarrer. Un reçu vous est envoyé par e-mail.',
   offer_faq_3_q: 'S’agit-il d’un abonnement ?',
   offer_faq_3_a: 'Non. C’est un paiement unique de 1 $ US. Il n’y a ni abonnement, ni prélèvement récurrent, ni renouvellement automatique.',
   offer_faq_4_q: 'Comment puis-je payer ?',
-  offer_faq_4_a:
-    'Uniquement en ligne, sur la page de paiement sécurisée de Stripe : carte bancaire, et Apple Pay ou Google Pay selon votre appareil. Si votre carte n’est pas en dollars, votre banque peut appliquer des frais de conversion.',
+  offer_faq_4_a: 'Par carte bancaire, Apple Pay ou Google Pay. Si votre carte n’est pas en dollars, votre banque peut appliquer des frais de conversion.',
   offer_faq_5_q: 'Garantissez-vous l’obtention d’un visa, d’une admission ou d’une bourse ?',
-  offer_faq_5_a:
-    'Non. Il s’agit d’information et d’orientation. Les décisions de visa, d’admission ou de bourse appartiennent exclusivement aux autorités consulaires et aux établissements concernés.',
+  offer_faq_5_a: 'Non. Il s’agit d’information et d’orientation : les décisions de visa, d’admission ou de bourse appartiennent aux autorités et aux établissements concernés.',
   offer_faq_6_q: 'Puis-je être remboursé ?',
-  offer_faq_6_a:
-    'Oui, dans les conditions de la politique de remboursement : si l’accompagnement n’a pas commencé, une demande dans les 14 jours suivant le paiement est remboursée intégralement. Un paiement en double est toujours remboursé.',
-  offer_disclaimer:
-    'Information et orientation : les décisions de visa, d’admission ou de bourse relèvent des autorités et des établissements concernés.',
+  offer_faq_6_a: 'Oui : si l’accompagnement n’a pas commencé, une demande dans les 14 jours suivant le paiement est remboursée intégralement. Voir la politique de remboursement.',
   offer_bottom_title: 'Prêt à préparer votre projet ?',
   offer_bottom_cta: 'Aller au paiement'
 };
@@ -108,8 +87,7 @@ export const fr = {
 export const en: Record<keyof typeof fr, string> = {
   offers_kicker: 'Guidance',
   offers_title: 'Prepare your project with confidence',
-  offers_lead:
-    'Verified information, orientation and direct contact with Jean-Pierre Lofumbwa’s team for your travel, scholarship, study and visa procedures.',
+  offers_lead: 'Verified information, orientation and direct contact with Jean-Pierre Lofumbwa’s team for your travel, scholarship, study and visa plans.',
   offers_list_label: 'Available offers',
   offers_card_tag: 'Available now',
   offers_card_desc:
@@ -118,12 +96,6 @@ export const en: Record<keyof typeof fr, string> = {
   offers_card_point_2: 'Guide to the mistakes that sink an application',
   offers_card_point_3: 'Direct contact on WhatsApp',
   offers_card_cta: 'View the offer',
-  offers_assure_1_title: 'One-time payment',
-  offers_assure_1_text: 'No subscription, no automatic renewal.',
-  offers_assure_2_title: 'Secure payment',
-  offers_assure_2_text: 'Processed by Stripe: card, Apple Pay or Google Pay.',
-  offers_assure_3_title: 'Direct contact',
-  offers_assure_3_text: 'Questions and follow-up on WhatsApp with Jean-Pierre’s team.',
   offers_question: 'A question before you decide?',
   offers_question_cta: 'Write on WhatsApp',
 
@@ -135,24 +107,16 @@ export const en: Record<keyof typeof fr, string> = {
   offer_fact_2: 'No renewal',
   offer_fact_3: 'Follow-up on WhatsApp',
   offer_price_note: 'USD · one-time payment',
-  offer_no_renewal: 'Not a subscription — no automatic renewal.',
-  offer_includes_short: 'Access to the full guidance described below.',
   offer_cta: 'Pay {price}',
-  offer_cta_redirecting: 'Redirecting to secure payment…',
+  offer_cta_redirecting: 'Redirecting…',
   offer_cta_retry: 'Try the payment again',
-  offer_cta_unavailable: 'Payment temporarily unavailable',
-  offer_cta_hint: 'You complete the payment on Stripe’s secure page, where you enter your email for the receipt.',
-  offer_unavailable_text: 'Online payment is temporarily unavailable. Please come back a little later — you can already ask your question on WhatsApp.',
-  offer_trust_stripe: 'Secure payment by Stripe. Your card details never pass through this site.',
-  offer_trust_methods: 'Card, Apple Pay or Google Pay, depending on your device.',
+  offer_methods_label: 'Accepted payment methods',
+  offer_cta_unavailable: 'Coming soon',
   offer_terms_before: 'By continuing, you accept the ',
   offer_terms_link: 'terms of sale',
   offer_terms_middle: ' and the ',
   offer_refund_link: 'refund policy',
   offer_terms_after: '.',
-  offer_question: 'A question before paying?',
-  offer_question_cta: 'Write on WhatsApp',
-  offer_panel_label: 'Purchase',
 
   offer_incl_kicker: 'What’s included',
   offer_incl_title: 'Practical guidance, from application to arrival',
@@ -171,12 +135,12 @@ export const en: Record<keyof typeof fr, string> = {
 
   offer_how_kicker: 'How it works',
   offer_how_title: 'Three simple steps',
-  offer_step_1_title: 'Secure payment',
-  offer_step_1_text: 'You pay once on Stripe’s page. No card data is stored on this site.',
-  offer_step_2_title: 'Instant confirmation',
-  offer_step_2_text: 'Your payment is verified automatically: you get your reference, and Stripe emails you a receipt.',
+  offer_step_1_title: 'Payment',
+  offer_step_1_text: 'One payment, in a few seconds.',
+  offer_step_2_title: 'Confirmation',
+  offer_step_2_text: 'Your reference appears right away and a receipt is emailed to you.',
   offer_step_3_title: 'First conversation on WhatsApp',
-  offer_step_3_text: 'You message Jean-Pierre’s team with your reference, and the guidance begins.',
+  offer_step_3_text: 'You message Jean-Pierre’s team with your reference and the guidance begins.',
 
   offer_who_kicker: 'Who guides you',
   offer_who_title: 'Jean-Pierre Lofumbwa, “Le Prof”',
@@ -192,21 +156,15 @@ export const en: Record<keyof typeof fr, string> = {
   offer_faq_1_a:
     'Verified information on travel and visa procedures (F-1, B1/B2), a watch on scholarships and international programs, the guide to disqualifying mistakes, practical advice on cost of living and housing, orientation on admissions and equivalences, and direct WhatsApp contact with Jean-Pierre Lofumbwa’s team.',
   offer_faq_2_q: 'What happens after I pay?',
-  offer_faq_2_a:
-    'You come back to this site, which verifies your payment with Stripe and shows your reference. Then simply write on WhatsApp with that reference to get started. Stripe also emails a receipt to the address you entered at checkout.',
+  offer_faq_2_a: 'You land on a confirmation page showing your reference. Message us on WhatsApp with it to get started. A receipt is emailed to you.',
   offer_faq_3_q: 'Is this a subscription?',
   offer_faq_3_a: 'No. It is a one-time payment of US$1. There is no subscription, no recurring charge and no automatic renewal.',
   offer_faq_4_q: 'How can I pay?',
-  offer_faq_4_a:
-    'Online only, on Stripe’s secure payment page: card, and Apple Pay or Google Pay depending on your device. If your card is not in US dollars, your bank may charge a conversion fee.',
+  offer_faq_4_a: 'By card, Apple Pay or Google Pay. If your card is not in US dollars, your bank may charge a conversion fee.',
   offer_faq_5_q: 'Do you guarantee a visa, an admission or a scholarship?',
-  offer_faq_5_a:
-    'No. This is information and orientation. Visa, admission and scholarship decisions belong solely to the consular authorities and institutions concerned.',
+  offer_faq_5_a: 'No. This is information and orientation: visa, admission and scholarship decisions belong to the authorities and institutions concerned.',
   offer_faq_6_q: 'Can I get a refund?',
-  offer_faq_6_a:
-    'Yes, as set out in the refund policy: if the guidance has not started, a request made within 14 days of payment is refunded in full. A duplicate payment is always refunded.',
-  offer_disclaimer:
-    'Information and orientation: visa, admission and scholarship decisions rest with the authorities and institutions concerned.',
+  offer_faq_6_a: 'Yes: if the guidance has not started, a request within 14 days of payment is refunded in full. See the refund policy.',
   offer_bottom_title: 'Ready to prepare your project?',
   offer_bottom_cta: 'Go to payment'
 };

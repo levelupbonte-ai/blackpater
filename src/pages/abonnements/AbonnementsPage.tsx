@@ -3,18 +3,12 @@ import './abonnements.css';
 import { Link } from '../../app/router';
 import { useLanguage } from '../../context/LanguageContext';
 import { PageHeader } from '../../components/PageHeader';
-import { Icon, WhatsAppIcon, type IconName } from '../../components/Icon';
+import { Icon, WhatsAppIcon } from '../../components/Icon';
 import { OFFERS, formatOfferPrice } from '../../../shared/offers.js';
 import { whatsappLink } from '../../lib/contact';
-import type { TranslationKey } from '../../i18n';
 
 const offer = OFFERS['accompagnement-voyage'];
 
-const ASSURANCES: Array<{ icon: IconName; title: TranslationKey; text: TranslationKey }> = [
-  { icon: 'receipt', title: 'offers_assure_1_title', text: 'offers_assure_1_text' },
-  { icon: 'lock', title: 'offers_assure_2_title', text: 'offers_assure_2_text' },
-  { icon: 'chat', title: 'offers_assure_3_title', text: 'offers_assure_3_text' }
-];
 
 export const AbonnementsPage: React.FC = () => {
   const { lang, t } = useLanguage();
@@ -62,17 +56,6 @@ export const AbonnementsPage: React.FC = () => {
             </div>
           </article>
 
-          <ul className='assure'>
-            {ASSURANCES.map((a) => (
-              <li key={a.title}>
-                <Icon name={a.icon} />
-                <div>
-                  <h3>{t(a.title)}</h3>
-                  <p>{t(a.text)}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
 
           <p className='offers__question'>
             <span>{t('offers_question')}</span>

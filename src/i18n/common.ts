@@ -27,8 +27,6 @@ export const fr = {
   foot_refund: 'Remboursement',
   foot_privacy: 'Confidentialité',
   foot_rights: 'Tous droits réservés.',
-  foot_disambig: 'Jean-Pierre Lofumbwa (« Le Prof »). Personnalité distincte de Blackwater et de Black Panther.',
-  foot_payments: 'Paiements en ligne traités par Stripe.',
 
   wa_contact_message: "Bonjour Jean-Pierre, j'ai découvert votre site officiel et je souhaite entrer en contact avec vous.",
   wa_question_message: "Bonjour Jean-Pierre, j'ai une question sur l'accompagnement « Démarches Voyage » avant de payer.",
@@ -38,11 +36,11 @@ export const fr = {
   notfound_home: "Retour à l'accueil",
 
   // Payment errors (generic, never provider messages)
-  err_payments_unavailable: 'Le paiement en ligne est momentanément indisponible. Merci de réessayer un peu plus tard.',
+  err_payments_unavailable: 'Bientôt disponible.',
   err_rate_limited: 'Trop de tentatives en peu de temps. Patientez une minute puis réessayez.',
-  err_timeout: "La connexion est lente et le paiement n'a pas pu s'ouvrir. Vous pouvez réessayer : vous ne serez pas débité deux fois.",
-  err_network: "Connexion impossible. Vérifiez votre réseau puis réessayez : vous ne serez pas débité deux fois.",
-  err_checkout_failed: "Le paiement n'a pas pu être préparé. Réessayez dans un instant : vous ne serez pas débité deux fois."
+  err_timeout: 'La connexion est lente. Réessayez dans un instant.',
+  err_network: 'Connexion impossible. Vérifiez votre réseau, puis réessayez.',
+  err_checkout_failed: 'Le paiement n’a pas pu s’ouvrir. Réessayez dans un instant.',
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -73,8 +71,6 @@ export const en: Record<keyof typeof fr, string> = {
   foot_refund: 'Refunds',
   foot_privacy: 'Privacy',
   foot_rights: 'All rights reserved.',
-  foot_disambig: 'Jean-Pierre Lofumbwa (“Le Prof”). Not affiliated with Blackwater or Black Panther.',
-  foot_payments: 'Online payments processed by Stripe.',
 
   wa_contact_message: 'Hello Jean-Pierre, I found your official website and would like to get in touch.',
   wa_question_message: 'Hello Jean-Pierre, I have a question about the “Travel & Visa Guidance” offer before paying.',
@@ -83,9 +79,9 @@ export const en: Record<keyof typeof fr, string> = {
   notfound_lead: 'This page does not exist or has moved. Everything on the site is still available from the menu.',
   notfound_home: 'Back to home',
 
-  err_payments_unavailable: 'Online payment is temporarily unavailable. Please try again a little later.',
+  err_payments_unavailable: 'Coming soon.',
   err_rate_limited: 'Too many attempts in a short time. Please wait a minute and try again.',
-  err_timeout: 'The connection is slow and the payment page could not open. You can try again — you will not be charged twice.',
-  err_network: 'Could not connect. Check your network and try again — you will not be charged twice.',
-  err_checkout_failed: 'The payment could not be prepared. Please try again in a moment — you will not be charged twice.'
+  err_timeout: 'The connection is slow. Please try again in a moment.',
+  err_network: 'Could not connect. Check your network and try again.',
+  err_checkout_failed: 'The payment could not open. Please try again in a moment.',
 };

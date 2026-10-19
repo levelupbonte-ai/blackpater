@@ -84,15 +84,3 @@
 .pay-steps {
   margin-top: var(--s-4);
 }
-.pay-help {
-  margin-top: var(--s-6);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-3) var(--s-5);
-  color: var(--bone-dim);
-}
-.pay-help svg {
-  width: 18px;
-  height: 18px;
-}

@@ -290,9 +290,6 @@ body.menu-open {
 .foot__legal-links a:hover {
   color: var(--copper);
 }
-.foot__pay {
-  color: var(--bone-dim);
-}
 .foot__bot {
   margin-top: var(--s-5);
   display: flex;
@@ -303,9 +300,6 @@ body.menu-open {
   font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   color: var(--bone-dim);
-}
-.foot__disambig {
-  max-width: 60ch;
 }
 .foot__bot .pw {
   margin-left: auto;

@@ -62,9 +62,8 @@ const fr: LegalDoc = {
       title: '4. Paiement',
       body: (
         <p>
-          Le paiement s’effectue uniquement en ligne, sur la page sécurisée de <strong>Stripe</strong> (carte bancaire, et Apple Pay ou Google Pay selon votre appareil).
-          Vos données bancaires sont saisies chez Stripe et ne sont ni reçues ni conservées par Black Pater. La commande est confirmée lorsque Stripe a validé le
-          paiement ; la page de confirmation du site le vérifie auprès de Stripe et Stripe peut vous envoyer un reçu par e-mail.
+          Le paiement s’effectue en ligne via <strong>Stripe</strong>, prestataire de paiement (carte bancaire, Apple Pay ou Google Pay). Les données bancaires sont
+          traitées par Stripe et ne sont pas conservées par Black Pater. La commande est confirmée dès que le paiement est validé ; un reçu est envoyé par e-mail.
         </p>
       )
     },
@@ -159,9 +158,8 @@ const en: LegalDoc = {
       title: '4. Payment',
       body: (
         <p>
-          Payment is made online only, on <strong>Stripe</strong>’s secure page (card, and Apple Pay or Google Pay depending on your device). Your card details are entered
-          with Stripe and are never received or stored by Black Pater. The order is confirmed once Stripe has approved the payment; the site’s confirmation page checks
-          this with Stripe, and Stripe may email you a receipt.
+          Payment is made online through <strong>Stripe</strong>, our payment processor (card, Apple Pay or Google Pay). Card data is processed by Stripe and is not
+          stored by Black Pater. The order is confirmed as soon as the payment is approved; a receipt is emailed to you.
         </p>
       )
     },

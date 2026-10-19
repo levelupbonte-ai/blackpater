@@ -352,41 +352,40 @@
   color: var(--copper);
 }
 
-/* Trust row (payments) */
-.trust {
-  display: grid;
-  gap: var(--s-2);
-  font-size: var(--fs-sm);
-  color: var(--bone-dim);
-}
-.trust__line {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-.trust__line svg {
-  width: 16px;
-  height: 16px;
-  flex: none;
-  margin-top: 3px;
-  color: var(--copper);
-}
-.trust__methods {
+/* Accepted payment brands */
+.pay-marks {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: var(--s-1);
 }
-.chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
+.pay-marks li {
+  display: grid;
+  place-items: center;
+  height: 30px;
+  min-width: 46px;
+  padding: 0 8px;
   border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  color: var(--bone-dim);
-  white-space: nowrap;
+  border-radius: var(--radius-s);
+  background: rgba(239, 232, 220, 0.03);
+}
+.pay-marks img {
+  width: auto;
+  opacity: 0.9;
+}
+.pay-marks__visa {
+  height: 11px;
+}
+.pay-marks__mastercard {
+  height: 17px;
+}
+.pay-marks__americanexpress {
+  height: 15px;
+}
+.pay-marks__applepay {
+  height: 21px;
+}
+.pay-marks__googlepay {
+  height: 13px;
 }
 
 /* Notices */

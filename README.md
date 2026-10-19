@@ -31,6 +31,7 @@ src/pages/<page>/      One folder per page, with its own components and CSS
 src/i18n/*.ts          All strings, French + English (tests check both exist)
 src/lib/               Checkout client (duplicate-safe), contact details
 public/js/levelup*.js  LevelUp runtime (unchanged)
+public/payment/        Accepted-payment marks (Simple Icons, CC0 — see NOTICE.txt)
 ```
 
 | URL | Page |
@@ -51,7 +52,7 @@ Old URLs (`/abonnements.html`, `/articles.html`, `/index.html`, `/biographie`, `
 ## Payment flow
 
 1. The visitor clicks **Payer 1 $** on the product page. The button locks immediately
-   (“Redirection vers le paiement sécurisé…”), further taps are ignored.
+   (“Redirection…”), further taps are ignored.
 2. The browser sends `{ offerId, attemptId, sessionId? }` to
    `POST /api/stripe/create-checkout-session`. **No price is sent**: the server reads the
    amount from `shared/offers.js`.
@@ -68,8 +69,8 @@ Old URLs (`/abonnements.html`, `/articles.html`, `/index.html`, `/biographie`, `
    is logged (`checkout.paid` in Vercel → Logs); `api/_lib/fulfilment.js` is the place
    to add automatic fulfilment later.
 
-If `STRIPE_SECRET_KEY` is missing, the product page shows a neutral “Paiement
-momentanément indisponible” state (nothing else is shown to visitors). Stripe error
+If `STRIPE_SECRET_KEY` is missing, the pay button is simply disabled and reads
+“Bientôt disponible” / “Coming soon” (nothing else is shown to visitors). Stripe error
 messages are never sent to the browser; logs contain no keys and no personal data.
 
 ### Payment safety (slow networks, impatient taps)
@@ -128,7 +129,7 @@ show the “temporarily unavailable” state — that is expected).
 ### 3. Stripe settings worth checking
 
 - Settings → Customer emails → **Successful payments: on** (the site tells customers
-  Stripe emails a receipt).
+  a receipt is emailed).
 - Settings → Payment methods: keep cards, Apple Pay, Google Pay (Link optional).
 - Settings → Business → Public details: business name, support email
   (lofumbwapater@gmail.com), and the URLs of the terms
@@ -151,3 +152,10 @@ show the “temporarily unavailable” state — that is expected).
   LevelUp Ecosystem; adjust if that changes.
 - Social follower counts and fictional phone-mockup statistics were removed; add real,
   dated figures only if you want them back.
+
+## Copy principles
+
+Less is more: the product page shows the price, one pay button, the accepted payment
+brands (Visa, Mastercard, American Express, Apple Pay, Google Pay) and the terms line —
+no security or reassurance paragraphs. Stripe is named only on the legal pages, where
+the privacy policy has to list it as payment processor.

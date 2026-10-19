@@ -33,8 +33,7 @@ const fr: LegalDoc = {
       title: 'Paiement en double ou erreur',
       body: (
         <p>
-          Le site est conçu pour qu’un même achat ne puisse pas être payé deux fois. Si vous constatez malgré tout un double débit, ou une erreur de montant, le paiement
-          en trop est <strong>toujours remboursé intégralement</strong>.
+          En cas de double débit ou d’erreur de montant, le paiement en trop est <strong>remboursé intégralement</strong>.
         </p>
       )
     },
@@ -85,8 +84,7 @@ const en: LegalDoc = {
       title: 'Duplicate payment or error',
       body: (
         <p>
-          The site is built so that the same purchase cannot be paid twice. If you nevertheless see a duplicate charge or a wrong amount, the extra payment is{' '}
-          <strong>always refunded in full</strong>.
+          If you see a duplicate charge or a wrong amount, the extra payment is <strong>refunded in full</strong>.
         </p>
       )
     },

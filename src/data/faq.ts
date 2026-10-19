@@ -14,12 +14,6 @@ export const HOME_FAQ: FaqItem[] = [
     aEn: 'Black Pater (also written blackpater, BlackPater or black_pater) is the public name of Jean-Pierre Lofumbwa, “Le Prof”. A Congolese educator, Columbia College Dean’s List honoree (Fall 2023), multilingual content creator and cultural ambassador, he lives in Salt Lake City (Utah, USA). He ranked first in the DRC at the 2015 State Exam with 85% in Latin-Philosophy.'
   },
   {
-    q: 'Black Pater a-t-il un lien avec Blackwater ou Black Panther ?',
-    qEn: 'Is Black Pater related to Blackwater or Black Panther?',
-    a: 'Non. Les moteurs de recherche suggèrent parfois « blackwater » ou « Black Panther » par proximité phonétique. Black Pater est une personne réelle, Jean-Pierre Lofumbwa, sans aucun lien avec la société Blackwater ni avec le personnage de fiction Black Panther.',
-    aEn: 'No. Search engines sometimes suggest “blackwater” or “Black Panther” because the names sound alike. Black Pater is a real person, Jean-Pierre Lofumbwa, with no connection to the Blackwater company or the fictional Black Panther character.'
-  },
-  {
     q: 'Quelles sont les distinctions académiques de Black Pater ?',
     qEn: 'What are Black Pater’s academic distinctions?',
     a: 'Premier élève de la République démocratique du Congo à l’Examen d’État 2015 (85 %, section latin-philosophie). Aux États-Unis, inscrit sur la Dean’s List de Columbia College pour le semestre d’automne 2023 (moyenne supérieure à 3.5). Ses travaux sont archivés sur CollegeSidekick et son parcours est raconté dans VoyageUtah.',

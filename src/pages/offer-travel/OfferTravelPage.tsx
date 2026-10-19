@@ -66,10 +66,6 @@ export const OfferTravelPage: React.FC = () => {
                 </li>
               ))}
             </ol>
-            <p className='offer-disclaimer'>
-              <Icon name='info' />
-              <span>{t('offer_disclaimer')}</span>
-            </p>
           </section>
         </div>
       </section>

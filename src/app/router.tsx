@@ -64,15 +64,15 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Scroll + focus after the new route has rendered.
   useLayoutEffect(() => {
-    if (!navigated.current) {
-      // First load: honour a hash once the content exists.
-      if (loc.hash) window.requestAnimationFrame(() => scrollToHash(loc.hash));
-      return;
-    }
+    // Pages load on demand: retry until the anchor exists (max ~1.5 s).
     const tryHash = (attempt = 0) => {
-      if (scrollToHash(loc.hash) || attempt > 20) return;
+      if (scrollToHash(loc.hash) || attempt > 30) return;
       window.setTimeout(() => tryHash(attempt + 1), 50);
     };
+    if (!navigated.current) {
+      if (loc.hash) tryHash();
+      return;
+    }
     if (loc.hash) {
       tryHash();
     } else {

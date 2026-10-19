@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApiRoutes } from './api/_lib/routes.js';
 import { NOT_FOUND, REDIRECTS, ROUTES } from './shared/routes.js';
+import { SECURITY_HEADERS } from './shared/security-headers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distPath = path.join(__dirname, 'dist');
@@ -23,10 +24,9 @@ if (!fs.existsSync(path.join(distPath, 'index.html'))) {
 const app = express();
 app.disable('x-powered-by');
 app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // Same headers as vercel.json (shared/security-headers.js). HSTS is only
+  // meaningful over https; browsers ignore it on http://localhost.
+  for (const { key, value } of SECURITY_HEADERS) res.setHeader(key, value);
   next();
 });
 

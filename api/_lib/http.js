@@ -71,7 +71,10 @@ export async function readJsonBody(req, limitBytes) {
       throw new HttpError(400, 'invalid_json');
     }
   }
-  if (typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'invalid_json');
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) throw new HttpError(400, 'invalid_json');
+  // A body pre-parsed by the platform (chunked upload, no Content-Length) is
+  // held to the same size cap.
+  if (Buffer.byteLength(JSON.stringify(body)) > limitBytes) throw new HttpError(413, 'payload_too_large');
   return body;
 }
 
@@ -104,9 +107,4 @@ export function resolveOrigin(req) {
   if (!isAllowedHost(host)) return PRODUCTION_ORIGIN;
   const local = /^(localhost|127\.0\.0\.1)/.test(host);
   return `${local ? 'http' : 'https'}://${host}`;
-}
-
-export function getQuery(req) {
-  const url = new URL(req.url || '/', 'http://localhost');
-  return url.searchParams;
 }

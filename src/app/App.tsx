@@ -4,6 +4,7 @@ import { RouterProvider, useRouter } from './router';
 import { SiteLayout } from '../layout/SiteLayout';
 import { HomePage } from '../pages/home/HomePage';
 import { NOT_FOUND, findRoute } from '../../shared/routes.js';
+import { CONFIRMATION_PATH, confirmationPath, readSessionIdParam } from '../../shared/validation.js';
 
 // One folder per page; everything but the home page is loaded on demand.
 const PAGES: Record<string, React.ComponentType> = {
@@ -33,8 +34,9 @@ const Routes: React.FC = () => {
   useEffect(() => {
     if (path !== '/abonnements' || !search) return;
     const params = new URLSearchParams(search);
-    const sid = params.get('session_id');
-    if (sid) navigate(`/paiement/confirmation?session_id=${encodeURIComponent(sid)}`, { replace: true });
+    const sid = readSessionIdParam(search);
+    if (sid) navigate(confirmationPath(sid), { replace: true });
+    else if (params.has('session_id')) navigate(CONFIRMATION_PATH, { replace: true });
     else if (params.get('payment') === 'cancelled') navigate('/paiement/annule', { replace: true });
   }, [path, search, navigate]);
 

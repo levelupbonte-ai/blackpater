@@ -6,6 +6,7 @@ import { Icon, WhatsAppIcon, type IconName } from '../../components/Icon';
 import { CONTACT_EMAIL, whatsappLink } from '../../lib/contact';
 import { clearCheckoutAttempt } from '../../lib/checkout-client.js';
 import { OFFERS } from '../../../shared/offers.js';
+import { parseSessionStatus, readSessionIdParam } from '../../../shared/validation.js';
 import type { TranslationKey } from '../../i18n';
 
 type View =
@@ -16,7 +17,6 @@ type View =
   | { kind: 'unknown' }
   | { kind: 'error' };
 
-const SESSION_RE = /^cs_(test|live)_[A-Za-z0-9]{10,200}$/;
 const POLL_MS = 3000;
 const MAX_POLLS = 10;
 
@@ -31,8 +31,9 @@ function shortRef(id: string) {
 export const ConfirmationPage: React.FC = () => {
   const { search } = useRouter();
   const { lang, t } = useLanguage();
-  const sessionId = new URLSearchParams(search).get('session_id') || '';
-  const valid = SESSION_RE.test(sessionId);
+  // Validated before use: one session_id in the Stripe format, or nothing.
+  const sessionId = readSessionIdParam(search);
+  const valid = sessionId !== '';
   const [view, setView] = useState<View>(valid ? { kind: 'verifying' } : { kind: 'unknown' });
   const polls = useRef(0);
   const timer = useRef<number | undefined>(undefined);
@@ -49,7 +50,9 @@ export const ConfirmationPage: React.FC = () => {
       });
       if (res.status === 400 || res.status === 404) return setView({ kind: 'unknown' });
       if (!res.ok) return setView({ kind: 'error' });
-      const data = await res.json();
+      // The answer is checked too before anything is displayed.
+      const data = parseSessionStatus(await res.json());
+      if (!data) return setView({ kind: 'error' });
       if (data.state === 'paid') {
         try {
           clearCheckoutAttempt(window.sessionStorage, data.offerId);

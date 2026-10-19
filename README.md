@@ -23,6 +23,8 @@ api/stripe/*.js        Vercel Functions (thin entry points)
 api/_lib/              Payment logic shared by Vercel, server.js and `vite dev`
 shared/offers.js       Offer catalog — the only place where prices live
 shared/routes.js       Routes, page titles/descriptions, legacy 301 redirects
+shared/validation.js   Input rules shared by the browser and the API
+shared/security-headers.js  CSP and security headers (copied into vercel.json)
 src/app/               App shell + small client router
 src/layout/            Navigation, footer, LevelUp credit (shared by every page)
 src/styles/            Design tokens, base styles, shared components
@@ -98,6 +100,29 @@ messages are never sent to the browser; logs contain no keys and no personal dat
   so a repeat is harmless. Any future durable action (email, CRM, access) must be keyed on
   `session.id` in a database (or a marker in the PaymentIntent metadata) to stay
   idempotent. Rate limits are also per warm instance.
+
+### Input validation and security headers
+
+- The site has no free-text form: the only things a visitor can send are the checkout
+  request and the `session_id` in the confirmation URL. Both are checked with the same
+  rules in the browser (before sending) and on the server (`shared/validation.js`).
+- `create-checkout-session` accepts exactly `{ offerId, attemptId, sessionId? }`: a known
+  offer id, a UUID and a Stripe session id. Any other key (a price, `__proto__`…), a wrong
+  type, a body over 2 KB or a non-JSON content type is refused with a generic
+  `invalid_request`; Stripe is never called.
+- `session-status` accepts only `?session_id=cs_test_…|cs_live_…`, once; anything else is
+  refused before Stripe is called.
+- Redirects: the browser only follows `https://checkout.stripe.com/…` or
+  `/paiement/confirmation?session_id=<valid id>`; the in-site router ignores anything that
+  is not a plain `/path` (no `//host`, no `javascript:`). If a custom Checkout domain is
+  ever set up in Stripe, add it to `STRIPE_CHECKOUT_ORIGINS`.
+- No visitor or database text is inserted as HTML (React escapes it; the LevelUp runtime
+  uses `textContent`). The only raw HTML is the fixed LevelUp credit.
+- `shared/security-headers.js` sets the Content-Security-Policy (scripts from this site
+  only; Google Fonts; https images/video from the LevelUp dashboard; the LevelUp
+  database), HSTS, `nosniff`, framing protection and a Permissions-Policy. A test checks
+  `vercel.json` carries the same headers. When adding a third-party script, font or API,
+  add its origin there and in `vercel.json`.
 
 ## What the owner must do
 

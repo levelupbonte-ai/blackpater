@@ -3,9 +3,9 @@ import { getOffer } from '../../shared/offers.js';
 import { getStripe } from './stripe.js';
 import { createRateLimiter, createTtlMap } from './memory.js';
 import { HttpError, getClientIp, methodNotAllowed, readJsonBody, resolveOrigin, sendJson } from './http.js';
+import { confirmationPath, isStripeCheckoutUrl, parseCheckoutRequest } from '../../shared/validation.js';
 
-export const ATTEMPT_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export const SESSION_ID_RE = /^cs_(test|live)_[A-Za-z0-9]{10,200}$/;
+export { ATTEMPT_ID_RE, SESSION_ID_RE } from '../../shared/validation.js';
 
 const MINUTE = 60 * 1000;
 /** Idempotency window: retries inside one window get the very same session. */
@@ -61,10 +61,6 @@ function isPaidStatus(session) {
   return session.status === 'complete';
 }
 
-function confirmationPath(sessionId) {
-  return `/paiement/confirmation?session_id=${encodeURIComponent(sessionId)}`;
-}
-
 /**
  * POST /api/stripe/create-checkout-session
  * Body: { offerId, attemptId, sessionId? }
@@ -98,16 +94,11 @@ export function createCheckoutHandler(deps = {}) {
       return sendJson(res, status, { error: 'invalid_request' });
     }
 
-    const offer = getOffer(body.offerId);
-    const attemptId = typeof body.attemptId === 'string' ? body.attemptId.toLowerCase() : '';
-    const clientSessionId = body.sessionId == null ? null : body.sessionId;
-    if (
-      !offer ||
-      !ATTEMPT_ID_RE.test(attemptId) ||
-      (clientSessionId !== null && (typeof clientSessionId !== 'string' || !SESSION_ID_RE.test(clientSessionId)))
-    ) {
-      return sendJson(res, 400, { error: 'invalid_request' });
-    }
+    // Strict schema: known keys only, exact formats. No price is ever accepted.
+    const parsed = parseCheckoutRequest(body);
+    if (!parsed.ok) return sendJson(res, 400, { error: 'invalid_request' });
+    const offer = getOffer(parsed.value.offerId);
+    const { attemptId, sessionId: clientSessionId } = parsed.value;
 
     const stripe = stripeFor();
     if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });
@@ -135,7 +126,7 @@ export function createCheckoutHandler(deps = {}) {
           if (isPaidStatus(previous)) {
             return sendJson(res, 200, { status: 'paid', redirect: confirmationPath(previous.id), sessionId: previous.id });
           }
-          if (previous.status === 'open' && previous.url && previous.expires_at * 1000 - t > 5 * MINUTE) {
+          if (previous.status === 'open' && isStripeCheckoutUrl(previous.url) && previous.expires_at * 1000 - t > 5 * MINUTE) {
             sessions.set(key, { sessionId: previous.id, url: previous.url, expiresAtMs: previous.expires_at * 1000, createdAt: t }, previous.expires_at * 1000 - t);
             return sendJson(res, 200, { status: 'redirect', url: previous.url, sessionId: previous.id });
           }
@@ -158,6 +149,11 @@ export function createCheckoutHandler(deps = {}) {
       }
       if (session.status !== 'open' || !session.url) {
         return sendJson(res, 409, { error: 'checkout_expired' });
+      }
+      // The browser is only ever sent to Stripe-hosted Checkout.
+      if (!isStripeCheckoutUrl(session.url)) {
+        log.error(JSON.stringify({ evt: 'checkout.unexpected_url', offer: offer.id, session: session.id }));
+        return sendJson(res, 502, { error: 'checkout_failed' });
       }
 
       sessions.set(key, { sessionId: session.id, url: session.url, expiresAtMs: session.expires_at * 1000, createdAt: t }, Math.max(session.expires_at * 1000 - t, MINUTE));

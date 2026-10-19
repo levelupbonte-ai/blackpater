@@ -20,7 +20,11 @@ async function call(handler, body, headers) {
 
 test('price comes from the server catalog, never from the request', async () => {
   const { stripe, handler } = setup();
-  const res = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT, amount: 0.01, planName: 'x' });
+  // A request that tries to send its own price is rejected outright (unknown keys).
+  const tampered = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT, amount: 0.01, planName: 'x' });
+  assert.equal(tampered.statusCode, 400);
+  assert.equal(stripe.calls.create.length, 0);
+  const res = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT });
   assert.equal(res.statusCode, 200);
   const params = stripe.calls.create[0].params;
   assert.equal(params.line_items[0].price_data.unit_amount, 100);

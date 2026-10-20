@@ -6,12 +6,12 @@ import { Icon } from '../components/Icon';
 import type { TranslationKey } from '../i18n';
 
 const ITEMS: Array<{ to: string; key: TranslationKey; match?: (path: string, hash: string) => boolean }> = [
-  { to: '/', key: 'nav_home', match: (p, h) => p === '/' && !h },
-  { to: '/#about', key: 'nav_about', match: (p, h) => p === '/' && h === '#about' },
-  { to: '/#journey', key: 'nav_journey', match: (p, h) => p === '/' && h === '#journey' },
-  { to: '/articles', key: 'nav_articles', match: (p) => p.startsWith('/articles') },
+  { to: '/', key: 'nav_home', match: (p) => p === '/' },
+  { to: '/parcours', key: 'nav_journey', match: (p) => p.startsWith('/parcours') },
   { to: '/abonnements', key: 'nav_offers', match: (p) => p.startsWith('/abonnements') || p.startsWith('/paiement') },
-  { to: '/#contact', key: 'nav_contact', match: (p, h) => p === '/' && h === '#contact' }
+  { to: '/articles', key: 'nav_articles', match: (p) => p.startsWith('/articles') },
+  { to: '/medias', key: 'nav_socials', match: (p) => p.startsWith('/medias') },
+  { to: '/contact', key: 'nav_contact', match: (p) => p.startsWith('/contact') }
 ];
 
 const LangSwitch: React.FC<{ className?: string }> = ({ className }) => {
@@ -98,12 +98,24 @@ export const Navbar: React.FC = () => {
       <header className={`nav${scrolled ? ' is-scrolled' : ''}`}>
         <div className='nav__inner'>
           <Link className='nav__brand' to='/' aria-label='BlackPater — accueil'>
-            <img src='/logo.svg' alt='' width={32} height={32} className='nav__brand-icon' />
-            <span className='brand-wordmark'>
-              <span className='brand-b'>Black</span>
-              <span className='brand-p'>Pater</span>
-            </span>
+            <img src='/logo.svg' alt='BlackPater' width={38} height={38} className='nav__brand-icon' />
           </Link>
+
+          <nav className='nav__desktop' aria-label={t('nav_label')}>
+            <ul className='nav__links'>
+              {ITEMS.map((item) => (
+                <li key={item.to}>
+                  <Link
+                    to={item.to}
+                    className='nav__link'
+                    aria-current={isActive(item) ? 'page' : undefined}
+                  >
+                    {t(item.key)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
           <div className='nav__actions'>
             <LangSwitch className='lang--desktop' />

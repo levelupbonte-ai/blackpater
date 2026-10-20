@@ -10,6 +10,9 @@ import { CONFIRMATION_PATH, confirmationPath, readSessionIdParam } from '../../s
 // One folder per page; everything but the home page is loaded on demand.
 const PAGES: Record<string, React.ComponentType> = {
   home: HomePage,
+  journey: lazy(() => import('../pages/parcours/ParcoursPage')),
+  medias: lazy(() => import('../pages/medias/MediasPage')),
+  contact: lazy(() => import('../pages/contact/ContactPage')),
   articles: lazy(() => import('../pages/articles/ArticlesPage')),
   offers: lazy(() => import('../pages/abonnements/AbonnementsPage')),
   'offer-travel': lazy(() => import('../pages/offer-travel/OfferTravelPage')),

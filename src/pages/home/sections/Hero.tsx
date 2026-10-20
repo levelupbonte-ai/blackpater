@@ -13,13 +13,15 @@ export const Hero: React.FC = () => {
   const { t } = useLanguage();
   const k = (s: string) => s as TranslationKey;
 
+  const quoteWords = `« ${t('hero_quote_line1')} ${t('hero_quote_line2')} » — ${t('about_sub')}.`.split(' ');
+
   return (
     <section className='hero' id='hero' aria-label={t('hero_label')}>
       <div className='container hero__container'>
         <div className='hero__split'>
-          {/* Left column: Brand Wordmark, Role, CTAs & social links */}
+          {/* Left column: Brand Wordmark, Subtitle, Quote & CTAs */}
           <div className='hero__content'>
-            <h1 className='hero__heading'>
+            <h1 className='hero__heading hero-anim hero-anim--1'>
               <span className='hero__name brand-wordmark'>
                 <span className='brand-b'>Black</span>
                 <span className='brand-p'>Pater</span>
@@ -27,27 +29,36 @@ export const Hero: React.FC = () => {
               <span className='hero__realname'>{t('hero_prof_label')}</span>
             </h1>
 
-            <p className='hero__role-gradient'>{t('hero_status')}</p>
-
-            <p className='hero__lead'>
-              « {t('hero_quote_line1')} {t('hero_quote_line2')} » — {t('about_sub')}.
+            {/* Staggered Word-by-Word Quote Construction */}
+            <p className='hero__lead hero-anim hero-anim--2'>
+              <span className='word-reveal'>
+                {quoteWords.map((w, idx) => (
+                  <span
+                    key={idx}
+                    className='word-reveal__word'
+                    style={{ animationDelay: `${0.16 + idx * 0.035}s` }}
+                  >
+                    {w}{' '}
+                  </span>
+                ))}
+              </span>
             </p>
 
-            <div className='hero__actions'>
+            <div className='hero__actions hero-anim hero-anim--3'>
               <Link to='/abonnements/accompagnement-voyage' className='btn btn--primary'>
                 <span>{t('nav_offers')}</span>
                 <Icon name='arrowRight' />
               </Link>
-              <Link to='/articles' className='btn btn--outline'>
-                <span>{t('entry_articles_title')}</span>
+              <Link to='/parcours' className='btn btn--outline'>
+                <span>{t('nav_journey')}</span>
               </Link>
-              <Link to='/#contact' className='btn btn--secondary'>
+              <Link to='/contact' className='btn btn--secondary'>
                 <Icon name='mail' />
                 <span>{t('nav_contact')}</span>
               </Link>
             </div>
 
-            <div className='hero__socials'>
+            <div className='hero__socials hero-anim hero-anim--4'>
               {SOCIALS.slice(0, 5).map((s) => (
                 <a
                   key={s.id}
@@ -80,8 +91,8 @@ export const Hero: React.FC = () => {
             </div>
           </div>
 
-          {/* Right column: Circular framed portrait */}
-          <div className='hero__visual'>
+          {/* Right column: Circular framed portrait with clean status pill right below it */}
+          <div className='hero__visual hero-anim hero-anim--2'>
             <div className='hero__avatar-wrap'>
               <div className='hero__avatar-ring' aria-hidden='true' />
               <div className='hero__avatar'>
@@ -93,12 +104,8 @@ export const Hero: React.FC = () => {
                   fetchPriority='high'
                   decoding='async'
                 />
-                <div className='hero__avatar-overlay' aria-hidden='true' />
               </div>
-              <div className='hero__avatar-caption'>
-                <Icon name='globe' />
-                <span>{t('hero_status')}</span>
-              </div>
+              <span className='hero__status-pill'>{t('hero_status')}</span>
             </div>
           </div>
         </div>
@@ -115,13 +122,6 @@ export const Hero: React.FC = () => {
             </div>
           ))}
         </dl>
-
-        <div className='hero__scroll-down'>
-          <a href='#about' aria-label={t('hero_scroll')}>
-            <span>{t('hero_scroll')}</span>
-            <Icon name='arrowDown' />
-          </a>
-        </div>
       </div>
     </section>
   );

@@ -46,8 +46,9 @@ export const PurchasePanel: React.FC<{ offer: Offer }> = ({ offer }) => {
         disabled={redirecting || unavailable}
         aria-busy={redirecting || undefined}
       >
-        {redirecting && <span className='btn__spinner' aria-hidden='true' />}
+        {redirecting ? <span className='btn__spinner' aria-hidden='true' /> : <Icon name='lock' />}
         <span>{label}</span>
+        {!redirecting && !unavailable && <Icon name='arrowRight' />}
       </button>
 
       <div className='buy__status' role='status' aria-live='polite'>

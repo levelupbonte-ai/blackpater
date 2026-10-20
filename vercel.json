@@ -22,32 +22,27 @@
     },
     {
       "source": "/biographie",
-      "destination": "/#about",
+      "destination": "/parcours",
       "statusCode": 301
     },
     {
       "source": "/biographie.html",
-      "destination": "/#about",
+      "destination": "/parcours",
       "statusCode": 301
     },
     {
-      "source": "/medias",
-      "destination": "/#socials",
+      "source": "/parcours.html",
+      "destination": "/parcours",
       "statusCode": 301
     },
     {
       "source": "/medias.html",
-      "destination": "/#socials",
-      "statusCode": 301
-    },
-    {
-      "source": "/contact",
-      "destination": "/#contact",
+      "destination": "/medias",
       "statusCode": 301
     },
     {
       "source": "/contact.html",
-      "destination": "/#contact",
+      "destination": "/contact",
       "statusCode": 301
     },
     {
@@ -62,6 +57,18 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/parcours",
+      "destination": "/parcours/index.html"
+    },
+    {
+      "source": "/medias",
+      "destination": "/medias/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact/index.html"
+    },
     {
       "source": "/articles",
       "destination": "/articles/index.html"

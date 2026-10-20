@@ -7,13 +7,11 @@ import { LevelUpCredit } from './LevelUpCredit';
 
 const NAV: Array<{ to: string; key: TranslationKey }> = [
   { to: '/', key: 'nav_home' },
+  { to: '/parcours', key: 'nav_journey' },
   { to: '/abonnements', key: 'nav_offers' },
   { to: '/articles', key: 'nav_articles' },
-  { to: '/#about', key: 'nav_about' },
-  { to: '/#journey', key: 'nav_journey' },
-  { to: '/#culture', key: 'nav_culture' },
-  { to: '/#socials', key: 'nav_socials' },
-  { to: '/#contact', key: 'nav_contact' }
+  { to: '/medias', key: 'nav_socials' },
+  { to: '/contact', key: 'nav_contact' }
 ];
 
 const PRESS = [

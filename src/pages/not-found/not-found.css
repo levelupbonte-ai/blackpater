@@ -1,0 +1,126 @@
+/* 404 Not Found Page — Executive Portfolio Style */
+.nf {
+  padding-block: clamp(56px, 8vw, 112px);
+}
+.nf__card {
+  position: relative;
+  padding: clamp(32px, 5vw, 64px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
+  text-align: center;
+  overflow: hidden;
+}
+.nf__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+.nf__code {
+  margin-top: var(--s-3);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(4.5rem, 12vw, 8.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  background: linear-gradient(180deg, var(--bone) 0%, rgba(148, 163, 184, 0.25) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  user-select: none;
+}
+.nf__title {
+  margin-top: var(--s-3);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  line-height: 1.15;
+  color: var(--bone);
+}
+.nf__lead {
+  margin: var(--s-3) auto 0;
+  max-width: 52ch;
+  color: var(--bone-dim);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.nf__actions {
+  margin-top: var(--s-6);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-3);
+}
+
+/* Quick Navigation Grid below the 404 hero card */
+.nf__grid {
+  margin-top: clamp(24px, 3.5vw, 36px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 20px);
+}
+.nf__link-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.nf__link-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--line-strong);
+}
+.nf__link-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nf__link-idx {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--copper);
+}
+.nf__link-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--bone);
+}
+.nf__link-card svg {
+  width: 17px;
+  height: 17px;
+  color: var(--bone-dim);
+  flex-shrink: 0;
+  transition: transform 0.2s var(--ease), color 0.2s ease;
+}
+.nf__link-card:hover svg {
+  transform: translateX(3px);
+  color: var(--bone);
+}
+
+@media (max-width: 860px) {
+  .nf__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 540px) {
+  .nf__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Link } from '../../../app/router';
 import { useLanguage } from '../../../context/LanguageContext';
 import { Icon } from '../../../components/Icon';
 import type { TranslationKey } from '../../../i18n';
@@ -66,6 +67,15 @@ export const About: React.FC = () => {
               <div className='about__narrative'>
                 <blockquote className='about__lead'>{t('about_lead')}</blockquote>
                 <p className='about__bridge-text'>{t('about_bridge')}</p>
+              </div>
+              <div className='btn-row'>
+                <Link to='/parcours' className='btn btn--outline'>
+                  <span>{t('nav_journey')}</span>
+                  <Icon name='arrowRight' />
+                </Link>
+                <Link to='/medias' className='btn btn--secondary'>
+                  <span>{t('nav_socials')}</span>
+                </Link>
               </div>
             </div>
           </div>

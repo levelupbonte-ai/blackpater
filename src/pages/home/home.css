@@ -21,53 +21,80 @@
 .hero__content {
   display: flex;
   flex-direction: column;
-  gap: var(--s-5);
+  gap: var(--s-4);
 }
-.hero__meta {
-  display: flex;
-  flex-wrap: wrap;
+/* Clean, pro pill/bubble for "Congolese Cultural Ambassador" below the circular portrait */
+.hero__status-pill {
+  position: relative;
+  z-index: 2;
+  margin-top: var(--s-4);
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: var(--fs-sm);
+  justify-content: center;
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--bone);
+  font-family: var(--sans);
+  font-size: 0.84rem;
   font-weight: 600;
-  color: var(--copper);
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: var(--card-shadow);
 }
 .hero__heading {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 .hero__name {
-  font-size: clamp(2.8rem, 5vw, 4.4rem);
+  font-size: clamp(2.85rem, 5.2vw, 4.5rem);
   line-height: 1.02;
 }
 .hero__realname {
   font-family: var(--display);
   font-weight: 600;
-  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
   color: var(--bone-dim);
 }
-.hero__role-gradient {
+/* Smooth typewriter text line */
+.hero__typewriter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.6em;
   font-family: var(--display);
-  font-weight: 700;
-  font-size: clamp(1.35rem, 2.4vw, 1.95rem);
-  line-height: 1.2;
-  background: var(--accent-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-weight: 600;
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  color: var(--copper);
+}
+.hero__cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 4px;
+  background: var(--accent-primary);
+  animation: cursorBlink 1s steps(2, start) infinite;
+}
+@keyframes cursorBlink {
+  to {
+    visibility: hidden;
+  }
 }
 .hero__lead {
-  font-size: clamp(1.02rem, 1.2vw, 1.15rem);
+  font-size: clamp(1rem, 1.15vw, 1.12rem);
   line-height: 1.7;
   color: var(--bone-dim);
-  max-width: 58ch;
+  max-width: 56ch;
 }
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-3);
-  padding-top: var(--s-1);
+  padding-top: var(--s-2);
 }
 .hero__socials {
   display: flex;
@@ -91,11 +118,11 @@
   height: 15px;
 }
 .hero__social-link:hover {
-  color: var(--accent-primary);
+  color: var(--bone);
   transform: translateY(-2px);
 }
 
-/* Right column: Circular framed portrait (v0 Hero Avatar) */
+/* Right column: Circular framed portrait */
 .hero__visual {
   display: flex;
   justify-content: center;
@@ -109,21 +136,21 @@
 }
 .hero__avatar-ring {
   position: absolute;
-  inset: -14px;
+  inset: -10px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 168, 255, 0.22) 0%, rgba(255, 107, 0, 0.18) 50%, transparent 72%);
-  filter: blur(18px);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+  filter: blur(16px);
   z-index: 0;
   pointer-events: none;
 }
 .hero__avatar {
   position: relative;
   z-index: 1;
-  width: clamp(240px, 26vw, 336px);
-  height: clamp(240px, 26vw, 336px);
+  width: clamp(236px, 25vw, 324px);
+  height: clamp(236px, 25vw, 324px);
   border-radius: 50%;
   overflow: hidden;
-  border: 4px solid var(--surface-solid);
+  border: 3px solid var(--surface-solid);
   box-shadow: var(--shadow), 0 0 0 1px var(--line-strong);
   background: var(--char-2);
 }
@@ -135,31 +162,7 @@
   transition: transform 0.4s var(--ease);
 }
 .hero__avatar:hover img {
-  transform: scale(1.04);
-}
-.hero__avatar-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(0, 168, 255, 0.1), rgba(255, 107, 0, 0.1));
-  mix-blend-mode: overlay;
-  pointer-events: none;
-}
-.hero__avatar-caption {
-  position: relative;
-  z-index: 2;
-  margin-top: var(--s-3);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  color: var(--bone-dim);
-  white-space: nowrap;
-}
-.hero__avatar-caption svg {
-  width: 16px;
-  height: 16px;
-  color: #00a8ff;
+  transform: scale(1.03);
 }
 
 /* Full-width KPI / Key Facts row below the hero split */
@@ -186,12 +189,9 @@
 .hero__stat-val {
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-size: clamp(1.95rem, 2.8vw, 2.6rem);
   line-height: 1;
-  background: var(--accent-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--bone);
   font-variant-numeric: tabular-nums;
 }
 .hero__stat-txt {

@@ -62,7 +62,7 @@ blockquote {
   margin: 0;
 }
 ::selection {
-  background: rgba(59, 130, 246, 0.28);
+  background: rgba(59, 130, 246, 0.22);
   color: var(--bone);
 }
 :focus {
@@ -103,15 +103,15 @@ blockquote {
   top: 12px;
 }
 
-/* Interactive ambient canvas & scroll progress indicator (v0 portfolio style) */
+/* Top scroll progress bar & subtle ambient background */
 .scroll-progress {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   z-index: 100;
-  background: var(--accent-grad);
+  background: var(--accent-primary);
   transform-origin: 0% 50%;
   pointer-events: none;
 }
@@ -122,7 +122,76 @@ blockquote {
   height: 100%;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.85;
+  opacity: 0.65;
+}
+
+/* Progressive Scroll Construction & Text Reveal Animations */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.7s var(--ease),
+    transform 0.7s var(--ease);
+  transition-delay: calc(var(--reveal-idx, 0) * 85ms);
+  will-change: opacity, transform;
+}
+.reveal-on-scroll.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-anim {
+  opacity: 0;
+  animation: heroFadeUp 0.75s var(--ease) forwards;
+}
+.hero-anim--1 {
+  animation-delay: 0.05s;
+}
+.hero-anim--2 {
+  animation-delay: 0.14s;
+}
+.hero-anim--3 {
+  animation-delay: 0.22s;
+}
+.hero-anim--4 {
+  animation-delay: 0.3s;
+}
+.hero-anim--5 {
+  animation-delay: 0.42s;
+}
+.hero-anim--6 {
+  animation-delay: 0.52s;
+}
+
+@keyframes wordRise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.word-reveal__word {
+  display: inline-block;
+  margin-right: 0.26em;
+  opacity: 0;
+  animation: wordRise 0.55s var(--ease) forwards;
 }
 
 /* Layout */
@@ -185,7 +254,7 @@ section {
   max-width: 65ch;
 }
 
-/* Centered Section Header (v0 Portfolio Pattern) */
+/* Centered Section Header */
 .section-header-center {
   text-align: center;
   max-width: 680px;
@@ -234,7 +303,7 @@ section {
 .text-link {
   color: var(--copper);
   text-decoration: underline;
-  text-decoration-color: rgba(226, 157, 82, 0.4);
+  text-decoration-color: rgba(147, 197, 253, 0.35);
   text-underline-offset: 3px;
   transition: color 0.18s ease, text-decoration-color 0.18s ease;
 }
@@ -292,5 +361,12 @@ section {
     transition-duration: 0.001ms !important;
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
+  }
+  .reveal-on-scroll,
+  .hero-anim,
+  .word-reveal__word {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
   }
 }

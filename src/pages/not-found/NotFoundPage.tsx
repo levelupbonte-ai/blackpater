@@ -20,7 +20,6 @@ export const NotFoundPage: React.FC = () => {
     <div className='page nf'>
       <div className='container'>
         <div className='nf__card'>
-          <span className='nf__badge'>404</span>
           <p className='nf__code' aria-hidden='true'>
             404
           </p>

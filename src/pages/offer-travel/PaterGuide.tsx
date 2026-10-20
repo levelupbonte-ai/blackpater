@@ -928,24 +928,14 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                   ))}
                 </div>
 
-                {/* Animated Stripe Payment Reveal Box at the end of the process */}
+                {/* Stripe Payment Box at the end of the process */}
                 <div className='pg-checkout-box pg-checkout-reveal' id='achat'>
-                  <div className='pg-checkout-badge'>
-                    <Icon name='shield' />
-                    <span>
-                      {tr(
-                        'Dossier prêt · Enregistrement & Entrée dans l’écosystème|File ready · Registration & Ecosystem entry',
-                        lang
-                      )}
-                    </span>
-                  </div>
-
                   <div className='pg-checkout-head'>
                     <div>
                       <h2 className='pg-checkout-title'>{t('offer_name')}</h2>
                       <p className='pg-checkout-sub'>
                         {tr(
-                          'Ce règlement unique enregistre officiellement votre dossier et valide votre entrée dans l’écosystème BlackPater. Vous accédez ensuite aux forfaits mensuels Pro & Premium selon vos besoins.|This one-time fee officially registers your file and validates your entry into the BlackPater ecosystem. You then unlock access to monthly Pro & Premium plans tailored to your needs.',
+                          'Règlement unique de votre accompagnement. Vos réponses sont prêtes à être analysées dès validation de votre paiement.|One-time guidance fee. Your answers are ready to be reviewed as soon as your payment is confirmed.',
                           lang
                         )}
                       </p>
@@ -953,52 +943,14 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <div className='pg-checkout-price'>
                       <span className='pg-checkout-amount'>{price}</span>
                       <span className='pg-checkout-note'>
-                        {activeTier === 'duo'
+                        {activeTier === 'test'
+                          ? tr('USD · Test Stripe (0,01 $)|USD · Stripe Test ($0.01)', lang)
+                          : activeTier === 'duo'
                           ? tr('USD · Duo (2 pers.)|USD · Duo (2 people)', lang)
                           : activeTier === 'family'
                           ? tr('USD · Famille (5 pers.)|USD · Family (5 people)', lang)
                           : tr('USD · Solo (1 pers.)|USD · Solo (1 person)', lang)}
                       </span>
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: 16 }}>
-                    <div
-                      className='pg-tier-switcher'
-                      role='radiogroup'
-                      aria-label={tr('Formule d’intégration|Integration plan', lang)}
-                    >
-                      {tierCards.map((tc) => (
-                        <button
-                          key={tc.key}
-                          type='button'
-                          role='radio'
-                          aria-checked={activeTier === tc.key}
-                          className='pg-tier-card'
-                          onClick={() => handleSelectTier(tc.key)}
-                        >
-                          <span className='pg-tier-card__top'>
-                            <span className='pg-tier-card__name'>{tc.name}</span>
-                            <span className='pg-tier-card__price'>{tc.price}</span>
-                          </span>
-                          <span className='pg-tier-card__desc'>{tc.desc}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className='pg-ecosystem-banner'>
-                    <strong>
-                      {tr(
-                        'Étape 1 : Enregistrement dans l’écosystème · Étape 2 : Forfaits mensuels Pro & Premium',
-                        lang
-                      )}
-                    </strong>
-                    <div>
-                      {tr(
-                        'Votre paiement aujourd’hui ouvre et enregistre votre dossier d’orientation dans l’écosystème. Les forfaits mensuels d’accompagnement complet (Pro / Premium) vous seront proposés une fois intégré.|Your payment today opens and registers your orientation file in the ecosystem. Full monthly guidance plans (Pro / Premium) will be available once you are inside.',
-                        lang
-                      )}
                     </div>
                   </div>
 
@@ -1086,6 +1038,12 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                       <p className='notice notice--error'>
                         <Icon name='alert' />
                         <span>{t(ERROR_KEYS[checkoutState.code] || 'err_checkout_failed')}</span>
+                      </p>
+                    )}
+                    {checkoutState.kind === 'unavailable' && (
+                      <p className='notice notice--error' style={{ marginTop: 8 }}>
+                        <Icon name='alert' />
+                        <span>{t('err_payments_unavailable')}</span>
                       </p>
                     )}
                   </div>

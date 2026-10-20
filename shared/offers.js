@@ -7,15 +7,25 @@
  * Amounts are in the smallest currency unit (cents).
  */
 export const OFFERS = Object.freeze({
-  'accompagnement-voyage-test': Object.freeze({
-    id: 'accompagnement-voyage-test',
-    tier: 'test',
+  'accompagnement-voyage-express': Object.freeze({
+    id: 'accompagnement-voyage-express',
+    tier: 'express',
     persons: 1,
-    amount: 1,
+    amount: 50,
     currency: 'usd',
     path: '/abonnements/accompagnement-voyage',
-    stripeName: 'Black Pater — Test Paiement Stripe (0,01 $)',
-    stripeDescription: 'Test de validation du flux de paiement Stripe (1 centime / $0.01).'
+    stripeName: 'Black Pater — Accompagnement Express (0,50 $)',
+    stripeDescription: 'Ouverture de dossier et diagnostic d’orientation Black Pater (0,50 $).'
+  }),
+  'accompagnement-voyage-test': Object.freeze({
+    id: 'accompagnement-voyage-test',
+    tier: 'express',
+    persons: 1,
+    amount: 50,
+    currency: 'usd',
+    path: '/abonnements/accompagnement-voyage',
+    stripeName: 'Black Pater — Accompagnement Express (0,50 $)',
+    stripeDescription: 'Ouverture de dossier et diagnostic d’orientation Black Pater (0,50 $).'
   }),
   'accompagnement-voyage': Object.freeze({
     id: 'accompagnement-voyage',
@@ -58,7 +68,7 @@ export const OFFERS = Object.freeze({
 export const OFFER_IDS = Object.freeze(Object.keys(OFFERS));
 
 export const ECOSYSTEM_TIERS = Object.freeze([
-  OFFERS['accompagnement-voyage-test'],
+  OFFERS['accompagnement-voyage-express'],
   OFFERS['accompagnement-voyage'],
   OFFERS['accompagnement-voyage-duo'],
   OFFERS['accompagnement-voyage-famille']
@@ -69,7 +79,7 @@ export function getOffer(id) {
 }
 
 export function getOfferByTier(tier) {
-  if (tier === 'test') return OFFERS['accompagnement-voyage-test'];
+  if (tier === 'express' || tier === 'test') return OFFERS['accompagnement-voyage-express'];
   if (tier === 'duo') return OFFERS['accompagnement-voyage-duo'];
   if (tier === 'family') return OFFERS['accompagnement-voyage-famille'];
   return OFFERS['accompagnement-voyage'];

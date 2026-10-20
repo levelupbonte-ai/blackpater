@@ -86,10 +86,10 @@ export const YES_NO_OPTIONS = Object.freeze({
  */
 export const DEFAULT_OPTIONS = {
   groupTier: {
+    express: 'Express · 1 personne (0,50 $)|Express · 1 person ($0.50)',
     solo: 'Solo · 1 personne (2,60 $)|Solo · 1 person ($2.60)',
     duo: 'Duo · 2 personnes (5 $)|Duo · 2 people ($5)',
-    family: 'Famille · Jusqu’à 5 personnes (11 $)|Family · Up to 5 people ($11)',
-    test: 'Test Stripe · 1 centime (0,01 $)|Stripe Test · 1 cent ($0.01)'
+    family: 'Famille · Jusqu’à 5 personnes (11 $)|Family · Up to 5 people ($11)'
   },
   duoRelation: {
     couple: 'En couple / Conjoints|Couple / Spouses',
@@ -801,7 +801,7 @@ export const DEFAULT_QUESTIONS = [
     step: STEPS.S5,
     type: 'single',
     optional: true,
-    when: { field: 'groupTier', notIn: ['solo', 'duo', 'family', 'test'] },
+    when: { field: 'groupTier', notIn: ['solo', 'duo', 'family', 'express', 'test'] },
     question: 'Partez-vous seul(e) ou accompagné(e) ?|Are you going alone or with others?',
     options: DEFAULT_OPTIONS.comp
   },

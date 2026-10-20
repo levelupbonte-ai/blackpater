@@ -16,7 +16,7 @@ import {
 import type { TranslationKey } from '../../i18n';
 import { useCheckout } from './useCheckout';
 
-type TierKey = 'solo' | 'duo' | 'family' | 'test';
+type TierKey = 'express' | 'solo' | 'duo' | 'family' | 'test';
 
 const ERROR_KEYS: Record<string, TranslationKey> = {
   rate_limited: 'err_rate_limited',
@@ -353,8 +353,8 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   });
 
   const activeTier: TierKey =
-    answers.groupTier === 'test'
-      ? 'test'
+    answers.groupTier === 'express' || answers.groupTier === 'test'
+      ? 'express'
       : answers.groupTier === 'duo' || answers.groupTier === 'family'
       ? answers.groupTier
       : 'solo';
@@ -471,7 +471,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       }
       if (!loadedAnswers.groupTier) {
         const preselected = readStorage('pg:preselected_tier');
-        if (preselected === 'solo' || preselected === 'duo' || preselected === 'family' || preselected === 'test') {
+        if (preselected === 'express' || preselected === 'solo' || preselected === 'duo' || preselected === 'family' || preselected === 'test') {
           loadedAnswers = { ...loadedAnswers, groupTier: preselected };
         }
       }
@@ -715,6 +715,12 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   const tierCards: Array<{ key: TierKey; name: string; desc: string; price: string }> = [
     {
+      key: 'express',
+      name: tr('Express · 1 pers.|Express · 1 person', lang),
+      desc: tr('Orientation initiale|Initial guidance', lang),
+      price: formatOfferPrice(OFFERS['accompagnement-voyage-express'], lang)
+    },
+    {
       key: 'solo',
       name: tr('Solo · 1 pers.|Solo · 1 person', lang),
       desc: tr('Dossier individuel|Individual file', lang),
@@ -731,12 +737,6 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       name: tr('Famille · 5 pers.|Family · 5 people', lang),
       desc: tr('Jusqu’à 5 membres|Up to 5 members', lang),
       price: formatOfferPrice(OFFERS['accompagnement-voyage-famille'], lang)
-    },
-    {
-      key: 'test',
-      name: tr('Test · 1 centime|Test · 1 cent', lang),
-      desc: tr('Test Stripe (0,01 $)|Stripe test ($0.01)', lang),
-      price: formatOfferPrice(OFFERS['accompagnement-voyage-test'], lang)
     }
   ];
 
@@ -943,8 +943,8 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <div className='pg-checkout-price'>
                       <span className='pg-checkout-amount'>{price}</span>
                       <span className='pg-checkout-note'>
-                        {activeTier === 'test'
-                          ? tr('USD · Test Stripe (0,01 $)|USD · Stripe Test ($0.01)', lang)
+                        {activeTier === 'express'
+                          ? tr('USD · Express (0,50 $)|USD · Express ($0.50)', lang)
                           : activeTier === 'duo'
                           ? tr('USD · Duo (2 pers.)|USD · Duo (2 people)', lang)
                           : activeTier === 'family'
@@ -958,8 +958,8 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <div className='pg-buyer-recap__row'>
                       <span>{tr('Formule choisie|Selected plan', lang)}</span>
                       <strong>
-                        {activeTier === 'test'
-                          ? tr('Test Stripe · 1 centime (0,01 $)|Stripe Test · 1 cent ($0.01)', lang)
+                        {activeTier === 'express'
+                          ? tr('Express · 1 personne (0,50 $)|Express · 1 person ($0.50)', lang)
                           : activeTier === 'duo'
                           ? tr('Duo · 2 personnes (5 $)|Duo · 2 people ($5)', lang)
                           : activeTier === 'family'

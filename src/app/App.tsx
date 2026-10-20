@@ -1,28 +1,38 @@
-import React, { Suspense, lazy, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '../context/LanguageContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import { RouterProvider, useRouter } from './router';
 import { SiteLayout } from '../layout/SiteLayout';
 import { HomePage } from '../pages/home/HomePage';
+import { ParcoursPage } from '../pages/parcours/ParcoursPage';
+import { MediasPage } from '../pages/medias/MediasPage';
+import { ContactPage } from '../pages/contact/ContactPage';
+import { ArticlesPage } from '../pages/articles/ArticlesPage';
+import { AbonnementsPage } from '../pages/abonnements/AbonnementsPage';
+import { OfferTravelPage } from '../pages/offer-travel/OfferTravelPage';
+import { ConfirmationPage } from '../pages/payment/ConfirmationPage';
+import { CancelledPage } from '../pages/payment/CancelledPage';
+import { TermsPage } from '../pages/legal/TermsPage';
+import { RefundPage } from '../pages/legal/RefundPage';
+import { PrivacyPage } from '../pages/legal/PrivacyPage';
+import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 import { NOT_FOUND, findRoute } from '../../shared/routes.js';
 import { CONFIRMATION_PATH, confirmationPath, readSessionIdParam } from '../../shared/validation.js';
 
-// One folder per page; everything but the home page is loaded on demand.
 const PAGES: Record<string, React.ComponentType> = {
   home: HomePage,
-  journey: lazy(() => import('../pages/parcours/ParcoursPage')),
-  medias: lazy(() => import('../pages/medias/MediasPage')),
-  contact: lazy(() => import('../pages/contact/ContactPage')),
-  articles: lazy(() => import('../pages/articles/ArticlesPage')),
-  offers: lazy(() => import('../pages/abonnements/AbonnementsPage')),
-  'offer-travel': lazy(() => import('../pages/offer-travel/OfferTravelPage')),
-  'payment-confirmation': lazy(() => import('../pages/payment/ConfirmationPage')),
-  'payment-cancelled': lazy(() => import('../pages/payment/CancelledPage')),
-  'legal-terms': lazy(() => import('../pages/legal/TermsPage')),
-  'legal-refund': lazy(() => import('../pages/legal/RefundPage')),
-  'legal-privacy': lazy(() => import('../pages/legal/PrivacyPage'))
+  journey: ParcoursPage,
+  medias: MediasPage,
+  contact: ContactPage,
+  articles: ArticlesPage,
+  offers: AbonnementsPage,
+  'offer-travel': OfferTravelPage,
+  'payment-confirmation': ConfirmationPage,
+  'payment-cancelled': CancelledPage,
+  'legal-terms': TermsPage,
+  'legal-refund': RefundPage,
+  'legal-privacy': PrivacyPage
 };
-const NotFoundPage = lazy(() => import('../pages/not-found/NotFoundPage'));
 
 function setMetaDescription(content: string) {
   const el = document.querySelector('meta[name="description"]');
@@ -51,11 +61,7 @@ const Routes: React.FC = () => {
   }, [route, lang]);
 
   const Page = route ? PAGES[route.id] : NotFoundPage;
-  return (
-    <Suspense fallback={<div className='route-loading' aria-busy='true' />}>
-      <Page key={route?.id || 'not-found'} />
-    </Suspense>
-  );
+  return <Page key={route?.id || 'not-found'} />;
 };
 
 export const App: React.FC = () => (

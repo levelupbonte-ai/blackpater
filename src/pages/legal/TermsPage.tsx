@@ -43,7 +43,7 @@ const fr: LegalDoc = {
             <li>des conseils pratiques pour préparer un premier départ (coût réel de la vie, logement, adaptation culturelle, 30 premiers jours) ;</li>
             <li>le guide des erreurs éliminatoires et des arnaques à éviter ;</li>
             <li>une orientation sur les études, les bourses et le système académique du pays d’accueil ;</li>
-            <li>un suivi et un échange direct sur WhatsApp et par e-mail avec l’équipe de Jean-Pierre Lofumbwa.</li>
+            <li>un suivi et un échange direct par téléphone et par e-mail avec l’équipe de Jean-Pierre Lofumbwa.</li>
           </ul>
           <p>
             Nous ne vendons ni billets d’avion, ni forfaits touristiques, ni visas. Les informations et conseils sont fournis de bonne foi ;{' '}
@@ -57,16 +57,16 @@ const fr: LegalDoc = {
       title: '3. Informations obligatoires demandées avant le paiement',
       body: (
         <p>
-          Durant le parcours préalable au paiement (PaterGuide), l’acheteur doit obligatoirement renseigner ses coordonnées complètes (<strong>nom complet, adresse e-mail valide et numéro de téléphone / WhatsApp avec indicatif</strong>) ainsi que les informations relatives à son projet. Ces informations sont indispensables pour constituer votre dossier d’accompagnement et vous contacter directement.
+          Durant le parcours préalable au paiement (PaterGuide), l’acheteur doit obligatoirement renseigner ses informations personnelles et coordonnées complètes (<strong>nom complet, sexe, âge, adresse e-mail valide et numéro de téléphone avec indicatif</strong>) ainsi que les informations relatives à son projet. Ces informations sont indispensables pour constituer votre dossier d’accompagnement et vous contacter directement.
         </p>
       )
     },
     {
       id: 'prix',
-      title: '4. Prix',
+      title: '4. Tarifs d’intégration à l’écosystème',
       body: (
         <p>
-          Le prix est de <strong>49 $ US (quarante-neuf dollars américains)</strong>, payé une seule fois. Il ne s’agit pas d’un abonnement : aucun prélèvement récurrent ni renouvellement automatique. Si votre moyen de paiement n’est pas libellé en dollars américains, votre banque peut appliquer des frais de conversion indépendants de BlackPater. Le prix affiché au moment de l’achat est celui qui s’applique.
+          Le règlement initial correspond à l’enregistrement officiel de votre dossier et à votre intégration dans l’écosystème BlackPater : <strong>2,60 $ US (Solo · 1 personne)</strong>, <strong>5 $ US (Duo · 2 personnes)</strong> ou <strong>11 $ US (Famille · jusqu’à 5 personnes)</strong>. Une fois intégré dans l’écosystème, l’utilisateur a accès aux forfaits mensuels d’accompagnement (Pro & Premium) selon ses besoins. Si votre moyen de paiement n’est pas libellé en dollars américains, votre banque peut appliquer des frais de conversion indépendants de BlackPater. Le prix affiché au moment de l’achat est celui qui s’applique.
         </p>
       )
     },
@@ -84,7 +84,7 @@ const fr: LegalDoc = {
       title: '6. Démarrage de l’accompagnement',
       body: (
         <p>
-          Après confirmation du paiement, vous démarrez immédiatement votre accompagnement en écrivant sur WhatsApp au {WHATSAPP_DISPLAY} avec votre référence de commande et le récapitulatif de votre dossier (le message est pré-rempli sur la page de confirmation), ou par e-mail à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          Après confirmation du paiement, notre équipe prend contact avec vous grâce aux coordonnées transmises dans votre dossier. Vous pouvez également nous joindre au {PHONE_DISPLAY} ou par e-mail à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> avec votre référence de commande.
         </p>
       )
     },
@@ -151,7 +151,7 @@ const en: LegalDoc = {
             <li>practical advice for a first move abroad (real cost of living, housing, cultural adaptation, first 30 days);</li>
             <li>the guide to disqualifying mistakes and scams to avoid;</li>
             <li>orientation on studies, scholarships and the host country’s academic system;</li>
-            <li>direct follow-up and exchange on WhatsApp and email with Jean-Pierre Lofumbwa’s team.</li>
+            <li>direct follow-up and exchange by phone and email with Jean-Pierre Lofumbwa’s team.</li>
           </ul>
           <p>
             We do not sell flight tickets, tour packages or visas. Information and advice are given in good faith;{' '}
@@ -165,16 +165,16 @@ const en: LegalDoc = {
       title: '3. Required information before payment',
       body: (
         <p>
-          During the pre-payment assessment (PaterGuide), the buyer must provide complete contact details (<strong>full name, valid email address, and phone / WhatsApp number with country code</strong>) along with project details. This information is required by our team to prepare your guidance file and contact you directly.
+          During the pre-payment assessment (PaterGuide), the buyer must provide complete personal and contact details (<strong>full name, gender, age, valid email address, and phone number with country code</strong>) along with project details. This information is required by our team to prepare your guidance file and contact you directly.
         </p>
       )
     },
     {
       id: 'prix',
-      title: '4. Price',
+      title: '4. Ecosystem integration pricing',
       body: (
         <p>
-          The price is <strong>US$49 (forty-nine US dollars)</strong>, paid once. This is not a subscription: there is no recurring charge and no automatic renewal. If your payment method is not in US dollars, your bank may apply a conversion fee outside BlackPater’s control. The price displayed at the time of purchase applies.
+          The initial payment covers the official registration of your file and your entry into the BlackPater ecosystem: <strong>US$2.60 (Solo · 1 person)</strong>, <strong>US$5 (Duo · 2 people)</strong> or <strong>US$11 (Family · up to 5 people)</strong>. Once integrated into the ecosystem, members unlock access to monthly guidance plans (Pro & Premium) tailored to their needs. If your payment method is not in US dollars, your bank may apply a conversion fee outside BlackPater’s control. The price displayed at the time of purchase applies.
         </p>
       )
     },
@@ -192,7 +192,7 @@ const en: LegalDoc = {
       title: '6. Starting the guidance',
       body: (
         <p>
-          After payment confirmation, you start your guidance right away by messaging {WHATSAPP_DISPLAY} on WhatsApp with your order reference and assessment summary (pre-filled on the confirmation page), or by emailing <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          After payment confirmation, our team reaches out to you using the contact details provided in your file. You can also reach us at {PHONE_DISPLAY} or by email at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> with your order reference.
         </p>
       )
     },

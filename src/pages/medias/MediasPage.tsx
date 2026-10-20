@@ -12,7 +12,7 @@ export const MediasPage: React.FC = () => {
   return (
     <div className='page'>
       <PageHeader
-        breadcrumbs={[{ label: t('nav_home'), to: '/' }, { label: t('nav_socials') }]}
+        crumbs={[{ label: t('nav_home'), to: '/' }, { label: t('nav_socials') }]}
         eyebrow={t('soc_kicker')}
         title={`${t('soc_title_1')} ${t('soc_title_2')}`}
         lead={t('phone_subtitle')}

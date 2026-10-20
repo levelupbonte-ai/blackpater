@@ -10,7 +10,7 @@ export const ContactPage: React.FC = () => {
   return (
     <div className='page'>
       <PageHeader
-        breadcrumbs={[{ label: t('nav_home'), to: '/' }, { label: t('nav_contact') }]}
+        crumbs={[{ label: t('nav_home'), to: '/' }, { label: t('nav_contact') }]}
         eyebrow={t('contact_kicker')}
         title={`${t('contact_title_1')} ${t('contact_title_2')}`}
         lead={t('contact_desc')}

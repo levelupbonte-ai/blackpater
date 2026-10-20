@@ -24,7 +24,9 @@ export function useCheckout(offerId: string) {
   const { navigate } = useRouter();
   const [state, setState] = useState<CheckoutState>({ kind: 'idle' });
   const controller = useRef<ReturnType<typeof createCheckoutController> | null>(null);
-  if (!controller.current) {
+  const currentOfferId = useRef<string>('');
+  if (!controller.current || currentOfferId.current !== offerId) {
+    currentOfferId.current = offerId;
     controller.current = createCheckoutController({ offerId, storage: sessionStorageOrNull() });
   }
 

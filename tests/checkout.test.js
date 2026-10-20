@@ -27,7 +27,7 @@ test('price comes from the server catalog, never from the request', async () => 
   const res = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT });
   assert.equal(res.statusCode, 200);
   const params = stripe.calls.create[0].params;
-  assert.equal(params.line_items[0].price_data.unit_amount, 100);
+  assert.equal(params.line_items[0].price_data.unit_amount, 260);
   assert.equal(params.line_items[0].price_data.currency, 'usd');
   assert.equal(params.client_reference_id, ATTEMPT);
   assert.equal(params.payment_method_types, undefined);

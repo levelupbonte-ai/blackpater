@@ -42,6 +42,21 @@ for (const { source, destination } of REDIRECTS) {
 }
 
 app.use('/assets', express.static(path.join(distPath, 'assets'), { immutable: true, maxAge: '1y', index: false }));
+app.get('/assets/index-:hash.js', (_req, res, next) => {
+  const fallback = path.join(distPath, 'assets', 'app.js');
+  if (fs.existsSync(fallback)) return res.sendFile(fallback);
+  next();
+});
+app.get('/assets/router-:hash.js', (_req, res, next) => {
+  const fallback = path.join(distPath, 'assets', 'router-noop.js');
+  if (fs.existsSync(fallback)) return res.sendFile(fallback);
+  next();
+});
+app.get('/assets/index-:hash.css', (_req, res, next) => {
+  const fallback = path.join(distPath, 'assets', 'app.css');
+  if (fs.existsSync(fallback)) return res.sendFile(fallback);
+  next();
+});
 app.use(express.static(distPath, { maxAge: '7d', index: false, redirect: false }));
 
 for (const route of ROUTES) {

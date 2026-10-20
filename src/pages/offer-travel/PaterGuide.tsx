@@ -4,11 +4,19 @@ import { Link } from '../../app/router';
 import { useLanguage, type Language } from '../../context/LanguageContext';
 import { Icon } from '../../components/Icon';
 import { PaymentMarks } from '../../components/PaymentMarks';
-import { OFFERS, formatOfferPrice } from '../../../shared/offers.js';
+import { OFFERS, formatOfferPrice, getOfferByTier } from '../../../shared/offers.js';
+import {
+  COUNTRY_LANGS,
+  DEFAULT_OPTIONS,
+  DEFAULT_QUESTIONS,
+  STEPS,
+  evaluateWhen,
+  mergeQuestionnaire
+} from '../../../shared/questionnaire.js';
 import type { TranslationKey } from '../../i18n';
 import { useCheckout } from './useCheckout';
 
-const offer = OFFERS['accompagnement-voyage'];
+type TierKey = 'solo' | 'duo' | 'family';
 
 const ERROR_KEYS: Record<string, TranslationKey> = {
   rate_limited: 'err_rate_limited',
@@ -35,257 +43,34 @@ const TAG: Record<string, string> = {
   NL: 'Études, travail & vie sur place|Study, work & life on arrival'
 };
 
-const YN: Record<string, string> = {
-  yes: 'Oui|Yes',
-  no: 'Non|No',
-  unsure: 'Je ne sais pas|Not sure'
-};
-
-const O: Record<string, Record<string, string>> = {
-  purpose: {
-    tourism: 'Premier voyage ou court séjour|First trip or short stay',
-    study: 'Études|Study',
-    work: 'Emploi|Employment',
-    fvisit: 'Visite à ma famille|Visiting family',
-    freunion: 'Regroupement familial|Family reunification',
-    immigration: 'Installation durable|Permanent relocation',
-    business: 'Voyage d’affaires|Business trip',
-    medical: 'Soins médicaux|Medical care',
-    dv: 'Diversity Visa (loterie)|Diversity Visa (lottery)',
-    other: 'Autre|Other'
-  },
-  tdur: {
-    d7: 'Moins d’une semaine|Under a week',
-    d14: '1 à 2 semaines|1–2 weeks',
-    d30: '2 à 4 semaines|2–4 weeks',
-    m3: '1 à 3 mois|1–3 months',
-    m3p: 'Plus de 3 mois|Over 3 months'
-  },
-  tstyle: {
-    culture: 'Comprendre la culture et le mode de vie|Understand culture and lifestyle',
-    nature: 'Découverte et déplacements|Discovery and getting around',
-    city: 'Villes et repères pratiques|Cities and practical orientation',
-    beach: 'Séjour détente|Relaxation stay',
-    events: 'Événements ou conférences|Events or conferences'
-  },
-  sLevel: {
-    lang: 'Cours de langue|Language course',
-    voc: 'Formation professionnelle|Vocational training',
-    bach: 'Licence / Bachelor|Bachelor’s',
-    mast: 'Master|Master’s',
-    phd: 'Doctorat|PhD'
-  },
-  sAdm: {
-    none: 'Pas encore de candidature|Not applied yet',
-    applying: 'Candidatures en cours|Applications in progress',
-    accepted: 'J’ai une admission|I have an admission'
-  },
-  ltest: {
-    yes: 'Oui|Yes',
-    plan: 'Je prévois de le passer|Planning to take it',
-    no: 'Non|No',
-    unsure: 'Je ne sais pas si c’est requis|Not sure if required'
-  },
-  sFund: {
-    self: 'Économies personnelles|Personal savings',
-    family: 'Soutien familial|Family support',
-    schol: 'Bourse|Scholarship',
-    loan: 'Prêt|Loan',
-    work: 'Travail sur place|Work on site'
-  },
-  wOffer: {
-    yes: 'Oui, j’ai une offre|Yes, I have an offer',
-    inter: 'Je suis en entretiens|I am interviewing',
-    search: 'Je cherche activement|Actively searching',
-    none: 'Pas encore|Not yet'
-  },
-  degree: {
-    sec: 'Secondaire / Bac|High school',
-    voc: 'Diplôme professionnel|Vocational',
-    bach: 'Licence / Bachelor|Bachelor’s',
-    mast: 'Master|Master’s',
-    phd: 'Doctorat|PhD'
-  },
-  exp: {
-    e2: 'Moins de 2 ans|Under 2 years',
-    e5: '2 à 5 ans|2–5 years',
-    e10: '5 à 10 ans|5–10 years',
-    e10p: 'Plus de 10 ans|Over 10 years'
-  },
-  fRel: {
-    spouse: 'Conjoint(e)|Spouse',
-    child: 'Enfant|Child',
-    parent: 'Parent|Parent',
-    sib: 'Frère ou sœur|Sibling',
-    fiance: 'Fiancé(e)|Fiancé(e)',
-    other: 'Autre proche|Other relative'
-  },
-  fStat: {
-    cit: 'Citoyen(ne)|Citizen',
-    pr: 'Résident(e) permanent(e)|Permanent resident',
-    temp: 'Résident(e) temporaire (études, travail)|Temporary resident',
-    unsure: 'Je ne sais pas|Not sure'
-  },
-  iRoute: {
-    skill: 'Travail qualifié|Skilled work',
-    family: 'Famille|Family',
-    study: 'Études puis installation|Study then settle',
-    prov: 'Programme provincial|Provincial program',
-    invest: 'Investissement ou entrepreneuriat|Investment or entrepreneurship',
-    unsure: 'Je ne sais pas encore|Not sure yet'
-  },
-  iAge: { a1: '18–24', a2: '25–34', a3: '35–44', a4: '45+' },
-  bType: {
-    meet: 'Réunions ou négociations|Meetings or negotiations',
-    conf: 'Conférence ou salon|Conference or trade fair',
-    prosp: 'Prospection de marché|Market research',
-    train: 'Formation|Training'
-  },
-  inv: {
-    yes: 'Oui, confirmé|Yes, confirmed',
-    prog: 'En cours|In progress',
-    no: 'Non|No'
-  },
-  mCare: {
-    cons: 'Consultation|Consultation',
-    surg: 'Intervention chirurgicale|Surgery',
-    long: 'Traitement de longue durée|Long-term treatment',
-    unsure: 'Je ne sais pas encore|Not sure yet'
-  },
-  dvStatus: {
-    considering: 'Je me renseigne|I’m exploring',
-    entered: 'J’ai déjà participé|I have entered',
-    selected: 'J’ai été sélectionné(e)|I was selected'
-  },
-  dvStage: {
-    letter: 'J’attends mon avis officiel|Waiting for official notice',
-    docs: 'Je prépare mes documents|Preparing documents',
-    int: 'Entretien programmé|Interview scheduled'
-  },
-  dvElig: YN,
-  status: {
-    researching: 'C’est ma première fois, je veux comprendre comment ça marche|It’s my first time, I want to understand how it works',
-    started: 'J’ai commencé un dossier|I started an application',
-    hasVisa: 'J’ai déjà un visa ou un permis|I already have a visa or permit',
-    hasAppt: 'J’ai un rendez-vous (ambassade, consulat, centre de visas)|I have an appointment',
-    refused: 'J’ai déjà eu un refus|I was refused before'
-  },
-  stage: {
-    form: 'Formulaire rempli|Form completed',
-    fee: 'Frais payés|Fees paid',
-    docs: 'Documents envoyés|Documents submitted',
-    bio: 'Biométrie ou entretien faits|Biometrics or interview done',
-    wait: 'En attente de décision|Awaiting decision'
-  },
-  vExp: {
-    ok: 'Valide plus de 6 mois|Valid for over 6 months',
-    soon: 'Expire dans moins de 6 mois|Expires within 6 months',
-    gone: 'Expiré|Expired'
-  },
-  appt: {
-    w2: 'Dans moins de 2 semaines|Within 2 weeks',
-    m2: 'Dans 1 à 2 mois|In 1–2 months',
-    later: 'Plus tard|Later'
-  },
-  refR: {
-    docs: 'Documents insuffisants|Insufficient documents',
-    funds: 'Ressources financières|Financial resources',
-    ties: 'Attaches dans mon pays|Ties to my home country',
-    unk: 'Je ne sais pas|I don’t know'
-  },
-  travelDate: {
-    lt3: 'Dans moins de 3 mois|Within 3 months',
-    '3to6': 'Dans 3 à 6 mois|In 3–6 months',
-    '6to12': 'Dans 6 à 12 mois|In 6–12 months',
-    gt12: 'Dans plus d’un an|In over a year',
-    undecided: 'Je ne sais pas encore|Not sure yet'
-  },
-  flexible: {
-    yes: 'Oui, assez flexible|Yes, fairly flexible',
-    no: 'Non, elle est fixe|No, it is fixed'
-  },
-  comp: {
-    alone: 'Seul(e)|Alone',
-    partner: 'Avec mon conjoint ou ma conjointe|With my partner',
-    family: 'Avec ma famille|With my family'
-  },
-  kids: {
-    k1: '1 personne de plus|1 more person',
-    k2: '2 personnes|2 people',
-    k3: '3 à 4 personnes|3–4 people',
-    k5: '5 ou plus|5 or more'
-  },
-  proof: {
-    yes: 'Oui, complètement|Yes, fully',
-    part: 'En partie|Partly',
-    no: 'Pas encore|Not yet',
-    unsure: 'Je ne sais pas|Not sure'
-  },
-  budget: {
-    b1: 'Moins de 500 $|Under $500',
-    b2: '500 à 1 000 $|$500–1,000',
-    b3: '1 000 à 2 000 $|$1,000–2,000',
-    b4: '2 000 à 3 500 $|$2,000–3,500',
-    b5: 'Plus de 3 500 $|Over $3,500',
-    unsure: 'Je ne sais pas|Not sure'
-  },
-  housing: {
-    arranged: 'Oui, c’est organisé|Yes, arranged',
-    searching: 'Je suis en recherche|Searching',
-    none: 'Pas encore|Not yet'
-  },
-  lang: {
-    good: 'À l’aise|Comfortable',
-    basic: 'Notions de base|Basic',
-    none: 'Pas du tout|Not at all'
-  },
-  topics: {
-    docs: 'Comprendre le pays et ses démarches officielles|Understand the country and its official procedures',
-    visa: 'Catégories de visa et conditions expliquées simplement|Visa categories and conditions explained simply',
-    interview: 'Conseils pour préparer un entretien|Advice to prepare for an interview',
-    housing: 'Logement et quartiers à l’arrivée|Housing and neighbourhoods on arrival',
-    budget: 'Coût réel de la vie et budget mensuel|Real cost of living and monthly budget',
-    edujob: 'Système d’études et d’emploi sur place|Education and employment system on site',
-    health: 'Santé, assurance et vie pratique|Healthcare, insurance and practical life',
-    transport: 'Transports et repères du quotidien|Transport and everyday orientation',
-    first30: 'Réussir ses 30 premiers jours (première fois)|Succeeding in your first 30 days (first-timer guide)',
-    official: 'Comprendre les sources officielles|Understanding official sources',
-    scam: 'Éviter les erreurs et les arnaques|Avoiding mistakes and scams',
-    lang: 'Langue, codes culturels et intégration|Language, cultural codes and integration'
-  }
-};
-
-const LANGS: Record<string, string> = {
-  US: 'l’anglais|English',
-  GB: 'l’anglais|English',
-  CA: 'l’anglais ou le français|English or French',
-  FR: 'le français|French',
-  BE: 'le français ou le néerlandais|French or Dutch',
-  DE: 'l’allemand|German',
-  IT: 'l’italien|Italian',
-  NL: 'le néerlandais|Dutch'
-};
-
 type Answers = Record<string, string | string[]>;
 interface Ctx {
   c: string;
   a: Answers;
 }
 
-interface QuestionDef {
+export interface QuestionItem {
   id: string;
-  st: string;
-  ty: 'text' | 'single' | 'multi' | 'contact';
-  dl?: number;
-  opt?: number;
-  if?: (x: Ctx) => boolean;
-  o?: (x: Ctx) => string[];
-  q: (x: Ctx, l: Language) => string;
-  h?: (x: Ctx, l: Language) => string;
+  enabled: boolean;
+  sortOrder: number;
+  step: string;
+  type: 'text' | 'number' | 'single' | 'multi' | 'contact';
+  optional: boolean;
+  countryList?: boolean;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+  question: string;
+  questionByPurpose?: Record<string, string> | null;
+  questionByTier?: Record<string, string> | null;
+  hint?: string;
+  options?: Record<string, string>;
+  optionRules?: Record<string, Record<string, unknown>> | null;
+  when?: Record<string, unknown> | null;
 }
 
 function tr(s: string, l: Language): string {
-  const p = s.split('|');
+  const p = String(s || '').split('|');
   return l === 'en' && p.length > 1 ? p[1] : p[0];
 }
 
@@ -304,361 +89,54 @@ function normalizeStr(s: string): string {
     .toLowerCase();
 }
 
-const S1 = 'Profil|Profile';
-const S2 = 'Objectif|Goal';
-const S3 = 'Votre projet|Your plan';
-const S4 = 'Démarches|Procedures';
-const S5 = 'Voyage|Travel';
-const S6 = 'Moyens|Resources';
-const S7 = 'Besoins|Needs';
-const S8 = 'Coordonnées|Contact details';
-
 const P = (x: Ctx) => String(x.a.purpose || '');
 const is = (x: Ctx, k: string, ...v: string[]) => v.includes(String(x.a[k] || ''));
 const inP = (x: Ctx, ...v: string[]) => v.includes(P(x));
 const isLong = (x: Ctx) => inP(x, 'study', 'work', 'immigration', 'freunion') || x.a.tdur === 'm3p';
-const noDV = (x: Ctx) => !(P(x) === 'dv' && x.a.dvStatus !== 'selected');
-const ln = (x: Ctx, l: Language) => tr(LANGS[x.c] || 'la langue locale|the local language', l);
+const ln = (x: Ctx, l: Language) =>
+  tr((COUNTRY_LANGS as Record<string, string>)[x.c] || 'la langue locale|the local language', l);
 
-const SKIP =
-  'tstyle activity sFund degree exp iAge ltest inv dvElig stage appt refR caseRef flexible comp kids proof budget housing lang concern'.split(
-    ' '
-  );
+function formatQuestionText(raw: string, x: Ctx, l: Language): string {
+  const localized = tr(raw, l);
+  return localized
+    .replace(/\{country\}/g, regionName(x.c, l))
+    .replace(/\{lang\}/g, ln(x, l));
+}
 
-const RAW_Q: QuestionDef[] = [
-  {
-    id: 'residence',
-    st: S1,
-    ty: 'text',
-    dl: 1,
-    q: () => 'Dans quel pays vivez-vous actuellement ?|Which country do you live in now?',
-    h: () => 'Choisissez dans la liste ou tapez-le.|Pick from the list or type it.'
-  },
-  {
-    id: 'nationality',
-    st: S1,
-    ty: 'text',
-    dl: 1,
-    q: () => 'Quelle est votre nationalité ?|What is your nationality?',
-    h: (x, l) =>
-      `Pour vous expliquer clairement comment fonctionne l’accès vers ${regionName(x.c, l)} selon votre situation.|To clearly explain how access to ${regionName(x.c, l)} works for your situation.`
-  },
-  {
-    id: 'purpose',
-    st: S2,
-    ty: 'single',
-    o: (x) => Object.keys(O.purpose).filter((k) => k !== 'dv' || x.c === 'US'),
-    q: (x, l) => `Quel est votre objectif en ${regionName(x.c, l)} ?|What is your goal in ${regionName(x.c, l)}?`,
-    h: () => 'Votre choix adapte nos conseils à votre projet.|Your choice tailors our guidance to your plan.'
-  },
-  {
-    id: 'tdur',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'tourism'),
-    q: () => 'Combien de temps prévoyez-vous de rester ?|How long do you plan to stay?'
-  },
-  {
-    id: 'tstyle',
-    st: S3,
-    ty: 'multi',
-    opt: 1,
-    if: (x) => inP(x, 'tourism'),
-    q: () => 'Quels aspects souhaitez-vous mieux comprendre ?|Which aspects do you want to understand better?'
-  },
-  {
-    id: 'sLevel',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'study'),
-    q: () => 'Quel type de formation visez-vous ?|What kind of programme are you aiming for?'
-  },
-  {
-    id: 'activity',
-    st: S3,
-    ty: 'text',
-    if: (x) => inP(x, 'study', 'work'),
-    q: (x) =>
-      P(x) === 'study'
-        ? 'Quel domaine d’études ?|Which field of study?'
-        : 'Dans quel métier ou secteur ?|Which profession or sector?'
-  },
-  {
-    id: 'sAdm',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'study'),
-    q: () => 'Où en êtes-vous côté admission ?|Where do you stand on admission?',
-    h: () =>
-      'Nous vous expliquons comment fonctionne le système universitaire du pays choisi.|We explain how the university system works in your chosen country.'
-  },
-  {
-    id: 'sFund',
-    st: S3,
-    ty: 'multi',
-    if: (x) => inP(x, 'study'),
-    q: () => 'Comment financerez-vous vos études ?|How will you fund your studies?'
-  },
-  {
-    id: 'wOffer',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'work'),
-    q: () => 'Avez-vous une offre d’emploi ?|Do you have a job offer?'
-  },
-  {
-    id: 'degree',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'work', 'immigration'),
-    q: () => 'Quel est votre plus haut diplôme ?|What is your highest qualification?'
-  },
-  {
-    id: 'exp',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'work', 'immigration'),
-    q: () => 'Combien d’années d’expérience professionnelle ?|How many years of work experience?'
-  },
-  {
-    id: 'iRoute',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'immigration'),
-    o: (x) => Object.keys(O.iRoute).filter((k) => k !== 'prov' || x.c === 'CA'),
-    q: (x, l) =>
-      `Quelle piste vous semble la plus proche pour ${regionName(x.c, l)} ?|Which route feels closest for ${regionName(x.c, l)}?`,
-    h: () =>
-      'Peu importe si c’est votre première fois : nous vous expliquerons comment chaque voie fonctionne.|No worries if it is your first time: we will explain how each route works.'
-  },
-  {
-    id: 'iAge',
-    st: S3,
-    ty: 'single',
-    opt: 1,
-    if: (x) => inP(x, 'immigration'),
-    q: () => 'Dans quelle tranche d’âge êtes-vous ?|Which age range are you in?',
-    h: () => 'Certains systèmes de sélection en tiennent compte.|Some selection systems take age into account.'
-  },
-  {
-    id: 'ltest',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'study', 'immigration'),
-    q: (x, l) =>
-      `Avez-vous un test de langue reconnu (${ln(x, l)}) ?|Do you have a recognised language test (${ln(x, l)})?`
-  },
-  {
-    id: 'fRel',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'fvisit', 'freunion'),
-    q: (x) =>
-      P(x) === 'fvisit'
-        ? 'Quel est votre lien avec la personne qui vous accueille ?|How are you related to the person hosting you?'
-        : 'Quel est votre lien avec la personne qui vous parraine ?|How are you related to your sponsor?'
-  },
-  {
-    id: 'fStat',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'fvisit', 'freunion'),
-    q: (x, l) => `Quel est son statut en ${regionName(x.c, l)} ?|What is their status in ${regionName(x.c, l)}?`,
-    h: () => 'Les règles dépendent fortement de ce statut.|The rules depend heavily on this status.'
-  },
-  {
-    id: 'bType',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'business'),
-    q: () => 'Quel est l’objet de votre déplacement ?|What is the purpose of your trip?'
-  },
-  {
-    id: 'inv',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'business', 'medical'),
-    q: (x) =>
-      P(x) === 'medical'
-        ? 'Avez-vous un rendez-vous confirmé avec un établissement de santé ?|Do you have a confirmed appointment with a healthcare provider?'
-        : 'Avez-vous une lettre d’invitation de l’entreprise hôte ?|Do you have an invitation letter from the host company?'
-  },
-  {
-    id: 'mCare',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'medical'),
-    q: () => 'De quel type de soins s’agit-il ?|What kind of care is it?'
-  },
-  {
-    id: 'dvStatus',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'dv'),
-    q: () => 'Où en êtes-vous avec le Diversity Visa ?|Where are you with the Diversity Visa?',
-    h: () =>
-      'C’est un programme officiel du gouvernement américain. Nous vous aidons à comprendre chaque étape sans erreur.|It is an official US government programme. We help you understand each step without mistakes.'
-  },
-  {
-    id: 'dvElig',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'dv') && is(x, 'dvStatus', 'considering', 'entered'),
-    q: () =>
-      'Remplissez-vous les conditions de base (niveau d’études ou expérience) ?|Do you meet the basic requirements (education or work experience)?'
-  },
-  {
-    id: 'dvStage',
-    st: S3,
-    ty: 'single',
-    if: (x) => inP(x, 'dv') && is(x, 'dvStatus', 'selected'),
-    q: () => 'À quelle étape êtes-vous ?|Which stage are you at?'
-  },
-  {
-    id: 'oDesc',
-    st: S3,
-    ty: 'text',
-    if: (x) => inP(x, 'other'),
-    q: () => 'Décrivez votre projet en quelques mots.|Describe your plan in a few words.'
-  },
-  {
-    id: 'status',
-    st: S4,
-    ty: 'single',
-    if: (x) => !inP(x, 'dv'),
-    q: () => 'Où en êtes-vous dans votre préparation ?|Where are you in your preparation?'
-  },
-  {
-    id: 'stage',
-    st: S4,
-    ty: 'single',
-    if: (x) => is(x, 'status', 'started'),
-    q: () => 'Quelle étape avez-vous franchie ?|Which step have you completed?'
-  },
-  {
-    id: 'vExp',
-    st: S4,
-    ty: 'single',
-    if: (x) => is(x, 'status', 'hasVisa'),
-    q: () => 'Quelle est la validité de votre visa ou permis ?|How long is your visa or permit valid?'
-  },
-  {
-    id: 'appt',
-    st: S4,
-    ty: 'single',
-    if: (x) => is(x, 'status', 'hasAppt'),
-    q: () => 'Quand a lieu votre rendez-vous ?|When is your appointment?'
-  },
-  {
-    id: 'refR',
-    st: S4,
-    ty: 'single',
-    if: (x) => is(x, 'status', 'refused'),
-    q: () => 'Connaissez-vous le motif du refus ?|Do you know the reason for the refusal?',
-    h: () =>
-      'Comprendre le motif est essentiel avant toute nouvelle démarche.|Understanding the reason is essential before any new step.'
-  },
-  {
-    id: 'caseRef',
-    st: S4,
-    ty: 'text',
-    opt: 1,
-    if: (x) => is(x, 'status', 'started', 'hasVisa', 'hasAppt'),
-    q: () => 'Avez-vous une référence de dossier officielle ?|Do you have an official case reference?',
-    h: () =>
-      'Facultatif. N’indiquez jamais de numéro de passeport ni de document d’identité.|Optional. Never enter a passport or ID number.'
-  },
-  {
-    id: 'travelDate',
-    st: S5,
-    ty: 'single',
-    q: () => 'Quand espérez-vous partir ?|When do you hope to go?'
-  },
-  {
-    id: 'flexible',
-    st: S5,
-    ty: 'single',
-    if: (x) => Boolean(x.a.travelDate && x.a.travelDate !== 'undecided'),
-    q: () => 'Votre date est-elle flexible ?|Is your date flexible?'
-  },
-  {
-    id: 'comp',
-    st: S5,
-    ty: 'single',
-    q: () => 'Partez-vous seul(e) ou accompagné(e) ?|Are you going alone or with others?'
-  },
-  {
-    id: 'kids',
-    st: S5,
-    ty: 'single',
-    if: (x) => is(x, 'comp', 'family'),
-    q: () => 'Combien de personnes vous accompagnent ?|How many people are with you?'
-  },
-  {
-    id: 'proof',
-    st: S6,
-    ty: 'single',
-    if: noDV,
-    q: () => 'Pouvez-vous justifier vos moyens financiers ?|Can you document your finances?',
-    h: () => 'Nous vous conseillons sur la manière de présenter un dossier cohérent.|We advise you on how to present a coherent file.'
-  },
-  {
-    id: 'budget',
-    st: S6,
-    ty: 'single',
-    if: (x) => isLong(x) || inP(x, 'medical'),
-    q: () => 'Quel budget mensuel pouvez-vous consacrer sur place ?|What monthly budget can you spend there?'
-  },
-  {
-    id: 'housing',
-    st: S6,
-    ty: 'single',
-    if: isLong,
-    q: () => 'Avez-vous déjà un logement prévu ?|Do you have housing lined up?'
-  },
-  {
-    id: 'lang',
-    st: S6,
-    ty: 'single',
-    q: (x, l) => `Parlez-vous ${ln(x, l)} ?|Do you speak ${ln(x, l)}?`
-  },
-  {
-    id: 'concern',
-    st: S7,
-    ty: 'text',
-    opt: 1,
-    q: (x, l) =>
-      `Quelle est votre principale question ou inquiétude concernant ${regionName(x.c, l)} ?|What is your main question or concern about ${regionName(x.c, l)}?`,
-    h: () => 'Quelques mots suffisent.|A few words are enough.'
-  },
-  {
-    id: 'topics',
-    st: S7,
-    ty: 'multi',
-    q: () => 'Sur quels sujets voulez-vous être accompagné(e) et conseillé(e) ?|Which topics do you want guidance and advice on?',
-    h: () =>
-      'Nous avons présélectionné les sujets recommandés pour votre profil.|We have pre-marked the topics recommended for your profile.'
-  },
-  {
-    id: 'contactInfo',
-    st: S8,
-    ty: 'contact',
-    q: () => 'Vos coordonnées pour votre accompagnement|Your contact details for your guidance'
-  }
-];
+function getQuestionTitle(q: QuestionItem, x: Ctx, l: Language): string {
+  const purpose = P(x);
+  const tier = String(x.a.groupTier || '');
+  const raw =
+    (q.questionByTier && tier && q.questionByTier[tier]) ||
+    (q.questionByPurpose && purpose && q.questionByPurpose[purpose]) ||
+    q.question;
+  return formatQuestionText(raw, x, l);
+}
 
-const Q: QuestionDef[] = RAW_Q.map((q) => (SKIP.includes(q.id) ? { ...q, opt: 1 } : q));
+function getQuestionHint(q: QuestionItem, x: Ctx, l: Language): string {
+  if (!q.hint) return '';
+  return formatQuestionText(q.hint, x, l);
+}
 
-function vis(x: Ctx): QuestionDef[] {
-  return Q.filter((q) => !q.if || q.if(x));
+function getQuestionOptionKeys(q: QuestionItem, x: Ctx): string[] {
+  const opts = q.options || (DEFAULT_OPTIONS as Record<string, Record<string, string>>)[q.id] || {};
+  return Object.keys(opts).filter((k) => {
+    const rule = q.optionRules?.[k];
+    return rule ? evaluateWhen(rule, x) : true;
+  });
+}
+
+function getOptionLabel(q: QuestionItem, optKey: string, l: Language): string {
+  const opts = q.options || (DEFAULT_OPTIONS as Record<string, Record<string, string>>)[q.id] || {};
+  return opts[optKey] ? tr(opts[optKey], l) : optKey;
 }
 
 function rec(x: Ctx): string[] {
   const r = ['docs', 'official', 'first30'];
   if (is(x, 'status', 'researching', 'refused') || inP(x, 'dv')) r.push('visa', 'scam');
   if (is(x, 'status', 'started', 'hasAppt') || inP(x, 'study', 'business', 'work')) r.push('interview');
-  if (isLong(x)) r.push('housing', 'health');
-  if (isLong(x) || is(x, 'proof', 'part', 'no')) r.push('budget');
+  if (isLong(x) || is(x, 'groupTier', 'duo', 'family')) r.push('housing', 'health');
+  if (isLong(x) || is(x, 'proof', 'part', 'no') || is(x, 'groupTier', 'duo', 'family')) r.push('budget');
   if (inP(x, 'study', 'work', 'immigration')) r.push('edujob');
   if (inP(x, 'tourism')) r.push('transport');
   if (is(x, 'lang', 'basic', 'none')) r.push('lang');
@@ -669,8 +147,16 @@ function insights(x: Ctx): string[] {
   const a = x.a;
   const r: string[] = [];
   r.push(
-    'Notre rôle est celui d’une agence d’accompagnement et de conseil (et non d’une agence de voyage) : nous vous aidons à comprendre le pays visé, son fonctionnement réel et ses démarches, surtout lorsqu’il s’agit d’une première fois.|Our role is that of a guidance and advisory agency (not a travel agency): we help you understand your destination country, how it really works and its procedures, especially if it is your first time.'
+    'Cette inscription enregistre officiellement votre dossier dans l’écosystème BlackPater : une fois intégré, vous accédez à nos forfaits mensuels d’accompagnement (Pro & Premium) adaptés au rythme de vos démarches.|This registration officially records your file in the BlackPater ecosystem: once integrated, you unlock access to our monthly guidance plans (Pro & Premium) tailored to the pace of your procedures.'
   );
+  if (is(x, 'groupTier', 'duo'))
+    r.push(
+      'Votre dossier Duo (2 personnes) permet de coordonner simultanément la stratégie d’orientation et les démarches des deux participants.|Your Duo file (2 people) coordinates the orientation strategy and procedures for both participants simultaneously.'
+    );
+  if (is(x, 'groupTier', 'family'))
+    r.push(
+      'Votre dossier Famille (jusqu’à 5 personnes) intègre l’ensemble des membres pour préparer de manière cohérente le budget, le logement, la scolarisation et les démarches.|Your Family file (up to 5 people) covers all members to coherently prepare budget, housing, schooling and procedures.'
+    );
   if (inP(x, 'dv'))
     r.push(
       'Le Diversity Visa passe uniquement par le site officiel du gouvernement américain, sans frais d’inscription. Nous vous guidons pour éviter les pièges et les erreurs.|The Diversity Visa runs only through the official US government website, with no entry fee. We guide you to avoid pitfalls and mistakes.'
@@ -690,10 +176,6 @@ function insights(x: Ctx): string[] {
   if (is(x, 'proof', 'part', 'no'))
     r.push(
       'La préparation financière et ses justificatifs sont essentiels : nous vous conseillerons sur ce qui est attendu.|Financial preparation and documentation are essential: we will advise you on what is expected.'
-    );
-  if (is(x, 'comp', 'family'))
-    r.push(
-      'Partir en famille demande une préparation spécifique du budget, du logement et des démarches.|Going with family requires specific preparation for budget, housing and procedures.'
     );
   return r;
 }
@@ -826,17 +308,41 @@ function removeStorage(k: string) {
   }
 }
 
+function loadDatabaseQuestionOverrides(): unknown[] {
+  try {
+    const winAny = window as unknown as { __BP_QUESTIONNAIRE__?: unknown[] };
+    if (Array.isArray(winAny.__BP_QUESTIONNAIRE__)) {
+      return winAny.__BP_QUESTIONNAIRE__;
+    }
+    const stored = readStorage('pg:custom_questions');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {
+    /* ignore */
+  }
+  return [];
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[+\d][\d\s().-]{5,24}$/;
 
 export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const { lang, t } = useLanguage();
-  const { state: checkoutState, pay } = useCheckout(offer.id);
+
+  // Merge default questions from shared/questionnaire.js with any database overrides
+  const allQuestions = useMemo<QuestionItem[]>(() => {
+    const dbOverrides = loadDatabaseQuestionOverrides();
+    return mergeQuestionnaire(DEFAULT_QUESTIONS, dbOverrides) as QuestionItem[];
+  }, []);
+
+  const firstQuestionId = allQuestions[0]?.id || 'groupTier';
 
   const [country, setCountry] = useState<string | null>(null);
   const [hoverFlag, setHoverFlag] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
-  const [curId, setCurId] = useState<string>('residence');
+  const [curId, setCurId] = useState<string>(firstQuestionId);
   const [hist, setHist] = useState<string[]>([]);
   const [err, setErr] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -846,10 +352,18 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     y: 0
   });
 
+  const activeTier: TierKey =
+    answers.groupTier === 'duo' || answers.groupTier === 'family' ? answers.groupTier : 'solo';
+  const activeOffer = getOfferByTier(activeTier);
+  const { state: checkoutState, pay } = useCheckout(activeOffer.id);
+
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const ctx: Ctx = useMemo(() => ({ c: country || 'US', a: answers }), [country, answers]);
-  const visibleQuestions = useMemo(() => vis(ctx), [ctx]);
+  const visibleQuestions = useMemo(
+    () => allQuestions.filter((q) => !q.when || evaluateWhen(q.when, ctx)),
+    [allQuestions, ctx]
+  );
 
   // Persist draft in localStorage whenever country/answers/curId/hist change
   useEffect(() => {
@@ -860,19 +374,63 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     );
   }, [country, answers, curId, hist]);
 
-  // Save a human-readable summary including mandatory buyer contact details for ConfirmationPage
+  // Save a human-readable summary AND structured dossier (including tier, sex, age, companions) for ConfirmationPage / Supabase
   useEffect(() => {
     if (!country || curId !== 'review') return;
     const destName = regionName(country, lang);
-    const purposeVal = answers.purpose ? tr(O.purpose[String(answers.purpose)] || '', lang) : '';
-    const dateVal = answers.travelDate ? tr(O.travelDate[String(answers.travelDate)] || '', lang) : '';
+    const purposeMap = DEFAULT_OPTIONS.purpose as Record<string, string>;
+    const travelDateMap = DEFAULT_OPTIONS.travelDate as Record<string, string>;
+    const sexMap = DEFAULT_OPTIONS.sex as Record<string, string>;
+    const tierMap = DEFAULT_OPTIONS.groupTier as Record<string, string>;
+    const tierVal = tr(tierMap[activeTier] || '', lang);
+    const purposeVal = answers.purpose ? tr(purposeMap[String(answers.purpose)] || '', lang) : '';
+    const dateVal = answers.travelDate ? tr(travelDateMap[String(answers.travelDate)] || '', lang) : '';
     const cName = String(answers.contactName || '').trim();
+    const cSex = answers.sex ? tr(sexMap[String(answers.sex)] || String(answers.sex), lang) : '';
+    const cAge = String(answers.age || '').trim();
     const cEmail = String(answers.contactEmail || '').trim();
     const cPhone = String(answers.contactPhone || '').trim();
-    const contactPart = [cName, cEmail, cPhone].filter(Boolean).join(' · ');
-    const summary = `${destName}${purposeVal ? ` · ${purposeVal}` : ''}${dateVal ? ` (${dateVal})` : ''}${contactPart ? ` — Client : ${contactPart}` : ''}`;
+    const ageLabel = cAge ? `${cAge} ${tr('ans|yrs', lang)}` : '';
+    const contactPart = [cName, cSex, ageLabel, cEmail, cPhone].filter(Boolean).join(' · ');
+    const partnerPart =
+      activeTier === 'duo' && answers.partnerName
+        ? ` · 2e pers. : ${String(answers.partnerName).trim()}`
+        : activeTier === 'family' && answers.familyMembersDetails
+        ? ` · Famille : ${String(answers.familyMembersDetails).trim()}`
+        : '';
+    const summary = `${destName} [${tierVal}]${purposeVal ? ` · ${purposeVal}` : ''}${dateVal ? ` (${dateVal})` : ''}${contactPart ? ` — Client : ${contactPart}${partnerPart}` : ''}`;
     writeStorage('pg:last_summary', summary);
-  }, [country, curId, answers, lang]);
+
+    const dossier = {
+      destinationCountry: country,
+      tier: activeTier,
+      offerId: activeOffer.id,
+      amountCents: activeOffer.amount,
+      fullName: cName,
+      sex: String(answers.sex || ''),
+      age: Number(cAge) || null,
+      email: cEmail,
+      phone: cPhone,
+      partner:
+        activeTier === 'duo'
+          ? {
+              fullName: String(answers.partnerName || '').trim(),
+              sex: String(answers.partnerSex || ''),
+              age: Number(answers.partnerAge) || null
+            }
+          : null,
+      familyMembersDetails:
+        activeTier === 'family' ? String(answers.familyMembersDetails || '').trim() : null,
+      answers,
+      updatedAt: new Date().toISOString()
+    };
+    writeStorage('pg:last_dossier', JSON.stringify(dossier));
+    try {
+      window.dispatchEvent(new CustomEvent('bp:dossier-ready', { detail: dossier }));
+    } catch {
+      /* ignore */
+    }
+  }, [country, curId, answers, lang, activeTier, activeOffer]);
 
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true });
@@ -892,7 +450,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   const startCountry = (code: string) => {
     let loadedAnswers: Answers = {};
-    let loadedCur = 'residence';
+    let loadedCur = firstQuestionId;
     let loadedHist: string[] = [];
     try {
       const raw = readStorage(`pg:draft:${code}`);
@@ -900,8 +458,17 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
           loadedAnswers = parsed.a || {};
-          loadedCur = parsed.cur || 'residence';
+          const candidateCur = parsed.cur || firstQuestionId;
+          const exists =
+            candidateCur === 'review' || allQuestions.some((q) => q.id === candidateCur);
+          loadedCur = exists ? candidateCur : firstQuestionId;
           loadedHist = Array.isArray(parsed.hist) ? parsed.hist : [];
+        }
+      }
+      if (!loadedAnswers.groupTier) {
+        const preselected = readStorage('pg:preselected_tier');
+        if (preselected === 'solo' || preselected === 'duo' || preselected === 'family') {
+          loadedAnswers = { ...loadedAnswers, groupTier: preselected };
         }
       }
     } catch {
@@ -942,7 +509,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     if (!country) return;
     removeStorage(`pg:draft:${country}`);
     setAnswers({});
-    setCurId('residence');
+    setCurId(firstQuestionId);
     setHist([]);
     setErr('');
   };
@@ -954,46 +521,107 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     : Math.max(0, visibleQuestions.findIndex((q) => q.id === curId));
   const pct = visibleQuestions.length > 0 ? Math.round((stepIndex / visibleQuestions.length) * 100) : 0;
 
-  const formatAnswerLabel = (q: QuestionDef, val: string | string[] | undefined): string => {
-    if (q.ty === 'contact') {
+  const formatAnswerLabel = (q: QuestionItem, val: string | string[] | undefined): string => {
+    const sexMap = DEFAULT_OPTIONS.sex as Record<string, string>;
+    if (q.type === 'contact') {
       const n = String(answers.contactName || '').trim();
+      const sx = answers.sex ? tr(sexMap[String(answers.sex)] || String(answers.sex), lang) : '';
+      const ag = String(answers.age || '').trim();
+      const ageStr = ag ? `${ag} ${tr('ans|yrs', lang)}` : '';
       const em = String(answers.contactEmail || '').trim();
       const ph = String(answers.contactPhone || '').trim();
-      return [n, em, ph].filter(Boolean).join(' · ');
+      return [n, sx, ageStr, em, ph].filter(Boolean).join(' · ');
     }
     if (!val) return '';
-    if (q.ty === 'text') return String(val);
+    if (q.type === 'number') {
+      return q.id === 'age' ? `${val} ${tr('ans|yrs', lang)}` : String(val);
+    }
+    if (q.type === 'text') return String(val);
     if (Array.isArray(val)) {
       return val
-        .map((k) => (O[q.id]?.[k] ? tr(O[q.id][k], lang) : k))
+        .map((k) => getOptionLabel(q, k, lang))
         .filter(Boolean)
         .join(', ');
     }
-    return O[q.id]?.[val] ? tr(O[q.id][val], lang) : String(val);
+    return getOptionLabel(q, String(val), lang);
+  };
+
+  const validateAgeValue = (rawAge: string, min = 14, max = 100): string | null => {
+    const trimmed = rawAge.trim();
+    const num = Number(trimmed);
+    if (!trimmed || !Number.isInteger(num) || num < min || num > max) {
+      return tr(
+        `Veuillez indiquer un âge valide compris entre ${min} et ${max} ans.|Please enter a valid age between ${min} and ${max}.`,
+        lang
+      );
+    }
+    return null;
   };
 
   const validateContactFields = (): string | null => {
     const name = String(answers.contactName || '').trim();
+    const sex = String(answers.sex || '').trim();
+    const age = String(answers.age || '').trim();
     const email = String(answers.contactEmail || '').trim();
     const phone = String(answers.contactPhone || '').trim();
 
     if (name.length < 2) {
       return tr(
-        'Veuillez indiquer votre nom complet (obligatoire).|Please enter your full name (required).',
+        'Veuillez renseigner votre nom complet afin de constituer votre dossier d’accompagnement.|Please enter your full name to prepare your guidance file.',
         lang
       );
     }
+    if (!sex) {
+      return tr(
+        'Veuillez sélectionner votre sexe afin de compléter votre profil.|Please select your gender to complete your profile.',
+        lang
+      );
+    }
+    const ageErr = validateAgeValue(age, 14, 100);
+    if (ageErr) {
+      return ageErr;
+    }
     if (!EMAIL_RE.test(email)) {
       return tr(
-        'Veuillez indiquer une adresse e-mail valide (obligatoire).|Please enter a valid email address (required).',
+        'Veuillez saisir une adresse e-mail valide pour la réception de votre confirmation.|Please enter a valid email address to receive your confirmation.',
         lang
       );
     }
     if (!PHONE_RE.test(phone)) {
       return tr(
-        'Veuillez indiquer votre numéro de téléphone avec indicatif (ex. +243... ou +1...).|Please enter your phone number with country code (e.g. +243... or +1...).',
+        'Veuillez renseigner un numéro de téléphone valide incluant l’indicatif international (ex. : +1 ou +243).|Please enter a valid phone number including the country code (e.g. +1 or +243).',
         lang
       );
+    }
+    if (activeTier === 'duo') {
+      const pName = String(answers.partnerName || '').trim();
+      const pSex = String(answers.partnerSex || '').trim();
+      const pAge = String(answers.partnerAge || '').trim();
+      if (pName.length < 2) {
+        return tr(
+          'Veuillez renseigner le nom complet de la 2e personne pour le dossier Duo.|Please enter the full name of the 2nd person for the Duo file.',
+          lang
+        );
+      }
+      if (!pSex) {
+        return tr(
+          'Veuillez sélectionner le sexe de la 2e personne du dossier Duo.|Please select the gender of the 2nd person in the Duo file.',
+          lang
+        );
+      }
+      const pAgeErr = validateAgeValue(pAge, 1, 100);
+      if (pAgeErr) {
+        return pAgeErr;
+      }
+    }
+    if (activeTier === 'family') {
+      const famDetails = String(answers.familyMembersDetails || '').trim();
+      if (famDetails.length < 3) {
+        return tr(
+          'Veuillez indiquer les prénoms et âges des membres accompagnants de votre famille.|Please enter the names and ages of your accompanying family members.',
+          lang
+        );
+      }
     }
     return null;
   };
@@ -1001,32 +629,50 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const handleNext = () => {
     if (!currentQuestion) return;
 
-    if (currentQuestion.ty === 'contact') {
+    if (currentQuestion.type === 'contact') {
       const contactErr = validateContactFields();
       if (contactErr) {
         setErr(contactErr);
         return;
       }
+    } else if (currentQuestion.type === 'number') {
+      const rawVal = String(answers[currentQuestion.id] || '').trim();
+      if (!currentQuestion.optional || rawVal.length > 0) {
+        const ageErr = validateAgeValue(
+          rawVal,
+          currentQuestion.min ?? 14,
+          currentQuestion.max ?? 100
+        );
+        if (ageErr) {
+          setErr(ageErr);
+          return;
+        }
+      }
     } else {
       const v = answers[currentQuestion.id];
       const hasValue =
-        currentQuestion.ty === 'multi'
+        currentQuestion.type === 'multi'
           ? Array.isArray(v) && v.length > 0
           : Boolean(v && String(v).trim());
 
-      if (!currentQuestion.opt && !hasValue) {
+      if (!currentQuestion.optional && !hasValue) {
         setErr(
-          currentQuestion.ty === 'multi'
-            ? tr('Choisissez au moins une option.|Choose at least one option.', lang)
-            : tr('Merci de répondre pour continuer.|Please answer to continue.', lang)
+          currentQuestion.type === 'multi'
+            ? tr(
+                'Veuillez sélectionner au moins une option pour poursuivre votre évaluation.|Please select at least one option to continue your assessment.',
+                lang
+              )
+            : tr(
+                'Veuillez compléter cette étape pour poursuivre votre évaluation personnalisée.|Please complete this step to continue your personalised assessment.',
+                lang
+              )
         );
         return;
       }
     }
 
-    const list = vis(ctx);
-    const idx = list.findIndex((z) => z.id === currentQuestion.id);
-    const nextId = list[idx + 1] ? list[idx + 1].id : 'review';
+    const idx = visibleQuestions.findIndex((z) => z.id === currentQuestion.id);
+    const nextId = visibleQuestions[idx + 1] ? visibleQuestions[idx + 1].id : 'review';
     setHist((prev) => [...prev, curId]);
     setCurId(nextId);
     setErr('');
@@ -1057,18 +703,49 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     pay();
   };
 
+  const handleSelectTier = (tier: TierKey) => {
+    setAnswers((prev) => ({ ...prev, groupTier: tier }));
+    writeStorage('pg:preselected_tier', tier);
+    setErr('');
+  };
+
+  const tierCards: Array<{ key: TierKey; name: string; desc: string; price: string }> = [
+    {
+      key: 'solo',
+      name: tr('Solo · 1 pers.|Solo · 1 person', lang),
+      desc: tr('Dossier individuel|Individual file', lang),
+      price: formatOfferPrice(OFFERS['accompagnement-voyage'], lang)
+    },
+    {
+      key: 'duo',
+      name: tr('Duo · 2 pers.|Duo · 2 people', lang),
+      desc: tr('Couple ou binôme|Couple or pair', lang),
+      price: formatOfferPrice(OFFERS['accompagnement-voyage-duo'], lang)
+    },
+    {
+      key: 'family',
+      name: tr('Famille · 5 pers.|Family · 5 people', lang),
+      desc: tr('Jusqu’à 5 membres|Up to 5 members', lang),
+      price: formatOfferPrice(OFFERS['accompagnement-voyage-famille'], lang)
+    }
+  ];
+
   const activeFlagCode = country || hoverFlag;
-  const price = formatOfferPrice(offer, lang);
+  const price = formatOfferPrice(activeOffer, lang);
   const redirecting = checkoutState.kind === 'redirecting';
   const unavailable = checkoutState.kind === 'unavailable';
 
-  let payLabel =
-    lang === 'fr'
-      ? `Valider mon dossier & Payer ${price}`
-      : `Confirm my file & Pay ${price}`;
-  if (redirecting) payLabel = t('offer_cta_redirecting');
-  else if (unavailable) payLabel = t('offer_cta_unavailable');
+  let payLabel = t('offer_cta');
+  if (unavailable) payLabel = t('offer_cta_unavailable');
   else if (checkoutState.kind === 'error') payLabel = t('offer_cta_retry');
+
+  const sexMap = DEFAULT_OPTIONS.sex as Record<string, string>;
+  const recapSex = answers.sex ? tr(sexMap[String(answers.sex)] || String(answers.sex), lang) : '—';
+  const recapAge = answers.age ? `${answers.age} ${tr('ans|yrs', lang)}` : '—';
+  const recapPartnerSex = answers.partnerSex
+    ? tr(sexMap[String(answers.partnerSex)] || String(answers.partnerSex), lang)
+    : '';
+  const recapPartnerAge = answers.partnerAge ? `${answers.partnerAge} ${tr('ans|yrs', lang)}` : '';
 
   return (
     <div className='pg-shell page'>
@@ -1219,7 +896,11 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <i style={{ width: `${pct}%` }} />
             </div>
             <div className='pg-step-label'>
-              <span>{isReview ? tr('Récapitulatif & Paiement|Summary & Payment', lang) : tr(currentQuestion?.st || S1, lang)}</span>
+              <span>
+                {isReview
+                  ? tr('Récapitulatif & Paiement|Summary & Payment', lang)
+                  : tr(currentQuestion?.step || STEPS.S1, lang)}
+              </span>
               <span>{pct}%</span>
             </div>
           </div>
@@ -1243,7 +924,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <Icon name='shield' />
                     <span>
                       {tr(
-                        'Dossier prêt · Étape finale de validation|File ready · Final confirmation step',
+                        'Dossier prêt · Enregistrement & Entrée dans l’écosystème|File ready · Registration & Ecosystem entry',
                         lang
                       )}
                     </span>
@@ -1254,23 +935,98 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                       <h2 className='pg-checkout-title'>{t('offer_name')}</h2>
                       <p className='pg-checkout-sub'>
                         {tr(
-                          'Accompagnement personnalisé pour comprendre votre pays de destination, préparer vos démarches et réussir votre première installation.',
+                          'Ce règlement unique enregistre officiellement votre dossier et valide votre entrée dans l’écosystème BlackPater. Vous accédez ensuite aux forfaits mensuels Pro & Premium selon vos besoins.|This one-time fee officially registers your file and validates your entry into the BlackPater ecosystem. You then unlock access to monthly Pro & Premium plans tailored to your needs.',
                           lang
-                        ) ||
-                          'Personalised guidance to understand your destination country, prepare your procedures and succeed in your first move abroad.'}
+                        )}
                       </p>
                     </div>
                     <div className='pg-checkout-price'>
                       <span className='pg-checkout-amount'>{price}</span>
-                      <span className='pg-checkout-note'>{t('offer_price_note')}</span>
+                      <span className='pg-checkout-note'>
+                        {activeTier === 'duo'
+                          ? tr('USD · Duo (2 pers.)|USD · Duo (2 people)', lang)
+                          : activeTier === 'family'
+                          ? tr('USD · Famille (5 pers.)|USD · Family (5 people)', lang)
+                          : tr('USD · Solo (1 pers.)|USD · Solo (1 person)', lang)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <div
+                      className='pg-tier-switcher'
+                      role='radiogroup'
+                      aria-label={tr('Formule d’intégration|Integration plan', lang)}
+                    >
+                      {tierCards.map((tc) => (
+                        <button
+                          key={tc.key}
+                          type='button'
+                          role='radio'
+                          aria-checked={activeTier === tc.key}
+                          className='pg-tier-card'
+                          onClick={() => handleSelectTier(tc.key)}
+                        >
+                          <span className='pg-tier-card__top'>
+                            <span className='pg-tier-card__name'>{tc.name}</span>
+                            <span className='pg-tier-card__price'>{tc.price}</span>
+                          </span>
+                          <span className='pg-tier-card__desc'>{tc.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className='pg-ecosystem-banner'>
+                    <strong>
+                      {tr(
+                        'Étape 1 : Enregistrement dans l’écosystème · Étape 2 : Forfaits mensuels Pro & Premium',
+                        lang
+                      )}
+                    </strong>
+                    <div>
+                      {tr(
+                        'Votre paiement aujourd’hui ouvre et enregistre votre dossier d’orientation dans l’écosystème. Les forfaits mensuels d’accompagnement complet (Pro / Premium) vous seront proposés une fois intégré.|Your payment today opens and registers your orientation file in the ecosystem. Full monthly guidance plans (Pro / Premium) will be available once you are inside.',
+                        lang
+                      )}
                     </div>
                   </div>
 
                   <div className='pg-buyer-recap'>
                     <div className='pg-buyer-recap__row'>
-                      <span>{tr('Client|Client', lang)}</span>
+                      <span>{tr('Formule choisie|Selected plan', lang)}</span>
+                      <strong>
+                        {activeTier === 'duo'
+                          ? tr('Duo · 2 personnes (5 $)|Duo · 2 people ($5)', lang)
+                          : activeTier === 'family'
+                          ? tr('Famille · Jusqu’à 5 pers. (11 $)|Family · Up to 5 people ($11)', lang)
+                          : tr('Solo · 1 personne (2,60 $)|Solo · 1 person ($2.60)', lang)}
+                      </strong>
+                    </div>
+                    <div className='pg-buyer-recap__row'>
+                      <span>{tr('Titulaire du dossier|Primary applicant', lang)}</span>
                       <strong>{String(answers.contactName || '—')}</strong>
                     </div>
+                    <div className='pg-buyer-recap__row'>
+                      <span>{tr('Sexe & Âge|Gender & Age', lang)}</span>
+                      <strong>{`${recapSex} · ${recapAge}`}</strong>
+                    </div>
+                    {activeTier === 'duo' && (
+                      <div className='pg-buyer-recap__row'>
+                        <span>{tr('2e personne (Duo)|2nd person (Duo)', lang)}</span>
+                        <strong>
+                          {[String(answers.partnerName || '—'), recapPartnerSex, recapPartnerAge]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </strong>
+                      </div>
+                    )}
+                    {activeTier === 'family' && (
+                      <div className='pg-buyer-recap__row'>
+                        <span>{tr('Membres famille|Family members', lang)}</span>
+                        <strong>{String(answers.familyMembersDetails || '—')}</strong>
+                      </div>
+                    )}
                     <div className='pg-buyer-recap__row'>
                       <span>{tr('E-mail|Email', lang)}</span>
                       <strong>{String(answers.contactEmail || '—')}</strong>
@@ -1295,9 +1051,22 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     disabled={redirecting || unavailable}
                     aria-busy={redirecting || undefined}
                   >
-                    {redirecting ? <span className='btn__spinner' aria-hidden='true' /> : <Icon name='lock' />}
-                    <span>{payLabel}</span>
-                    {!redirecting && !unavailable && <Icon name='arrowRight' />}
+                    {redirecting ? (
+                      <>
+                        <span className='btn__dots' aria-hidden='true'>
+                          <span className='btn__dot' />
+                          <span className='btn__dot' />
+                          <span className='btn__dot' />
+                        </span>
+                        <span className='sr-only'>{t('offer_cta_redirecting')}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name='lock' />
+                        <span>{`${payLabel} · ${price}`}</span>
+                        {!unavailable && <Icon name='arrowRight' />}
+                      </>
+                    )}
                   </button>
 
                   <div className='buy__status' role='status' aria-live='polite'>
@@ -1307,7 +1076,6 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <span>{t(ERROR_KEYS[checkoutState.code] || 'err_checkout_failed')}</span>
                       </p>
                     )}
-                    {redirecting && <span className='sr-only'>{t('offer_cta_redirecting')}</span>}
                   </div>
 
                   <div style={{ marginTop: 16 }}>
@@ -1333,7 +1101,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     return (
                       <div key={z.id} className='pg-summary-item'>
                         <div>
-                          <dt>{tr(z.q(ctx, lang), lang)}</dt>
+                          <dt>{getQuestionTitle(z, ctx, lang)}</dt>
                           <dd>{labelVal || '—'}</dd>
                         </div>
                         <button
@@ -1361,23 +1129,56 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             ) : currentQuestion ? (
               <div>
                 <h1 ref={headingRef} tabIndex={-1} className='pg-q-title'>
-                  {tr(currentQuestion.q(ctx, lang), lang)}
+                  {getQuestionTitle(currentQuestion, ctx, lang)}
                 </h1>
-                {currentQuestion.h && (
-                  <p className='pg-q-hint'>{tr(currentQuestion.h(ctx, lang), lang)}</p>
+                {currentQuestion.hint && (
+                  <p className='pg-q-hint'>{getQuestionHint(currentQuestion, ctx, lang)}</p>
                 )}
-                {currentQuestion.opt && (
+                {currentQuestion.optional && (
                   <p className='pg-q-opt-tag'>
                     {tr('Facultatif : vous pouvez passer cette question|Optional: you can skip this question', lang)}
                   </p>
                 )}
 
                 <div className='pg-fields'>
-                  {currentQuestion.ty === 'contact' ? (
+                  {currentQuestion.type === 'contact' ? (
                     <div className='pg-contact-grid'>
                       <div className='pg-contact-field'>
+                        <span className='pg-contact-label'>
+                          {tr(
+                            'Formule d’intégration à l’écosystème *|Ecosystem integration plan *',
+                            lang
+                          )}
+                        </span>
+                        <div
+                          className='pg-tier-switcher'
+                          role='radiogroup'
+                          aria-label={tr('Formule d’intégration|Integration plan', lang)}
+                        >
+                          {tierCards.map((tc) => (
+                            <button
+                              key={tc.key}
+                              type='button'
+                              role='radio'
+                              aria-checked={activeTier === tc.key}
+                              className='pg-tier-card'
+                              onClick={() => handleSelectTier(tc.key)}
+                            >
+                              <span className='pg-tier-card__top'>
+                                <span className='pg-tier-card__name'>{tc.name}</span>
+                                <span className='pg-tier-card__price'>{tc.price}</span>
+                              </span>
+                              <span className='pg-tier-card__desc'>{tc.desc}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className='pg-contact-field'>
                         <label htmlFor='pg-contact-name' className='pg-contact-label'>
-                          {tr('Nom complet *|Full name *', lang)}
+                          {activeTier === 'solo'
+                            ? tr('Nom complet *|Full name *', lang)
+                            : tr('Nom complet du responsable principal *|Full name of primary applicant *', lang)}
                         </label>
                         <input
                           id='pg-contact-name'
@@ -1395,6 +1196,174 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                           }}
                         />
                       </div>
+
+                      <div className='pg-contact-row'>
+                        <div className='pg-contact-field'>
+                          <span className='pg-contact-label'>
+                            {tr('Sexe *|Gender *', lang)}
+                          </span>
+                          <div className='pg-sex-pills' role='radiogroup' aria-label={tr('Sexe|Gender', lang)}>
+                            {Object.entries(sexMap).map(([k, label]) => {
+                              const checked = answers.sex === k;
+                              return (
+                                <button
+                                  key={k}
+                                  type='button'
+                                  role='radio'
+                                  aria-checked={checked}
+                                  className='pg-sex-pill'
+                                  onClick={() => {
+                                    setAnswers((prev) => ({ ...prev, sex: k }));
+                                    setErr('');
+                                  }}
+                                >
+                                  {tr(label, lang)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className='pg-contact-field'>
+                          <label htmlFor='pg-contact-age' className='pg-contact-label'>
+                            {tr('Âge (en années) *|Age (in years) *', lang)}
+                          </label>
+                          <input
+                            id='pg-contact-age'
+                            className='pg-input pg-input--box'
+                            type='number'
+                            inputMode='numeric'
+                            required
+                            min={14}
+                            max={100}
+                            placeholder={tr('Ex. : 25|E.g. 25', lang)}
+                            value={String(answers.age || '')}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^\d]/g, '').slice(0, 3);
+                              setAnswers((prev) => ({ ...prev, age: val }));
+                              setErr('');
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {activeTier === 'duo' && (
+                        <div className='pg-companion-card'>
+                          <h3 className='pg-companion-title'>
+                            {tr(
+                              '2e participant du dossier Duo (inclus dans le tarif 5 $)|2nd participant in Duo file (included in $5 plan)',
+                              lang
+                            )}
+                          </h3>
+                          <div className='pg-contact-field'>
+                            <label htmlFor='pg-partner-name' className='pg-contact-label'>
+                              {tr('Nom complet de la 2e personne *|Full name of 2nd person *', lang)}
+                            </label>
+                            <input
+                              id='pg-partner-name'
+                              className='pg-input pg-input--box'
+                              type='text'
+                              required
+                              maxLength={120}
+                              placeholder={tr('Ex. : Grâce Lofumbwa|E.g. Grace Lofumbwa', lang)}
+                              value={String(answers.partnerName || '')}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setAnswers((prev) => ({ ...prev, partnerName: val }));
+                                setErr('');
+                              }}
+                            />
+                          </div>
+                          <div className='pg-contact-row'>
+                            <div className='pg-contact-field'>
+                              <span className='pg-contact-label'>
+                                {tr('Sexe (2e personne) *|Gender (2nd person) *', lang)}
+                              </span>
+                              <div
+                                className='pg-sex-pills'
+                                role='radiogroup'
+                                aria-label={tr('Sexe 2e personne|2nd person gender', lang)}
+                              >
+                                {Object.entries(sexMap).map(([k, label]) => {
+                                  const checked = answers.partnerSex === k;
+                                  return (
+                                    <button
+                                      key={k}
+                                      type='button'
+                                      role='radio'
+                                      aria-checked={checked}
+                                      className='pg-sex-pill'
+                                      onClick={() => {
+                                        setAnswers((prev) => ({ ...prev, partnerSex: k }));
+                                        setErr('');
+                                      }}
+                                    >
+                                      {tr(label, lang)}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div className='pg-contact-field'>
+                              <label htmlFor='pg-partner-age' className='pg-contact-label'>
+                                {tr('Âge (2e personne) *|Age (2nd person) *', lang)}
+                              </label>
+                              <input
+                                id='pg-partner-age'
+                                className='pg-input pg-input--box'
+                                type='number'
+                                inputMode='numeric'
+                                required
+                                min={1}
+                                max={100}
+                                placeholder={tr('Ex. : 24|E.g. 24', lang)}
+                                value={String(answers.partnerAge || '')}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/[^\d]/g, '').slice(0, 3);
+                                  setAnswers((prev) => ({ ...prev, partnerAge: val }));
+                                  setErr('');
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeTier === 'family' && (
+                        <div className='pg-companion-card'>
+                          <h3 className='pg-companion-title'>
+                            {tr(
+                              'Membres de la famille inclus (jusqu’à 5 personnes au total · 11 $)|Included family members (up to 5 people total · $11)',
+                              lang
+                            )}
+                          </h3>
+                          <div className='pg-contact-field'>
+                            <label htmlFor='pg-family-members' className='pg-contact-label'>
+                              {tr(
+                                'Prénoms, noms et âges des membres accompagnants *|Names and ages of accompanying family members *',
+                                lang
+                              )}
+                            </label>
+                            <input
+                              id='pg-family-members'
+                              className='pg-input pg-input--box'
+                              type='text'
+                              required
+                              maxLength={280}
+                              placeholder={tr(
+                                'Ex. : Marie (31 ans, Femme), Junior (8 ans), Sarah (5 ans)|E.g. Marie (31, Female), Junior (8), Sarah (5)',
+                                lang
+                              )}
+                              value={String(answers.familyMembersDetails || '')}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setAnswers((prev) => ({ ...prev, familyMembersDetails: val }));
+                                setErr('');
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
 
                       <div className='pg-contact-field'>
                         <label htmlFor='pg-contact-email' className='pg-contact-label'>
@@ -1447,15 +1416,44 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         />
                       </div>
                     </div>
-                  ) : currentQuestion.ty === 'text' ? (
+                  ) : currentQuestion.type === 'number' ? (
+                    <input
+                      className='pg-input'
+                      type='number'
+                      inputMode='numeric'
+                      min={currentQuestion.min ?? 14}
+                      max={currentQuestion.max ?? 100}
+                      placeholder={
+                        currentQuestion.placeholder
+                          ? tr(currentQuestion.placeholder, lang)
+                          : tr('Ex. : 25|E.g. 25', lang)
+                      }
+                      aria-label={getQuestionTitle(currentQuestion, ctx, lang)}
+                      value={String(answers[currentQuestion.id] || '')}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^\d]/g, '').slice(0, 3);
+                        setAnswers((prev) => ({ ...prev, [currentQuestion.id]: val }));
+                        setErr('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleNext();
+                        }
+                      }}
+                    />
+                  ) : currentQuestion.type === 'text' ? (
                     <>
                       <input
                         className='pg-input'
                         type='text'
-                        list={currentQuestion.dl ? 'pg-country-datalist' : undefined}
+                        list={currentQuestion.countryList ? 'pg-country-datalist' : undefined}
                         maxLength={200}
                         autoComplete='off'
-                        aria-label={tr(currentQuestion.q(ctx, lang), lang)}
+                        placeholder={
+                          currentQuestion.placeholder ? tr(currentQuestion.placeholder, lang) : undefined
+                        }
+                        aria-label={getQuestionTitle(currentQuestion, ctx, lang)}
                         value={String(answers[currentQuestion.id] || '')}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -1469,7 +1467,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                           }
                         }}
                       />
-                      {currentQuestion.dl && (
+                      {currentQuestion.countryList && (
                         <datalist id='pg-country-datalist'>
                           {sortedAllCountries.map((c) => (
                             <option key={c.code} value={c.name} />
@@ -1479,13 +1477,8 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </>
                   ) : (
                     <>
-                      <div role={currentQuestion.ty === 'single' ? 'radiogroup' : 'group'}>
-                        {(currentQuestion.o
-                          ? currentQuestion.o(ctx)
-                          : O[currentQuestion.id]
-                            ? Object.keys(O[currentQuestion.id])
-                            : []
-                        ).map((optKey) => {
+                      <div role={currentQuestion.type === 'single' ? 'radiogroup' : 'group'}>
+                        {getQuestionOptionKeys(currentQuestion, ctx).map((optKey) => {
                           const curVal = answers[currentQuestion.id];
                           const isChecked = Array.isArray(curVal)
                             ? curVal.includes(optKey)
@@ -1498,11 +1491,11 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                               key={optKey}
                               type='button'
                               className='pg-opt'
-                              role={currentQuestion.ty === 'single' ? 'radio' : 'checkbox'}
+                              role={currentQuestion.type === 'single' ? 'radio' : 'checkbox'}
                               aria-checked={isChecked}
                               onClick={() => {
                                 setAnswers((prev) => {
-                                  if (currentQuestion.ty === 'single') {
+                                  if (currentQuestion.type === 'single') {
                                     return { ...prev, [currentQuestion.id]: optKey };
                                   }
                                   const existing = Array.isArray(prev[currentQuestion.id])
@@ -1516,7 +1509,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                 setErr('');
                               }}
                             >
-                              <span>{tr(O[currentQuestion.id][optKey], lang)}</span>
+                              <span>{getOptionLabel(currentQuestion, optKey, lang)}</span>
                               {recommended && (
                                 <span className='pg-rec'>{tr('Suggéré|Suggested', lang)}</span>
                               )}
@@ -1543,9 +1536,10 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 </div>
 
                 {err && (
-                  <p className='pg-err' role='alert'>
-                    {err}
-                  </p>
+                  <div className='pg-err' role='alert'>
+                    <Icon name='alert' />
+                    <span>{err}</span>
+                  </div>
                 )}
 
                 <div className='pg-nav-row'>
@@ -1559,7 +1553,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                   </button>
 
                   <button type='button' className='pg-next-btn' onClick={handleNext}>
-                    {currentQuestion.opt &&
+                    {currentQuestion.optional &&
                     !(answers[currentQuestion.id] && String(answers[currentQuestion.id]).length > 0)
                       ? tr('Passer|Skip', lang)
                       : visibleQuestions[visibleQuestions.length - 1]?.id === currentQuestion.id

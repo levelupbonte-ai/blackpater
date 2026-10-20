@@ -422,9 +422,26 @@
 }
 
 .pg-err {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(248, 113, 113, 0.38);
+  background: rgba(248, 113, 113, 0.08);
+  color: var(--bone);
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.5;
+  animation: pgFade 0.25s var(--ease) both;
+}
+.pg-err svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
   color: var(--danger);
-  font-size: 0.9rem;
-  margin-top: 14px;
 }
 
 .pg-nav-row {
@@ -496,6 +513,42 @@
   display: grid;
   gap: 20px;
 }
+.pg-contact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 540px) {
+  .pg-contact-row {
+    grid-template-columns: 1fr;
+  }
+}
+.pg-sex-pills {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pg-sex-pill {
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--bone);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.16s var(--ease);
+}
+.pg-sex-pill:hover {
+  border-color: var(--bone);
+}
+.pg-sex-pill[aria-checked='true'] {
+  border-color: var(--bone);
+  background: var(--surface-2);
+  font-weight: 600;
+}
 .pg-contact-field {
   display: flex;
   flex-direction: column;
@@ -517,6 +570,88 @@
 .pg-input--box:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* Tier Switcher & Companion Cards */
+.pg-tier-switcher {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 580px) {
+  .pg-tier-switcher {
+    grid-template-columns: 1fr;
+  }
+}
+.pg-tier-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--bone);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.pg-tier-card:hover {
+  border-color: var(--bone);
+}
+.pg-tier-card[aria-checked='true'] {
+  border-color: var(--accent-primary);
+  background: rgba(212, 175, 55, 0.11);
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.25);
+}
+.pg-tier-card__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pg-tier-card__name {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.pg-tier-card__price {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+  font-variant-numeric: tabular-nums;
+}
+.pg-tier-card__desc {
+  font-size: 0.78rem;
+  color: var(--bone-dim);
+}
+.pg-companion-card {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.025);
+  display: grid;
+  gap: 16px;
+}
+.pg-companion-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+.pg-ecosystem-banner {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--bone-dim);
+}
+.pg-ecosystem-banner strong {
+  color: var(--bone);
 }
 
 /* Final Payment Box at the bottom of Review */

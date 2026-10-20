@@ -62,12 +62,12 @@ export const ROUTES = [
       fr: {
         title: 'Médias & Réseaux Officiels — Black Pater (Jean-Pierre Lofumbwa)',
         description:
-          'Retrouvez tous les réseaux officiels et l’écosystème digital de Black Pater (Jean-Pierre Lofumbwa) : TikTok, Instagram, YouTube, Facebook, X, LinkedIn et WhatsApp.'
+          'Retrouvez tous les réseaux officiels et l’écosystème digital de Black Pater (Jean-Pierre Lofumbwa) : TikTok, Instagram, YouTube, Facebook, X et LinkedIn.'
       },
       en: {
         title: 'Official Media & Channels — Black Pater (Jean-Pierre Lofumbwa)',
         description:
-          'Connect with Black Pater (Jean-Pierre Lofumbwa) across all official channels: TikTok, Instagram, YouTube, Facebook, X, LinkedIn and WhatsApp.'
+          'Connect with Black Pater (Jean-Pierre Lofumbwa) across all official channels: TikTok, Instagram, YouTube, Facebook, X and LinkedIn.'
       }
     }
   },
@@ -132,14 +132,14 @@ export const ROUTES = [
     indexable: true,
     meta: {
       fr: {
-        title: 'Accompagnement & Démarches Voyage — 1 $ | Black Pater',
+        title: 'Accompagnement & Démarches Voyage — 2,60 $ | Black Pater',
         description:
-          'Informations vérifiées, orientation et échange direct sur WhatsApp pour vos démarches de voyage, bourses, études et visas. 1 $, paiement unique, sans renouvellement.'
+          'Informations vérifiées, orientation et accompagnement personnalisé pour vos démarches de voyage, bourses, études et visas. 2,60 $, paiement unique, sans renouvellement.'
       },
       en: {
-        title: 'Travel & Visa Guidance — $1 | Black Pater',
+        title: 'Travel & Visa Guidance — $2.60 | Black Pater',
         description:
-          'Verified information, orientation and direct WhatsApp contact for your travel, scholarship, study and visa procedures. $1 one-time payment, no renewal.'
+          'Verified information, orientation and personalised guidance for your travel, scholarship, study and visa procedures. $2.60 one-time payment, no renewal.'
       }
     }
   },

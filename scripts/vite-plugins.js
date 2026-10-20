@@ -67,7 +67,7 @@ function sitemap(date) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
-/** After `vite build`: one HTML file per route + 404.html + sitemap.xml. */
+/** After `vite build`: one HTML file per route + 404.html + sitemap.xml + stable asset fallbacks. */
 export function routePages() {
   let outDir = 'dist';
   return {
@@ -86,6 +86,26 @@ export function routePages() {
       }
       fs.writeFileSync(path.join(outDir, NOT_FOUND.file), renderRouteHtml(template, { ...NOT_FOUND, path: null, indexable: false }));
       fs.writeFileSync(path.join(outDir, 'sitemap.xml'), sitemap(new Date().toISOString().slice(0, 10)));
+
+      // Emit stable fallback copies in dist/assets so stale cached HTML pages never 404 across deploys.
+      const assetsDir = path.join(outDir, 'assets');
+      if (fs.existsSync(assetsDir)) {
+        const assetFiles = fs.readdirSync(assetsDir);
+        const entryJs = assetFiles.find((f) => /^index-[A-Za-z0-9_-]+\.js$/.test(f));
+        const entryCss = assetFiles.find((f) => /^index-[A-Za-z0-9_-]+\.css$/.test(f));
+        if (entryJs) {
+          const srcJs = path.join(assetsDir, entryJs);
+          fs.copyFileSync(srcJs, path.join(assetsDir, 'app.js'));
+          if (entryJs !== 'index-Droh65ZD.js') {
+            fs.copyFileSync(srcJs, path.join(assetsDir, 'index-Droh65ZD.js'));
+          }
+        }
+        if (entryCss) {
+          fs.copyFileSync(path.join(assetsDir, entryCss), path.join(assetsDir, 'app.css'));
+        }
+        fs.writeFileSync(path.join(assetsDir, 'router-noop.js'), 'export {};\n');
+        fs.writeFileSync(path.join(assetsDir, 'router-CjYhHRKd.js'), 'export {};\n');
+      }
     }
   };
 }

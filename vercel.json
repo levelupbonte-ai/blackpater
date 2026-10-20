@@ -100,6 +100,18 @@
     {
       "source": "/legal/confidentialite",
       "destination": "/legal/confidentialite/index.html"
+    },
+    {
+      "source": "/assets/index-:hash.js",
+      "destination": "/assets/app.js"
+    },
+    {
+      "source": "/assets/router-:hash.js",
+      "destination": "/assets/router-noop.js"
+    },
+    {
+      "source": "/assets/index-:hash.css",
+      "destination": "/assets/app.css"
     }
   ],
   "headers": [

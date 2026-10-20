@@ -36,11 +36,11 @@ export const fr = {
   notfound_home: "Retour à l'accueil",
 
   // Payment errors (generic, never provider messages)
-  err_payments_unavailable: 'Bientôt disponible.',
-  err_rate_limited: 'Trop de tentatives en peu de temps. Patientez une minute puis réessayez.',
-  err_timeout: 'La connexion est lente. Réessayez dans un instant.',
-  err_network: 'Connexion impossible. Vérifiez votre réseau, puis réessayez.',
-  err_checkout_failed: 'Le paiement n’a pas pu s’ouvrir. Réessayez dans un instant.',
+  err_payments_unavailable: 'Le service de paiement sécurisé est momentanément indisponible. Veuillez réessayer ultérieurement.',
+  err_rate_limited: 'Par mesure de sécurité, veuillez patienter un instant avant de lancer une nouvelle tentative.',
+  err_timeout: 'Le délai de connexion au serveur sécurisé a expiré. Veuillez vérifier votre connexion et réessayer.',
+  err_network: 'Impossible d’établir la connexion sécurisée. Veuillez vérifier votre accès internet et réessayer.',
+  err_checkout_failed: 'L’ouverture de votre session de paiement sécurisée n’a pas pu aboutir. Veuillez réessayer dans un instant.',
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -79,9 +79,9 @@ export const en: Record<keyof typeof fr, string> = {
   notfound_lead: 'This page does not exist or has moved. Everything on the site is still available from the menu.',
   notfound_home: 'Back to home',
 
-  err_payments_unavailable: 'Coming soon.',
-  err_rate_limited: 'Too many attempts in a short time. Please wait a minute and try again.',
-  err_timeout: 'The connection is slow. Please try again in a moment.',
-  err_network: 'Could not connect. Check your network and try again.',
-  err_checkout_failed: 'The payment could not open. Please try again in a moment.',
+  err_payments_unavailable: 'The secure payment service is temporarily unavailable. Please try again later.',
+  err_rate_limited: 'For security reasons, please wait a moment before trying again.',
+  err_timeout: 'The connection to the secure server timed out. Please check your connection and try again.',
+  err_network: 'Unable to establish a secure connection. Please check your internet access and try again.',
+  err_checkout_failed: 'Your secure payment session could not be opened. Please try again in a moment.',
 };

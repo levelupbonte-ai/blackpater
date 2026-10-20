@@ -9,23 +9,61 @@
 export const OFFERS = Object.freeze({
   'accompagnement-voyage': Object.freeze({
     id: 'accompagnement-voyage',
-    amount: 100,
+    tier: 'solo',
+    persons: 1,
+    amount: 260,
     currency: 'usd',
     path: '/abonnements/accompagnement-voyage',
     // Shown on the Stripe Checkout page and on the customer's receipt.
-    stripeName: 'Black Pater — Accompagnement & Démarches Voyage',
+    stripeName: 'Black Pater — Intégration Écosystème (Solo · 1 personne)',
     stripeDescription:
-      'Paiement unique, sans abonnement ni renouvellement. One-time payment, no subscription or renewal.'
+      'Enregistrement officiel du dossier (1 personne) et intégration dans l’écosystème Black Pater (accès aux forfaits mensuels Pro & Premium).'
+  }),
+  'accompagnement-voyage-duo': Object.freeze({
+    id: 'accompagnement-voyage-duo',
+    tier: 'duo',
+    persons: 2,
+    amount: 500,
+    currency: 'usd',
+    path: '/abonnements/accompagnement-voyage',
+    // Shown on the Stripe Checkout page and on the customer's receipt.
+    stripeName: 'Black Pater — Intégration Écosystème (Duo · 2 personnes)',
+    stripeDescription:
+      'Enregistrement officiel du dossier Duo (2 personnes) et intégration dans l’écosystème Black Pater (accès aux forfaits mensuels Pro & Premium).'
+  }),
+  'accompagnement-voyage-famille': Object.freeze({
+    id: 'accompagnement-voyage-famille',
+    tier: 'family',
+    persons: 5,
+    amount: 1100,
+    currency: 'usd',
+    path: '/abonnements/accompagnement-voyage',
+    // Shown on the Stripe Checkout page and on the customer's receipt.
+    stripeName: 'Black Pater — Intégration Écosystème (Famille · jusqu’à 5 personnes)',
+    stripeDescription:
+      'Enregistrement officiel du dossier Famille (jusqu’à 5 personnes) et intégration dans l’écosystème Black Pater (accès aux forfaits mensuels Pro & Premium).'
   })
 });
 
 export const OFFER_IDS = Object.freeze(Object.keys(OFFERS));
 
+export const ECOSYSTEM_TIERS = Object.freeze([
+  OFFERS['accompagnement-voyage'],
+  OFFERS['accompagnement-voyage-duo'],
+  OFFERS['accompagnement-voyage-famille']
+]);
+
 export function getOffer(id) {
   return typeof id === 'string' && Object.prototype.hasOwnProperty.call(OFFERS, id) ? OFFERS[id] : null;
 }
 
-/** "$1" / "1 $" style display price, from the catalog amount. */
+export function getOfferByTier(tier) {
+  if (tier === 'duo') return OFFERS['accompagnement-voyage-duo'];
+  if (tier === 'family') return OFFERS['accompagnement-voyage-famille'];
+  return OFFERS['accompagnement-voyage'];
+}
+
+/** "$2.60" / "2,60 $" style display price, from the catalog amount. */
 export function formatOfferPrice(offer, lang = 'fr') {
   const value = offer.amount / 100;
   const locale = lang === 'en' ? 'en-US' : 'fr-FR';
@@ -33,6 +71,8 @@ export function formatOfferPrice(offer, lang = 'fr') {
     style: 'currency',
     currency: offer.currency.toUpperCase(),
     currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: value % 1 === 0 ? 0 : 2
+    minimumFractionDigits: value % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2
   }).format(value);
 }
+

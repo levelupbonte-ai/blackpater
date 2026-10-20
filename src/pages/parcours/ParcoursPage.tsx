@@ -12,7 +12,7 @@ export const ParcoursPage: React.FC = () => {
   return (
     <div className='page'>
       <PageHeader
-        breadcrumbs={[{ label: t('nav_home'), to: '/' }, { label: t('nav_journey') }]}
+        crumbs={[{ label: t('nav_home'), to: '/' }, { label: t('nav_journey') }]}
         eyebrow={t('journey_kicker')}
         title={t('journey_title')}
         lead={t('journey_subtitle')}

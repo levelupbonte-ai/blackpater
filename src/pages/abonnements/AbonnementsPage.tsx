@@ -44,10 +44,10 @@ export const AbonnementsPage: React.FC = () => {
                 ))}
               </ul>
               <div className='offer-card__foot'>
-                <p className='offer-card__price'>
+                <Link to={offer.path} className='offer-card__price' aria-label={`${price} — ${t('offers_card_cta')}`}>
                   <span className='offer-card__amount'>{price}</span>
                   <span className='offer-card__note'>{t('offer_price_note')}</span>
-                </p>
+                </Link>
                 <Link to={offer.path} className='btn btn--primary btn--lg' aria-label={`${t('offers_card_cta')} — ${t('offer_name')}`}>
                   {t('offers_card_cta')}
                   <Icon name='arrowRight' />

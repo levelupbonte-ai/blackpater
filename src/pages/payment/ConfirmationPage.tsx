@@ -168,7 +168,14 @@ export const ConfirmationPage: React.FC = () => {
         currencyDisplay: 'narrowSymbol',
         minimumFractionDigits: view.amount % 100 === 0 ? 0 : 2
       }).format(view.amount / 100);
-      const wa = whatsappLink(t('pay_wa_message', { ref: sessionId }));
+      let summarySuffix = '';
+      try {
+        const savedSummary = window.localStorage.getItem('pg:last_summary');
+        if (savedSummary) summarySuffix = ` — PaterGuide : ${savedSummary}`;
+      } catch {
+        /* ignore */
+      }
+      const wa = whatsappLink(`${t('pay_wa_message', { ref: sessionId })}${summarySuffix}`);
       content = (
         <>
           {status(

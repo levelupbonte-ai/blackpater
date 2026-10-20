@@ -329,9 +329,27 @@ body.menu-open {
 .foot__title {
   margin-bottom: var(--s-3);
   font-family: var(--display);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--bone);
+}
+.foot__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+  pointer-events: none;
+}
+.foot__chevron {
+  display: none;
+  width: 18px;
+  height: 18px;
+  color: var(--bone-dim);
+  transition: transform 0.25s var(--ease), color 0.2s ease;
 }
 .foot__links {
   display: grid;
@@ -344,6 +362,45 @@ body.menu-open {
 }
 .foot__links a:hover {
   color: var(--bone);
+}
+@media (max-width: 720px) {
+  .foot__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .foot__brand {
+    padding-bottom: var(--s-5);
+  }
+  .foot__col {
+    border-top: 1px solid var(--line);
+  }
+  .foot__col:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .foot__title {
+    margin-bottom: 0;
+  }
+  .foot__toggle {
+    padding: 15px 0;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .foot__chevron {
+    display: block;
+  }
+  .foot__col.is-open .foot__chevron {
+    transform: rotate(180deg);
+    color: var(--bone);
+  }
+  .foot__links {
+    display: none;
+    padding-bottom: 16px;
+    gap: 10px;
+    animation: heroFadeUp 0.25s var(--ease) both;
+  }
+  .foot__col.is-open .foot__links {
+    display: grid;
+  }
 }
 .foot__legal {
   margin-top: clamp(32px, 4vw, 48px);

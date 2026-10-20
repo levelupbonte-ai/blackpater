@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from '../app/router';
 import { useLanguage } from '../context/LanguageContext';
+import { Icon } from '../components/Icon';
 import type { TranslationKey } from '../i18n';
 import { CONTACT_EMAIL, WHATSAPP_DISPLAY, whatsappLink } from '../lib/contact';
 import { LevelUpCredit } from './LevelUpCredit';
@@ -37,9 +38,17 @@ const LEGAL: Array<{ to: string; key: TranslationKey }> = [
   { to: '/legal/confidentialite', key: 'foot_privacy' }
 ];
 
+type SectionId = 'nav' | 'media' | 'socials';
+
 export const Footer: React.FC = () => {
   const { t } = useLanguage();
   const year = new Date().getFullYear();
+  const [openSec, setOpenSec] = useState<SectionId | null>(null);
+
+  const toggleSec = (id: SectionId) => {
+    setOpenSec((prev) => (prev === id ? null : id));
+  };
+
   return (
     <footer className='foot'>
       <div className='container'>
@@ -70,9 +79,20 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          <nav className='foot__col' aria-labelledby='foot-nav'>
+          <nav
+            className={`foot__col${openSec === 'nav' ? ' is-open' : ''}`}
+            aria-labelledby='foot-nav'
+          >
             <h2 className='foot__title' id='foot-nav'>
-              {t('foot_nav')}
+              <button
+                type='button'
+                className='foot__toggle'
+                aria-expanded={openSec === 'nav'}
+                onClick={() => toggleSec('nav')}
+              >
+                <span>{t('foot_nav')}</span>
+                <Icon name='chevronDown' className='foot__chevron' />
+              </button>
             </h2>
             <ul className='foot__links'>
               {NAV.map((n) => (
@@ -83,8 +103,18 @@ export const Footer: React.FC = () => {
             </ul>
           </nav>
 
-          <div className='foot__col'>
-            <h2 className='foot__title'>{t('foot_media')}</h2>
+          <div className={`foot__col${openSec === 'media' ? ' is-open' : ''}`}>
+            <h2 className='foot__title'>
+              <button
+                type='button'
+                className='foot__toggle'
+                aria-expanded={openSec === 'media'}
+                onClick={() => toggleSec('media')}
+              >
+                <span>{t('foot_media')}</span>
+                <Icon name='chevronDown' className='foot__chevron' />
+              </button>
+            </h2>
             <ul className='foot__links'>
               {PRESS.map((p) => (
                 <li key={p.href}>
@@ -97,8 +127,18 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          <div className='foot__col'>
-            <h2 className='foot__title'>{t('foot_socials')}</h2>
+          <div className={`foot__col${openSec === 'socials' ? ' is-open' : ''}`}>
+            <h2 className='foot__title'>
+              <button
+                type='button'
+                className='foot__toggle'
+                aria-expanded={openSec === 'socials'}
+                onClick={() => toggleSec('socials')}
+              >
+                <span>{t('foot_socials')}</span>
+                <Icon name='chevronDown' className='foot__chevron' />
+              </button>
+            </h2>
             <ul className='foot__links'>
               {SOCIAL.map((p) => (
                 <li key={p.href}>

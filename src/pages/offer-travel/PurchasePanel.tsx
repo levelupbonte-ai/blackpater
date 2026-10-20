@@ -16,7 +16,7 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   checkout_failed: 'err_checkout_failed'
 };
 
-export const PurchasePanel: React.FC<{ offer: Offer }> = ({ offer }) => {
+export const PurchasePanel: React.FC<{ offer: Offer; onOpenGuide?: () => void }> = ({ offer, onOpenGuide }) => {
   const { lang, t } = useLanguage();
   const { state, pay } = useCheckout(offer.id);
   const price = formatOfferPrice(offer, lang);
@@ -28,13 +28,21 @@ export const PurchasePanel: React.FC<{ offer: Offer }> = ({ offer }) => {
   else if (unavailable) label = t('offer_cta_unavailable');
   else if (state.kind === 'error') label = t('offer_cta_retry');
 
+  const handleAction = () => {
+    if (onOpenGuide) {
+      onOpenGuide();
+    } else {
+      pay();
+    }
+  };
+
   return (
     <aside className='buy' id='achat' aria-labelledby='buy-title'>
       <h2 id='buy-title' className='buy__title'>
         {t('offer_name')}
       </h2>
 
-      <p className='buy__price'>
+      <p className='buy__price' onClick={onOpenGuide} style={onOpenGuide ? { cursor: 'pointer' } : undefined}>
         <span className='buy__amount'>{price}</span>
         <span className='buy__note'>{t('offer_price_note')}</span>
       </p>
@@ -42,7 +50,7 @@ export const PurchasePanel: React.FC<{ offer: Offer }> = ({ offer }) => {
       <button
         type='button'
         className='btn btn--primary btn--lg btn--block buy__cta'
-        onClick={pay}
+        onClick={handleAction}
         disabled={redirecting || unavailable}
         aria-busy={redirecting || undefined}
       >

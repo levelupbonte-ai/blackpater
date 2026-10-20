@@ -128,57 +128,62 @@ blockquote {
 /* Progressive Scroll Construction & Text Reveal Animations */
 .reveal-on-scroll {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(26px) scale(0.985);
+  filter: blur(2px);
   transition:
-    opacity 0.7s var(--ease),
-    transform 0.7s var(--ease);
-  transition-delay: calc(var(--reveal-idx, 0) * 85ms);
-  will-change: opacity, transform;
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--reveal-idx, 0) * 90ms);
+  will-change: opacity, transform, filter;
 }
 .reveal-on-scroll.is-revealed {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0);
 }
 
 @keyframes heroFadeUp {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(22px) scale(0.985);
+    filter: blur(3px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    filter: blur(0);
   }
 }
 
 .hero-anim {
   opacity: 0;
-  animation: heroFadeUp 0.75s var(--ease) forwards;
+  animation: heroFadeUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .hero-anim--1 {
-  animation-delay: 0.05s;
+  animation-delay: 0.06s;
 }
 .hero-anim--2 {
-  animation-delay: 0.14s;
+  animation-delay: 0.16s;
 }
 .hero-anim--3 {
-  animation-delay: 0.22s;
+  animation-delay: 0.26s;
 }
 .hero-anim--4 {
-  animation-delay: 0.3s;
+  animation-delay: 0.36s;
 }
 .hero-anim--5 {
-  animation-delay: 0.42s;
+  animation-delay: 0.46s;
 }
 .hero-anim--6 {
-  animation-delay: 0.52s;
+  animation-delay: 0.56s;
 }
 
 @keyframes wordRise {
   from {
     opacity: 0;
-    transform: translateY(8px);
-    filter: blur(3px);
+    transform: translateY(10px);
+    filter: blur(4px);
   }
   to {
     opacity: 1;
@@ -191,7 +196,7 @@ blockquote {
   display: inline-block;
   margin-right: 0.26em;
   opacity: 0;
-  animation: wordRise 0.55s var(--ease) forwards;
+  animation: wordRise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Layout */

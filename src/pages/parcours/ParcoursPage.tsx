@@ -6,7 +6,6 @@ import { PageHeader } from '../../components/PageHeader';
 import { Icon } from '../../components/Icon';
 import { Journey } from '../home/sections/Journey';
 import { CoverFlow } from '../home/sections/CoverFlow';
-import { PhotoStrip } from '../home/sections/PhotoStrip';
 
 export const ParcoursPage: React.FC = () => {
   const { t } = useLanguage();
@@ -31,7 +30,6 @@ export const ParcoursPage: React.FC = () => {
       />
       <Journey />
       <CoverFlow />
-      <PhotoStrip />
     </div>
   );
 };

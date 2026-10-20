@@ -1,62 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './abonnements.css';
 import { Link } from '../../app/router';
 import { useLanguage } from '../../context/LanguageContext';
 import { PageHeader } from '../../components/PageHeader';
 import { Icon } from '../../components/Icon';
-import { OFFERS, formatOfferPrice, getOfferByTier } from '../../../shared/offers.js';
-
-type TierKey = 'solo' | 'duo' | 'family';
+import { OFFERS, formatOfferPrice } from '../../../shared/offers.js';
 
 export const AbonnementsPage: React.FC = () => {
   const { lang, t } = useLanguage();
-  const [selectedTier, setSelectedTier] = useState<TierKey>(() => {
-    try {
-      const saved = window.localStorage.getItem('pg:preselected_tier');
-      if (saved === 'solo' || saved === 'duo' || saved === 'family') return saved;
-    } catch {
-      /* ignore */
-    }
-    return 'solo';
-  });
-
-  const activeOffer = getOfferByTier(selectedTier);
-  const price = formatOfferPrice(activeOffer, lang);
-
-  const handleSelectTier = (tier: TierKey) => {
-    setSelectedTier(tier);
-    try {
-      window.localStorage.setItem('pg:preselected_tier', tier);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const tiers: Array<{
-    key: TierKey;
-    title: string;
-    sub: string;
-    price: string;
-  }> = [
-    {
-      key: 'solo',
-      title: t('offers_tier_solo_title'),
-      sub: t('offers_tier_solo_sub'),
-      price: formatOfferPrice(OFFERS['accompagnement-voyage'], lang)
-    },
-    {
-      key: 'duo',
-      title: t('offers_tier_duo_title'),
-      sub: t('offers_tier_duo_sub'),
-      price: formatOfferPrice(OFFERS['accompagnement-voyage-duo'], lang)
-    },
-    {
-      key: 'family',
-      title: t('offers_tier_family_title'),
-      sub: t('offers_tier_family_sub'),
-      price: formatOfferPrice(OFFERS['accompagnement-voyage-famille'], lang)
-    }
-  ];
+  const offer = OFFERS['accompagnement-voyage'];
+  const price = formatOfferPrice(offer, lang);
 
   return (
     <div className='page'>
@@ -76,7 +29,7 @@ export const AbonnementsPage: React.FC = () => {
             <div className='offer-card__body'>
               <p className='eyebrow'>{t('offers_card_tag')}</p>
               <h2 className='offer-card__title'>
-                <Link to={activeOffer.path} onClick={() => handleSelectTier(selectedTier)}>
+                <Link to='/abonnements/accompagnement-voyage'>
                   {t('offer_name')}
                 </Link>
               </h2>
@@ -90,39 +43,9 @@ export const AbonnementsPage: React.FC = () => {
                 ))}
               </ul>
 
-              <div className='offer-card__tiers' role='radiogroup' aria-label={t('offers_tier_label')}>
-                <p className='offer-card__tiers-label'>{t('offers_tier_label')}</p>
-                <div className='offer-card__tiers-grid'>
-                  {tiers.map((item) => {
-                    const isActive = selectedTier === item.key;
-                    return (
-                      <button
-                        key={item.key}
-                        type='button'
-                        role='radio'
-                        aria-checked={isActive}
-                        className={`offer-tier-btn ${isActive ? 'is-active' : ''}`}
-                        onClick={() => handleSelectTier(item.key)}
-                      >
-                        <span className='offer-tier-btn__top'>
-                          <span className='offer-tier-btn__title'>{item.title}</span>
-                          <span className='offer-tier-btn__price'>{item.price}</span>
-                        </span>
-                        <span className='offer-tier-btn__sub'>{item.sub}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className='offer-card__ecosystem-note'>
-                  <Icon name='info' />
-                  <span>{t('offers_ecosystem_badge')}</span>
-                </p>
-              </div>
-
               <div className='offer-card__foot'>
                 <Link
-                  to={activeOffer.path}
-                  onClick={() => handleSelectTier(selectedTier)}
+                  to='/abonnements/accompagnement-voyage'
                   className='offer-card__price'
                   aria-label={`${price} — ${t('offers_card_cta')}`}
                 >
@@ -130,8 +53,7 @@ export const AbonnementsPage: React.FC = () => {
                   <span className='offer-card__note'>{t('offer_price_note')}</span>
                 </Link>
                 <Link
-                  to={activeOffer.path}
-                  onClick={() => handleSelectTier(selectedTier)}
+                  to='/abonnements/accompagnement-voyage'
                   className='btn btn--primary btn--lg'
                   aria-label={`${t('offers_card_cta')} — ${t('offer_name')}`}
                 >

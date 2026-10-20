@@ -7,6 +7,16 @@
  * Amounts are in the smallest currency unit (cents).
  */
 export const OFFERS = Object.freeze({
+  'accompagnement-voyage-test': Object.freeze({
+    id: 'accompagnement-voyage-test',
+    tier: 'test',
+    persons: 1,
+    amount: 1,
+    currency: 'usd',
+    path: '/abonnements/accompagnement-voyage',
+    stripeName: 'Black Pater — Test Paiement Stripe (0,01 $)',
+    stripeDescription: 'Test de validation du flux de paiement Stripe (1 centime / $0.01).'
+  }),
   'accompagnement-voyage': Object.freeze({
     id: 'accompagnement-voyage',
     tier: 'solo',
@@ -48,6 +58,7 @@ export const OFFERS = Object.freeze({
 export const OFFER_IDS = Object.freeze(Object.keys(OFFERS));
 
 export const ECOSYSTEM_TIERS = Object.freeze([
+  OFFERS['accompagnement-voyage-test'],
   OFFERS['accompagnement-voyage'],
   OFFERS['accompagnement-voyage-duo'],
   OFFERS['accompagnement-voyage-famille']
@@ -58,6 +69,7 @@ export function getOffer(id) {
 }
 
 export function getOfferByTier(tier) {
+  if (tier === 'test') return OFFERS['accompagnement-voyage-test'];
   if (tier === 'duo') return OFFERS['accompagnement-voyage-duo'];
   if (tier === 'family') return OFFERS['accompagnement-voyage-famille'];
   return OFFERS['accompagnement-voyage'];

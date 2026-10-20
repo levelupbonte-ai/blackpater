@@ -16,7 +16,7 @@ import {
 import type { TranslationKey } from '../../i18n';
 import { useCheckout } from './useCheckout';
 
-type TierKey = 'solo' | 'duo' | 'family';
+type TierKey = 'solo' | 'duo' | 'family' | 'test';
 
 const ERROR_KEYS: Record<string, TranslationKey> = {
   rate_limited: 'err_rate_limited',
@@ -353,7 +353,11 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   });
 
   const activeTier: TierKey =
-    answers.groupTier === 'duo' || answers.groupTier === 'family' ? answers.groupTier : 'solo';
+    answers.groupTier === 'test'
+      ? 'test'
+      : answers.groupTier === 'duo' || answers.groupTier === 'family'
+      ? answers.groupTier
+      : 'solo';
   const activeOffer = getOfferByTier(activeTier);
   const { state: checkoutState, pay } = useCheckout(activeOffer.id);
 
@@ -467,7 +471,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       }
       if (!loadedAnswers.groupTier) {
         const preselected = readStorage('pg:preselected_tier');
-        if (preselected === 'solo' || preselected === 'duo' || preselected === 'family') {
+        if (preselected === 'solo' || preselected === 'duo' || preselected === 'family' || preselected === 'test') {
           loadedAnswers = { ...loadedAnswers, groupTier: preselected };
         }
       }
@@ -727,6 +731,12 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       name: tr('Famille · 5 pers.|Family · 5 people', lang),
       desc: tr('Jusqu’à 5 membres|Up to 5 members', lang),
       price: formatOfferPrice(OFFERS['accompagnement-voyage-famille'], lang)
+    },
+    {
+      key: 'test',
+      name: tr('Test · 1 centime|Test · 1 cent', lang),
+      desc: tr('Test Stripe (0,01 $)|Stripe test ($0.01)', lang),
+      price: formatOfferPrice(OFFERS['accompagnement-voyage-test'], lang)
     }
   ];
 
@@ -996,7 +1006,9 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <div className='pg-buyer-recap__row'>
                       <span>{tr('Formule choisie|Selected plan', lang)}</span>
                       <strong>
-                        {activeTier === 'duo'
+                        {activeTier === 'test'
+                          ? tr('Test Stripe · 1 centime (0,01 $)|Stripe Test · 1 cent ($0.01)', lang)
+                          : activeTier === 'duo'
                           ? tr('Duo · 2 personnes (5 $)|Duo · 2 people ($5)', lang)
                           : activeTier === 'family'
                           ? tr('Famille · Jusqu’à 5 pers. (11 $)|Family · Up to 5 people ($11)', lang)

@@ -8,11 +8,11 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'dark',
+  theme: 'light',
   toggleTheme: () => {}
 });
 
-const STORAGE_KEY = 'bp_theme';
+const STORAGE_KEY = 'bp_theme_pref';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -22,7 +22,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {
       /* ignore storage errors */
     }
-    return 'dark';
+    return 'light';
   });
 
   useEffect(() => {

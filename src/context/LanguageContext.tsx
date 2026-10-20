@@ -10,20 +10,30 @@ interface LanguageContextValue {
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
 }
 
-const STORAGE_KEY = 'bp_lang';
+const STORAGE_KEY = 'bp_lang_v4';
 
 function initialLang(): Language {
   try {
+    const params = new URLSearchParams(window.location.search);
+    const qLang = params.get('lang');
+    if (qLang === 'fr' || qLang === 'en') {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, qLang);
+      } catch {
+        /* storage blocked */
+      }
+      return qLang;
+    }
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved === 'fr' || saved === 'en') return saved;
   } catch {
     /* storage blocked */
   }
-  return 'fr';
+  return 'en';
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
-  lang: 'fr',
+  lang: 'en',
   setLang: () => {},
   t: (k) => k
 });

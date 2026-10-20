@@ -643,9 +643,7 @@ const RAW_Q: QuestionDef[] = [
     id: 'contactInfo',
     st: S8,
     ty: 'contact',
-    q: () => 'Vos coordonnées obligatoires pour l’accompagnement|Your required contact details for guidance',
-    h: () =>
-      'Même si Stripe vous demandera un e-mail pour le reçu bancaire, ces informations sont obligatoires pour constituer votre dossier et permettre à notre équipe d’accompagnement de vous contacter directement sur WhatsApp et par e-mail.|Even though Stripe will ask for an email for your payment receipt, these details are required to build your file and allow our guidance team to reach you directly on WhatsApp and by email.'
+    q: () => 'Vos coordonnées pour votre accompagnement|Your contact details for your guidance'
   }
 ];
 
@@ -993,7 +991,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     }
     if (!PHONE_RE.test(phone)) {
       return tr(
-        'Veuillez indiquer votre numéro de téléphone / WhatsApp avec indicatif (ex. +243... ou +1...).|Please enter your phone / WhatsApp number with country code (e.g. +243... or +1...).',
+        'Veuillez indiquer votre numéro de téléphone avec indicatif (ex. +243... ou +1...).|Please enter your phone number with country code (e.g. +243... or +1...).',
         lang
       );
     }
@@ -1278,7 +1276,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                       <strong>{String(answers.contactEmail || '—')}</strong>
                     </div>
                     <div className='pg-buyer-recap__row'>
-                      <span>{tr('Téléphone / WhatsApp|Phone / WhatsApp', lang)}</span>
+                      <span>{tr('Téléphone|Phone', lang)}</span>
                       <strong>{String(answers.contactPhone || '—')}</strong>
                     </div>
                     <button
@@ -1422,7 +1420,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                       <div className='pg-contact-field'>
                         <label htmlFor='pg-contact-phone' className='pg-contact-label'>
                           {tr(
-                            'Numéro de téléphone / WhatsApp obligatoire (avec indicatif) *|Required Phone / WhatsApp number (with country code) *',
+                            'Numéro de téléphone obligatoire (avec indicatif) *|Required phone number (with country code) *',
                             lang
                           )}
                         </label>

@@ -3,9 +3,8 @@ import './abonnements.css';
 import { Link } from '../../app/router';
 import { useLanguage } from '../../context/LanguageContext';
 import { PageHeader } from '../../components/PageHeader';
-import { Icon, WhatsAppIcon } from '../../components/Icon';
+import { Icon } from '../../components/Icon';
 import { OFFERS, formatOfferPrice } from '../../../shared/offers.js';
-import { whatsappLink } from '../../lib/contact';
 
 const offer = OFFERS['accompagnement-voyage'];
 
@@ -56,14 +55,12 @@ export const AbonnementsPage: React.FC = () => {
             </div>
           </article>
 
-
           <p className='offers__question'>
             <span>{t('offers_question')}</span>
-            <a className='arrow-link' href={whatsappLink(t('wa_question_message'))} target='_blank' rel='noopener noreferrer'>
-              <WhatsAppIcon />
+            <Link className='arrow-link' to='/contact'>
+              <Icon name='mail' />
               {t('offers_question_cta')}
-              <span className='sr-only'> {t('opens_new_tab')}</span>
-            </a>
+            </Link>
           </p>
         </div>
       </section>

@@ -147,10 +147,10 @@ export const fr = {
   contact_title_2: 'moi',
   contact_desc: 'Conférences, accompagnement, collaborations médias, masterclass culturelles.',
   contact_email_label: 'Courriel officiel',
-  contact_phone_label: 'Téléphone & WhatsApp',
+  contact_phone_label: 'Téléphone',
   contact_loc_label: 'Basé à',
   contact_loc_val: 'Salt Lake City, Utah, USA',
-  contact_wa_title: 'Écrire sur WhatsApp',
+  contact_wa_title: 'Nous contacter',
   contact_wa_sub: 'Ligne directe de Jean-Pierre Lofumbwa'
 };
 
@@ -302,9 +302,9 @@ export const en: Record<keyof typeof fr, string> = {
   contact_title_2: 'touch',
   contact_desc: 'Talks, guidance, media collaborations, cultural masterclasses.',
   contact_email_label: 'Official email',
-  contact_phone_label: 'Phone & WhatsApp',
+  contact_phone_label: 'Phone',
   contact_loc_label: 'Based in',
   contact_loc_val: 'Salt Lake City, Utah, USA',
-  contact_wa_title: 'Write on WhatsApp',
+  contact_wa_title: 'Contact us',
   contact_wa_sub: 'Jean-Pierre Lofumbwa’s direct line'
 };

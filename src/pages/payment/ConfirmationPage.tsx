@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './payment.css';
 import { Link, useRouter } from '../../app/router';
 import { useLanguage } from '../../context/LanguageContext';
-import { Icon, WhatsAppIcon, type IconName } from '../../components/Icon';
-import { CONTACT_EMAIL, whatsappLink } from '../../lib/contact';
+import { Icon, type IconName } from '../../components/Icon';
+import { CONTACT_EMAIL } from '../../lib/contact';
 import { clearCheckoutAttempt } from '../../lib/checkout-client.js';
 import { OFFERS } from '../../../shared/offers.js';
 import { parseSessionStatus, readSessionIdParam } from '../../../shared/validation.js';
@@ -171,11 +171,11 @@ export const ConfirmationPage: React.FC = () => {
       let summarySuffix = '';
       try {
         const savedSummary = window.localStorage.getItem('pg:last_summary');
-        if (savedSummary) summarySuffix = ` — PaterGuide : ${savedSummary}`;
+        if (savedSummary) summarySuffix = `\n\nDossier PaterGuide : ${savedSummary}`;
       } catch {
         /* ignore */
       }
-      const wa = whatsappLink(`${t('pay_wa_message', { ref: sessionId })}${summarySuffix}`);
+      const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Confirmation d'accompagnement — ${shortRef(sessionId)}`)}&body=${encodeURIComponent(`${t('pay_wa_message', { ref: sessionId })}${summarySuffix}`)}`;
       content = (
         <>
           {status(
@@ -183,10 +183,9 @@ export const ConfirmationPage: React.FC = () => {
             'success',
             'pay_paid_title',
             t('pay_paid_text', { amount }),
-            <a className='btn btn--copper btn--lg' href={wa} target='_blank' rel='noopener noreferrer'>
-              <WhatsAppIcon />
+            <a className='btn btn--primary btn--lg' href={mailto}>
+              <Icon name='mail' />
               {t('pay_start_whatsapp')}
-              <span className='sr-only'> {t('opens_new_tab')}</span>
             </a>
           )}
           <dl className='pay-ref'>

@@ -46,9 +46,10 @@ main:focus {
 }
 .nav__inner {
   height: 100%;
-  max-width: calc(var(--content) + 2 * var(--pad));
+  width: 100%;
+  max-width: 100%;
   margin-inline: auto;
-  padding-inline: var(--pad);
+  padding-inline: clamp(18px, 3.2vw, 52px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -436,11 +437,9 @@ body.menu-open {
 }
 .foot__bot .pw {
   margin-left: auto;
-}
-@media (max-width: 720px) {
-  .foot__bot .pw {
-    margin-left: 0;
-  }
+  align-self: flex-end;
+  display: inline-flex;
+  justify-content: flex-end;
 }
 
 /* LevelUp Ecosystem credit (unchanged rules) */

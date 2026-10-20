@@ -51,6 +51,9 @@ export function buildSessionParams({ offer, attemptId, origin, bucket }) {
         message: `Paiement unique, sans renouvellement. Conditions de vente / Terms of sale: ${origin}/legal/conditions-de-vente`
       }
     },
+    managed_payments: {
+      enabled: false
+    },
     expires_at: expiresAt,
     success_url: `${origin}/paiement/confirmation?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/paiement/annule?offre=${encodeURIComponent(offer.id)}`
@@ -137,7 +140,24 @@ export function createCheckoutHandler(deps = {}) {
       const bucket = Math.floor(t / BUCKET_MS);
       const params = buildSessionParams({ offer, attemptId, origin: resolveOrigin(req), bucket });
       const idempotencyKey = `bp_checkout_${offer.id}_${attemptId}_${bucket}_${paramsHash(params)}`;
-      let session = await stripe.checkout.sessions.create(params, { idempotencyKey });
+      let session;
+      try {
+        session = await stripe.checkout.sessions.create(params, { idempotencyKey });
+      } catch (createErr) {
+        if (
+          createErr?.type === 'StripeInvalidRequestError' &&
+          (createErr?.param === 'managed_payments' || /managed_payments/i.test(String(createErr?.message || '')))
+        ) {
+          const fallbackParams = { ...params };
+          delete fallbackParams.managed_payments;
+          delete fallbackParams.custom_text;
+          session = await stripe.checkout.sessions.create(fallbackParams, {
+            idempotencyKey: `${idempotencyKey}_std`
+          });
+        } else {
+          throw createErr;
+        }
+      }
 
       // A replayed idempotent response describes the session as it was when it
       // was created; refresh it so an already-paid session is never reopened.

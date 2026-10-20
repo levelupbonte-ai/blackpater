@@ -2,11 +2,11 @@ import React from 'react';
 import { Link } from '../../app/router';
 import { useLanguage } from '../../context/LanguageContext';
 import { LegalLayout, type LegalDoc } from './LegalLayout';
-import { CONTACT_EMAIL, WHATSAPP_DISPLAY } from '../../lib/contact';
+import { CONTACT_EMAIL, PHONE_DISPLAY } from '../../lib/contact';
 
 const Contact: React.FC = () => (
   <>
-    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> · WhatsApp {WHATSAPP_DISPLAY}
+    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> · {PHONE_DISPLAY}
   </>
 );
 
@@ -57,7 +57,7 @@ const fr: LegalDoc = {
       title: '3. Informations obligatoires demandées avant le paiement',
       body: (
         <p>
-          Durant le parcours préalable au paiement (PaterGuide), l’acheteur doit obligatoirement renseigner ses coordonnées complètes (<strong>nom complet, adresse e-mail valide et numéro de téléphone / WhatsApp avec indicatif</strong>) ainsi que les informations relatives à son projet. Même si le prestataire de paiement Stripe demande également une adresse e-mail pour l’envoi du reçu bancaire, ces informations nous sont indispensables pour constituer votre dossier d’accompagnement et vous contacter directement.
+          Durant le parcours préalable au paiement (PaterGuide), l’acheteur doit obligatoirement renseigner ses coordonnées complètes (<strong>nom complet, adresse e-mail valide et numéro de téléphone / WhatsApp avec indicatif</strong>) ainsi que les informations relatives à son projet. Ces informations sont indispensables pour constituer votre dossier d’accompagnement et vous contacter directement.
         </p>
       )
     },
@@ -165,7 +165,7 @@ const en: LegalDoc = {
       title: '3. Required information before payment',
       body: (
         <p>
-          During the pre-payment assessment (PaterGuide), the buyer must provide complete contact details (<strong>full name, valid email address, and phone / WhatsApp number with country code</strong>) along with project details. Even though our payment processor Stripe also asks for an email address to issue the payment receipt, this information is required by our team to prepare your guidance file and contact you directly.
+          During the pre-payment assessment (PaterGuide), the buyer must provide complete contact details (<strong>full name, valid email address, and phone / WhatsApp number with country code</strong>) along with project details. This information is required by our team to prepare your guidance file and contact you directly.
         </p>
       )
     },

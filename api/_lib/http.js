@@ -90,6 +90,7 @@ function isAllowedHost(host) {
     host === 'blackpater.com' ||
     host === 'www.blackpater.com' ||
     /^[a-z0-9-]+\.vercel\.app$/.test(host) ||
+    /^[a-z0-9-]+(\.[a-z0-9-]+)*\.run\.app$/.test(host) ||
     /^(localhost|127\.0\.0\.1)(:\d{2,5})?$/.test(host)
   );
 }

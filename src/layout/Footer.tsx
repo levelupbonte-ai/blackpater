@@ -3,7 +3,7 @@ import { Link } from '../app/router';
 import { useLanguage } from '../context/LanguageContext';
 import { Icon } from '../components/Icon';
 import type { TranslationKey } from '../i18n';
-import { CONTACT_EMAIL, WHATSAPP_DISPLAY, whatsappLink } from '../lib/contact';
+import { CONTACT_EMAIL, PHONE_DISPLAY } from '../lib/contact';
 import { LevelUpCredit } from './LevelUpCredit';
 
 const NAV: Array<{ to: string; key: TranslationKey }> = [
@@ -71,10 +71,7 @@ export const Footer: React.FC = () => {
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
               </li>
               <li>
-                <a href={whatsappLink()} target='_blank' rel='noopener noreferrer'>
-                  WhatsApp · {WHATSAPP_DISPLAY}
-                  <span className='sr-only'> {t('opens_new_tab')}</span>
-                </a>
+                <span>{PHONE_DISPLAY}</span>
               </li>
             </ul>
           </div>

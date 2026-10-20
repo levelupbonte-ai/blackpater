@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { LegalLayout, type LegalDoc } from './LegalLayout';
-import { CONTACT_EMAIL, WHATSAPP_DISPLAY } from '../../lib/contact';
+import { CONTACT_EMAIL, PHONE_DISPLAY } from '../../lib/contact';
 
 const fr: LegalDoc = {
   title: 'Politique de remboursement',
@@ -43,7 +43,7 @@ const fr: LegalDoc = {
       body: (
         <>
           <p>
-            Écrivez à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> ou sur WhatsApp au {WHATSAPP_DISPLAY} en indiquant :
+            Écrivez à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> ou contactez le {PHONE_DISPLAY} en indiquant :
           </p>
           <ul>
             <li>votre référence de commande (affichée sur la page de confirmation) ou l’e-mail utilisé lors du paiement ;</li>
@@ -94,7 +94,7 @@ const en: LegalDoc = {
       body: (
         <>
           <p>
-            Email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> or message {WHATSAPP_DISPLAY} on WhatsApp with:
+            Email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> or call {PHONE_DISPLAY} with:
           </p>
           <ul>
             <li>your order reference (shown on the confirmation page) or the email used at checkout;</li>

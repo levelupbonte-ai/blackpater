@@ -19,11 +19,11 @@ export const CancelledPage: React.FC = () => {
           <h1 className='pay-card__title'>{t('pay_cancel_title')}</h1>
           <p className='pay-card__text'>{t('pay_cancel_text')}</p>
           <div className='btn-row pay-card__actions'>
-            <Link className='btn btn--primary btn--lg' to={`${offerPath}#achat`}>
+            <Link className='btn btn--primary btn--lg' to={offerPath}>
               {t('pay_resume')}
               <Icon name='arrowRight' />
             </Link>
-            <Link className='btn btn--lg' to={offerPath}>
+            <Link className='btn btn--lg' to='/abonnements'>
               {t('pay_back_offer')}
             </Link>
           </div>

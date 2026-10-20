@@ -73,9 +73,15 @@ export const SiteLayout: React.FC<{ children: React.ReactNode }> = ({ children }
   return (
     <>
       <AmbientBackground />
-      <a className='skip-link' href='#main'>
+      <button
+        type='button'
+        className='skip-link'
+        onClick={() => {
+          document.getElementById('main')?.focus();
+        }}
+      >
         {t('skip_to_content')}
-      </a>
+      </button>
       <Navbar />
       <main id='main' tabIndex={-1}>
         {children}

@@ -1,11 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Icon, WhatsAppIcon } from '../../../components/Icon';
-import { whatsappLink } from '../../../lib/contact';
+import { Icon } from '../../../components/Icon';
 
-type Screen = 'whatsapp' | 'tiktok' | 'instagram';
+type Screen = 'tiktok' | 'instagram';
 const SCREENS: Array<{ id: Screen; label: string }> = [
-  { id: 'whatsapp', label: 'WhatsApp' },
   { id: 'tiktok', label: 'TikTok' },
   { id: 'instagram', label: 'Instagram' }
 ];
@@ -13,8 +11,7 @@ const PORTRAIT = '/media/3e0be360f5ad.webp';
 
 export const DigitalPresence: React.FC = () => {
   const { t } = useLanguage();
-  const [screen, setScreen] = useState<Screen>('whatsapp');
-  const [text, setText] = useState('');
+  const [screen, setScreen] = useState<Screen>('tiktok');
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const video = useRef<HTMLVideoElement>(null);
@@ -29,11 +26,6 @@ export const DigitalPresence: React.FC = () => {
       v.pause();
       setPlaying(false);
     }
-  };
-
-  const send = (e: React.FormEvent) => {
-    e.preventDefault();
-    window.location.href = whatsappLink(text.trim() || t('phone_wa_default'));
   };
 
   return (
@@ -71,42 +63,6 @@ export const DigitalPresence: React.FC = () => {
                   <span className='bat' />
                 </span>
               </div>
-
-              {screen === 'whatsapp' && (
-                <div className='s-wa'>
-                  <div className='hd'>
-                    <div className='pic'>
-                      <div className='im' style={{ backgroundImage: `url(${PORTRAIT})` }} />
-                    </div>
-                    <div>
-                      <b>Jean-Pierre Lofumbwa</b>
-                      <span>{t('phone_online')}</span>
-                    </div>
-                  </div>
-                  <div className='chat'>
-                    <div className='chip'>{t('phone_today')}</div>
-                    <p className='bub rx'>{t('phone_wa_in')}</p>
-                    <p className='bub'>{t('phone_wa_out')}</p>
-                  </div>
-                  <form className='in' onSubmit={send}>
-                    <label className='sr-only' htmlFor='wa-field'>
-                      {t('phone_wa_field')}
-                    </label>
-                    <input
-                      id='wa-field'
-                      type='text'
-                      className='wa-field'
-                      placeholder={t('phone_wa_placeholder')}
-                      value={text}
-                      maxLength={500}
-                      onChange={(e) => setText(e.target.value)}
-                    />
-                    <button type='submit' className='wa-send' aria-label={t('phone_wa_send')}>
-                      <Icon name='arrowRight' />
-                    </button>
-                  </form>
-                </div>
-              )}
 
               {screen === 'tiktok' && (
                 <div className='s-tt'>
@@ -180,14 +136,6 @@ export const DigitalPresence: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <p className='dig__cta'>
-          <a className='arrow-link' href={whatsappLink(t('phone_wa_default'))} target='_blank' rel='noopener noreferrer'>
-            <WhatsAppIcon />
-            {t('phone_wa_direct')}
-            <span className='sr-only'> {t('opens_new_tab')}</span>
-          </a>
-        </p>
       </div>
     </section>
   );

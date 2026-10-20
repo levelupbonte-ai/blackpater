@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from '../../../app/router';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Icon, WhatsAppIcon } from '../../../components/Icon';
+import { Icon } from '../../../components/Icon';
 import { SOCIALS } from '../../../data/socials';
-import { CONTACT_EMAIL, whatsappLink } from '../../../lib/contact';
+import { CONTACT_EMAIL } from '../../../lib/contact';
 import type { TranslationKey } from '../../../i18n';
 
 const PORTRAIT = '/media/3e0be360f5ad.webp';
@@ -59,7 +59,7 @@ export const Hero: React.FC = () => {
             </div>
 
             <div className='hero__socials hero-anim hero-anim--4'>
-              {SOCIALS.slice(0, 5).map((s) => (
+              {SOCIALS.map((s) => (
                 <a
                   key={s.id}
                   href={s.url}
@@ -73,17 +73,6 @@ export const Hero: React.FC = () => {
                   <span className='sr-only'> {t('opens_new_tab')}</span>
                 </a>
               ))}
-              <a
-                href={whatsappLink(t('wa_contact_message'))}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='hero__social-link'
-                title='WhatsApp'
-              >
-                <WhatsAppIcon />
-                <span>WhatsApp</span>
-                <span className='sr-only'> {t('opens_new_tab')}</span>
-              </a>
               <a href={`mailto:${CONTACT_EMAIL}`} className='hero__social-link' title={CONTACT_EMAIL}>
                 <Icon name='mail' />
                 <span>Email</span>

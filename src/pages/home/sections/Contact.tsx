@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Icon, WhatsAppIcon } from '../../../components/Icon';
-import { CONTACT_EMAIL, WHATSAPP_DISPLAY, whatsappLink } from '../../../lib/contact';
+import { Icon } from '../../../components/Icon';
+import { CONTACT_EMAIL, PHONE_DISPLAY } from '../../../lib/contact';
 import { SOCIALS } from '../../../data/socials';
 
 export const Contact: React.FC = () => {
@@ -19,15 +19,15 @@ export const Contact: React.FC = () => {
     return parts.join('\n');
   };
 
-  const onSubmitWhatsApp = (e: React.FormEvent) => {
-    e.preventDefault();
-    window.location.href = whatsappLink(composedText());
-  };
-
   const mailtoHref = () => {
     const subj = encodeURIComponent(subject.trim() || 'Contact — Black Pater');
     const body = encodeURIComponent(composedText());
     return `mailto:${CONTACT_EMAIL}?subject=${subj}&body=${body}`;
+  };
+
+  const onSubmitEmail = (e: React.FormEvent) => {
+    e.preventDefault();
+    window.location.href = mailtoHref();
   };
 
   return (
@@ -42,7 +42,7 @@ export const Contact: React.FC = () => {
         </div>
 
         <div className='contact__grid'>
-          {/* Left column: Contact details & direct WhatsApp card */}
+          {/* Left column: Contact details */}
           <div className='contact__info-card'>
             <h3 className='contact__card-title'>{t('contact_kicker')}</h3>
             <p className='contact__copy'>{t('contact_desc')}</p>
@@ -67,10 +67,7 @@ export const Contact: React.FC = () => {
                 <div>
                   <dt className='k'>{t('contact_phone_label')}</dt>
                   <dd className='v'>
-                    <a href={whatsappLink()} target='_blank' rel='noopener noreferrer'>
-                      {WHATSAPP_DISPLAY}
-                      <span className='sr-only'> {t('opens_new_tab')}</span>
-                    </a>
+                    <span>{PHONE_DISPLAY}</span>
                   </dd>
                 </div>
               </div>
@@ -87,7 +84,7 @@ export const Contact: React.FC = () => {
             </dl>
 
             <div className='contact__socials'>
-              {SOCIALS.slice(0, 6).map((s) => (
+              {SOCIALS.map((s) => (
                 <a
                   key={s.id}
                   href={s.url}
@@ -101,22 +98,10 @@ export const Contact: React.FC = () => {
                 </a>
               ))}
             </div>
-
-            <a className='wa' href={whatsappLink(t('wa_contact_message'))} target='_blank' rel='noopener noreferrer'>
-              <WhatsAppIcon className='wa__logo' />
-              <span className='wa__text'>
-                <b>{t('contact_wa_title')}</b>
-                <small>{t('contact_wa_sub')}</small>
-              </span>
-              <span className='wa__go' aria-hidden='true'>
-                <Icon name='arrowUpRight' />
-              </span>
-              <span className='sr-only'> {t('opens_new_tab')}</span>
-            </a>
           </div>
 
-          {/* Right column: Direct message form (opens WhatsApp or Official Email) */}
-          <form className='contact__form-card' onSubmit={onSubmitWhatsApp}>
+          {/* Right column: Direct message form (opens Official Email) */}
+          <form className='contact__form-card' onSubmit={onSubmitEmail}>
             <h3 className='contact__card-title'>
               {lang === 'fr' ? 'Envoyer un message direct' : 'Send a direct message'}
             </h3>
@@ -169,13 +154,9 @@ export const Contact: React.FC = () => {
 
             <div className='cform__actions'>
               <button type='submit' className='btn btn--primary'>
-                <WhatsAppIcon />
-                <span>{t('phone_wa_send')}</span>
-              </button>
-              <a href={mailtoHref()} className='btn btn--outline'>
                 <Icon name='mail' />
-                <span>{t('contact_email_label')}</span>
-              </a>
+                <span>{lang === 'fr' ? 'Envoyer par e-mail' : 'Send by email'}</span>
+              </button>
             </div>
           </form>
         </div>

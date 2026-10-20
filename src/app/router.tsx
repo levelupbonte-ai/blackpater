@@ -12,56 +12,70 @@ interface RouterValue extends Location {
   navigate: (to: string, opts?: { replace?: boolean }) => void;
 }
 
+const HASH_ROUTE_MAP: Record<string, string> = {
+  '#parcours': '/parcours',
+  '#journey': '/parcours',
+  '#culture': '/parcours',
+  '#showcase': '/parcours',
+  '#medias': '/medias',
+  '#socials': '/medias',
+  '#phone': '/medias',
+  '#contact': '/contact',
+  '#faq': '/contact',
+  '#abonnements': '/abonnements',
+  '#offres': '/abonnements',
+  '#offers': '/abonnements',
+  '#articles': '/articles',
+  '#press': '/articles'
+};
+
 function readLocation(): Location {
+  const rawHash = window.location.hash.toLowerCase();
+  const mappedPath = rawHash && HASH_ROUTE_MAP[rawHash] ? HASH_ROUTE_MAP[rawHash] : normalizePath(window.location.pathname);
   return {
-    path: normalizePath(window.location.pathname),
+    path: mappedPath,
     search: window.location.search,
-    hash: window.location.hash
+    hash: ''
   };
 }
 
 const RouterContext = createContext<RouterValue>({ path: '/', search: '', hash: '', navigate: () => {} });
 
-function scrollToHash(hash: string) {
-  if (!hash || hash.length > 200) return false;
-  let id: string;
-  try {
-    id = decodeURIComponent(hash.slice(1));
-  } catch {
-    return false; // malformed %-escape in a hand-typed URL
-  }
-  const el = document.getElementById(id);
-  if (!el) return false;
-  el.scrollIntoView({ block: 'start' });
-  return true;
-}
-
 /**
- * Minimal client router: real URLs (one HTML file per route is served by the
- * host), history API, hash anchors, focus moved to the main region on
- * navigation for screen-reader users.
+ * Minimal client router: clean folder-based URLs (one HTML file per route is
+ * served by the host), history API without URL hashes, focus moved to the main
+ * region on navigation for screen-reader users.
  */
 export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loc, setLoc] = useState<Location>(readLocation);
   const navigated = useRef(false);
 
   const navigate = useCallback((to: string, opts: { replace?: boolean } = {}) => {
-    // In-site navigation only: "/path", never "//host", "javascript:" or another
-    // origin (external links are plain <a href> elements).
     const path = safeInternalPath(to, '');
     if (!path) return;
     const url = new URL(path, window.location.origin);
-    const next = { path: normalizePath(url.pathname), search: url.search, hash: url.hash };
+    const rawHash = url.hash.toLowerCase();
+    const resolvedPath = rawHash && HASH_ROUTE_MAP[rawHash] ? HASH_ROUTE_MAP[rawHash] : normalizePath(url.pathname);
+    const next = { path: resolvedPath, search: url.search, hash: '' };
     const method = opts.replace ? 'replaceState' : 'pushState';
-    window.history[method](null, '', `${url.pathname}${url.search}${url.hash}`);
+    window.history[method](null, '', `${resolvedPath}${url.search}`);
     navigated.current = true;
     setLoc(next);
-    // Same anchor clicked again: state does not change, scroll directly.
-    if (next.hash && next.path === normalizePath(window.location.pathname)) scrollToHash(next.hash);
   }, []);
 
   useEffect(() => {
+    // Strip any initial #hash from the browser URL bar immediately on load.
+    if (window.location.hash) {
+      const rawHash = window.location.hash.toLowerCase();
+      const targetPath = HASH_ROUTE_MAP[rawHash] || normalizePath(window.location.pathname);
+      window.history.replaceState(null, '', `${targetPath}${window.location.search}`);
+    }
     const onPop = () => {
+      if (window.location.hash) {
+        const rawHash = window.location.hash.toLowerCase();
+        const targetPath = HASH_ROUTE_MAP[rawHash] || normalizePath(window.location.pathname);
+        window.history.replaceState(null, '', `${targetPath}${window.location.search}`);
+      }
       navigated.current = true;
       setLoc(readLocation());
     };
@@ -71,23 +85,11 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Scroll + focus after the new route has rendered.
   useLayoutEffect(() => {
-    // Pages load on demand: retry until the anchor exists (max ~1.5 s).
-    const tryHash = (attempt = 0) => {
-      if (scrollToHash(loc.hash) || attempt > 30) return;
-      window.setTimeout(() => tryHash(attempt + 1), 50);
-    };
-    if (!navigated.current) {
-      if (loc.hash) tryHash();
-      return;
-    }
-    if (loc.hash) {
-      tryHash();
-    } else {
-      window.scrollTo(0, 0);
-      const main = document.getElementById('main');
-      main?.focus({ preventScroll: true });
-    }
-  }, [loc.path, loc.hash, loc.search]);
+    if (!navigated.current) return;
+    window.scrollTo(0, 0);
+    const main = document.getElementById('main');
+    main?.focus({ preventScroll: true });
+  }, [loc.path, loc.search]);
 
   return <RouterContext.Provider value={{ ...loc, navigate }}>{children}</RouterContext.Provider>;
 };

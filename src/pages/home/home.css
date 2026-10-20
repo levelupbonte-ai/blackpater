@@ -14,9 +14,10 @@
 }
 .hero__split {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   align-items: center;
-  gap: clamp(32px, 5vw, 64px);
+  justify-content: space-between;
+  gap: clamp(32px, 5vw, 88px);
 }
 .hero__content {
   display: flex;
@@ -52,13 +53,13 @@
   gap: 6px;
 }
 .hero__name {
-  font-size: clamp(2.85rem, 5.2vw, 4.5rem);
+  font-size: clamp(2.85rem, 5.4vw, 4.85rem);
   line-height: 1.02;
 }
 .hero__realname {
   font-family: var(--display);
   font-weight: 600;
-  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+  font-size: clamp(1.15rem, 1.8vw, 1.55rem);
   color: var(--bone-dim);
 }
 /* Smooth typewriter text line */
@@ -85,10 +86,10 @@
   }
 }
 .hero__lead {
-  font-size: clamp(1rem, 1.15vw, 1.12rem);
+  font-size: clamp(1rem, 1.2vw, 1.16rem);
   line-height: 1.7;
   color: var(--bone-dim);
-  max-width: 56ch;
+  max-width: 62ch;
 }
 .hero__actions {
   display: flex;
@@ -125,7 +126,7 @@
 /* Right column: Circular framed portrait */
 .hero__visual {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
 }
 .hero__avatar-wrap {
@@ -146,8 +147,8 @@
 .hero__avatar {
   position: relative;
   z-index: 1;
-  width: clamp(236px, 25vw, 324px);
-  height: clamp(236px, 25vw, 324px);
+  width: clamp(244px, 24vw, 370px);
+  height: clamp(244px, 24vw, 370px);
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid var(--surface-solid);
@@ -241,6 +242,7 @@
   }
   .hero__visual {
     order: -1;
+    justify-content: center;
   }
   .hero__stats {
     grid-template-columns: minmax(0, 1fr);

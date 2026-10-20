@@ -64,8 +64,8 @@ html[data-theme='dark'] {
   --s-9: 96px;
   --s-10: 128px;
   --section: clamp(64px, 7vw, 108px);
-  --pad: clamp(16px, 4vw, 48px);
-  --content: 1160px;
+  --pad: clamp(16px, 3vw, 44px);
+  --content: min(1680px, 94vw);
   --prose: 68ch;
 
   /* Shape & Motion */

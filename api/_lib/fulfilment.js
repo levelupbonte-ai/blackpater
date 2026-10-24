@@ -31,3 +31,11 @@ export async function onCheckoutPending(session, event, log = console) {
 export async function onCheckoutPaymentFailed(session, event, log = console) {
   log.warn(JSON.stringify({ evt: 'checkout.payment_failed', eventId: event.id, session: session.id }));
 }
+
+export async function onCheckoutExpired(session, event, log = console) {
+  log.info(JSON.stringify({ evt: 'checkout.expired', eventId: event.id, session: session.id }));
+}
+
+export async function onCheckoutRefunded(session, event, log = console) {
+  log.info(JSON.stringify({ evt: 'checkout.refunded', eventId: event.id, session: session.id }));
+}

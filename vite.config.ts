@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react';
 import { devApi, routePages } from './scripts/vite-plugins.js';
 
 export default defineConfig(({ mode }) => {
-  // Make STRIPE_* from a local .env available to the dev API (never to the browser:
-  // only VITE_-prefixed variables are exposed to client code, and none are used).
-  const env = loadEnv(mode, process.cwd(), 'STRIPE_');
+  // Make STRIPE_* / LEVELUP_* from a local .env available to the dev API (never to
+  // the browser: only VITE_-prefixed variables are exposed to client code, and none are used).
+  const env = loadEnv(mode, process.cwd(), ['STRIPE_', 'LEVELUP_', 'SUPABASE_PUBLISHABLE_KEY']);
   for (const [k, v] of Object.entries(env)) if (process.env[k] === undefined) process.env[k] = v;
 
   return {

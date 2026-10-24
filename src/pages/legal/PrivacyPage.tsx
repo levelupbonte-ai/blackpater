@@ -6,7 +6,7 @@ import { CONTACT_EMAIL } from '../../lib/contact';
 const fr: LegalDoc = {
   title: 'Politique de confidentialité',
   lead: 'Quelles données sont traitées quand vous visitez blackpater.com ou utilisez notre service d’accompagnement, par qui, et comment exercer vos droits.',
-  updated: 'Dernière mise à jour : 19 octobre 2026',
+  updated: 'Dernière mise à jour : 24 octobre 2026',
   sections: [
     {
       id: 'responsable',
@@ -27,6 +27,9 @@ const fr: LegalDoc = {
           </li>
           <li>
             <strong>Paiement</strong> : il est réalisé chez Stripe. Stripe collecte également votre e-mail, votre nom, votre pays et vos données de paiement pour le traitement bancaire et l’envoi du reçu. BlackPater reçoit de Stripe la confirmation de la commande mais <strong>jamais votre numéro de carte</strong>.
+          </li>
+          <li>
+            <strong>Suivi des paiements</strong> : pour chaque paiement, une fiche (nom, e-mail, montant, offre, statut et date) est enregistrée par LevelUp Ecosystem, le prestataire du site, pour alimenter le tableau de bord de BlackPater. Elle ne contient aucune donnée de carte.
           </li>
           <li>
             <strong>Échanges</strong> : les messages que vous envoyez sur WhatsApp ou par e-mail, pour vous répondre, vous conseiller et vous accompagner.
@@ -56,7 +59,7 @@ const fr: LegalDoc = {
           <li>Vercel (hébergement du site)</li>
           <li>WhatsApp / Meta (messagerie, pour l’accompagnement direct)</li>
           <li>Google Fonts (polices de caractères chargées depuis les serveurs de Google)</li>
-          <li>LevelUp Ecosystem (gestion du contenu du site)</li>
+          <li>LevelUp Ecosystem (gestion du contenu du site et tableau de bord des paiements)</li>
         </ul>
       )
     },
@@ -84,7 +87,7 @@ const fr: LegalDoc = {
 const en: LegalDoc = {
   title: 'Privacy policy',
   lead: 'What data is processed when you visit blackpater.com or use our guidance service, by whom, and how to exercise your rights.',
-  updated: 'Last updated: October 19, 2026',
+  updated: 'Last updated: October 24, 2026',
   sections: [
     {
       id: 'responsable',
@@ -105,6 +108,9 @@ const en: LegalDoc = {
           </li>
           <li>
             <strong>Payment</strong>: handled by Stripe. Stripe also collects your email, name, country and payment details for banking processing and receipt delivery. BlackPater receives the order confirmation from Stripe but <strong>never your card number</strong>.
+          </li>
+          <li>
+            <strong>Payment records</strong>: for each payment, a record (name, email, amount, offer, status and date) is stored by LevelUp Ecosystem, the site’s provider, to run BlackPater’s dashboard. It contains no card details.
           </li>
           <li>
             <strong>Conversations</strong>: the messages you send on WhatsApp or by email, to answer, advise and guide you.
@@ -134,7 +140,7 @@ const en: LegalDoc = {
           <li>Vercel (website hosting)</li>
           <li>WhatsApp / Meta (messaging, for direct guidance)</li>
           <li>Google Fonts (typefaces loaded from Google’s servers)</li>
-          <li>LevelUp Ecosystem (website content management)</li>
+          <li>LevelUp Ecosystem (website content management and payments dashboard)</li>
         </ul>
       )
     },

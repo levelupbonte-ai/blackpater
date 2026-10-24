@@ -21,6 +21,8 @@ Copy `.env.example` to `.env` for local payments with **test** keys. Never commi
 ```
 api/stripe/*.js        Vercel Functions (thin entry points)
 api/_lib/              Payment logic shared by Vercel, server.js and `vite dev`
+api/_lib/levelup.js    Payment records sent to the owner's LevelUp dashboard
+scripts/backfill-levelup-payments.mjs  One-off: past Stripe payments → LevelUp dashboard
 shared/offers.js       Offer catalog — the only place where prices live
 shared/routes.js       Routes, page titles/descriptions, legacy 301 redirects
 shared/validation.js   Input rules shared by the browser and the API
@@ -70,6 +72,8 @@ Old URLs (`/abonnements.html`, `/articles.html`, `/index.html`, `/biographie`, `
 5. Stripe also calls `POST /api/stripe/webhook` (signature verified). The paid session
    is logged (`checkout.paid` in Vercel → Logs); `api/_lib/fulfilment.js` is the place
    to add automatic fulfilment later.
+6. The webhook then sends the payment record to the owner's **LevelUp dashboard**
+   (see *Payments in the LevelUp dashboard* below).
 
 If `STRIPE_SECRET_KEY` is missing, the pay button is simply disabled and reads
 “Bientôt disponible” / “Coming soon” (nothing else is shown to visitors). Stripe error
@@ -101,6 +105,47 @@ messages are never sent to the browser; logs contain no keys and no personal dat
   `session.id` in a database (or a marker in the PaymentIntent metadata) to stay
   idempotent. Rate limits are also per warm instance.
 
+### Payments in the LevelUp dashboard
+
+`api/_lib/levelup.js` sends every outcome of a Checkout Session to the LevelUp
+database (`POST https://rncuhmvykrmtxfzqpitc.supabase.co/rest/v1/rpc/site_ingest_payment`,
+public publishable key in the headers, the per-site secret `LEVELUP_SITE_KEY` in the
+body), so the owner sees each payment in his LevelUp dashboard:
+
+| Stripe event | Dashboard status |
+| --- | --- |
+| `checkout.session.completed` | `paid` (or `pending` for delayed payment methods) |
+| `checkout.session.async_payment_succeeded` | `paid` |
+| `checkout.session.async_payment_failed` | `failed` |
+| `checkout.session.expired` | `expired` |
+| `charge.refunded` | `refunded` (the session is found from the payment intent) |
+
+Each record holds: Stripe event / session / payment-intent ids, status, amount (cents),
+currency, offer id and name (from `shared/offers.js`), customer name and email (from
+Stripe Checkout), the event date and the attempt id. Only sessions of this site's offers
+are sent.
+
+- **Server only**, inside the webhook, after the local processing. Forwarding is best
+  effort: 5 s timeout per try, one retry (network error, timeout, 429, 5xx), under 10 s
+  in total. If it fails, Stripe still receives its 200 and a `levelup.forward_failed`
+  warning (event id and HTTP status only) appears in Vercel → Logs.
+- Without `LEVELUP_SITE_KEY` nothing is sent (one `levelup.forward_skipped` log line).
+- Logs never contain keys, names or emails. LevelUp de-duplicates on the Stripe event id.
+
+**Backfill past payments** (once, from your computer, after `npm install`):
+
+```bash
+STRIPE_SECRET_KEY=sk_live_… LEVELUP_SITE_KEY=… \
+  node scripts/backfill-levelup-payments.mjs --since 2026-01-01 --dry-run   # list only
+STRIPE_SECRET_KEY=sk_live_… LEVELUP_SITE_KEY=… \
+  node scripts/backfill-levelup-payments.mjs --since 2026-01-01             # send
+```
+
+It lists the Checkout Sessions created since that date (`--until` optional), skips open
+sessions and other products, adds a `refunded` record for refunded payments, and uses the
+real Stripe event id when Stripe still has it (30 days) or a stable
+`evt_backfill_<session>_<status>` id otherwise — running it twice is harmless.
+
 ### Input validation and security headers
 
 - The site has no free-text form: the only things a visitor can send are the checkout
@@ -131,7 +176,11 @@ messages are never sent to the browser; logs contain no keys and no personal dat
 | Name | Status | Where to find it | Mark as |
 | --- | --- | --- | --- |
 | `STRIPE_SECRET_KEY` | already set (Production) | Stripe Dashboard → Developers → API keys → *Secret key* (`sk_live_…`; `sk_test_…` in test mode) | Sensitive |
-| `STRIPE_WEBHOOK_SECRET` | **new** | Stripe Dashboard → Developers → Webhooks → your endpoint → *Signing secret* (`whsec_…`) | Sensitive |
+| `STRIPE_WEBHOOK_SECRET` | required for the webhook | Stripe Dashboard → Developers → Webhooks → your endpoint → *Signing secret* (`whsec_…`) | Sensitive |
+| `LEVELUP_SITE_KEY` | **new** | LevelUp dashboard → this website → payments / site key | Sensitive |
+
+`SUPABASE_PUBLISHABLE_KEY` is optional (the public LevelUp key is the default, in
+`api/_lib/levelup.js`).
 
 `STRIPE_PUBLISHABLE_KEY` is already set but **no longer used** (the site redirects to
 Stripe Checkout, it needs no browser key); it can stay or be deleted.
@@ -145,7 +194,8 @@ show the “temporarily unavailable” state — that is expected).
 
 - **Endpoint URL**: `https://blackpater.com/api/stripe/webhook`
 - **Events**: `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
-  `checkout.session.async_payment_failed`
+  `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`
+  (if the endpoint already exists: *Update details* → add the last two events)
 - Copy the *Signing secret* into `STRIPE_WEBHOOK_SECRET` (Sensitive), redeploy.
 - Do it once in **live** mode (and once in test mode if you test with test keys — each
   mode has its own secret). Without the secret the endpoint answers 503 and payments
@@ -174,7 +224,8 @@ show the “temporarily unavailable” state — that is expected).
   City, Utah, the email and WhatsApp number. If payments are made through a registered
   business, add its legal name/address to the terms and to Stripe.
 - **Privacy**: providers listed are Stripe, Vercel, WhatsApp/Meta, Google Fonts and
-  LevelUp Ecosystem; adjust if that changes.
+  LevelUp Ecosystem (site content and the payments dashboard: name, email, amount,
+  offer); adjust if that changes.
 - Social follower counts and fictional phone-mockup statistics were removed; add real,
   dated figures only if you want them back.
 

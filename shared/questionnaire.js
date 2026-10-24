@@ -86,7 +86,6 @@ export const YES_NO_OPTIONS = Object.freeze({
  */
 export const DEFAULT_OPTIONS = {
   groupTier: {
-    express: 'Express · 1 personne (0,50 $)|Express · 1 person ($0.50)',
     solo: 'Solo · 1 personne (2,60 $)|Solo · 1 person ($2.60)',
     duo: 'Duo · 2 personnes (5 $)|Duo · 2 people ($5)',
     family: 'Famille · Jusqu’à 5 personnes (11 $)|Family · Up to 5 people ($11)'

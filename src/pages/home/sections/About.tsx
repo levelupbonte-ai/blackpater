@@ -1,42 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Link } from '../../../app/router';
 import { useLanguage } from '../../../context/LanguageContext';
 import { Icon } from '../../../components/Icon';
 import type { TranslationKey } from '../../../i18n';
 
 const ROLES = [1, 2, 3, 4] as const;
-const MIX = [
-  { id: 1, pct: 98 },
-  { id: 2, pct: 96 },
-  { id: 3, pct: 94 },
-  { id: 4, pct: 95 }
-] as const;
+const PILLARS = [1, 2, 3, 4] as const;
 
 export const About: React.FC = () => {
   const { t } = useLanguage();
   const k = (s: string) => s as TranslationKey;
-  const skillsRef = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const el = skillsRef.current;
-    if (!el) return;
-    if (typeof IntersectionObserver === 'undefined') {
-      setInView(true);
-      return;
-    }
-    const obs = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setInView(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.2 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
 
   return (
     <section className='about section' id='about' aria-labelledby='about-title'>
@@ -99,26 +72,19 @@ export const About: React.FC = () => {
               </ul>
             </div>
 
-            <div ref={skillsRef} className='about__card about__skills-card'>
+            <div className='about__card about__pillars-card'>
               <h3 className='about__card-title'>{t('about_mix_intro')}</h3>
-              <ul className='skill-bars'>
-                {MIX.map(({ id, pct }) => (
-                  <li key={id} className='skill-bar'>
-                    <div className='skill-bar__head'>
-                      <span className='skill-bar__name'>{t(k(`about_mix_${id}`))}</span>
-                      <span className='skill-bar__meta'>
-                        {t(k(`about_mix_${id}_sub`))} · <strong>{pct}%</strong>
-                      </span>
-                    </div>
-                    <div className='skill-bar__track' aria-hidden='true'>
-                      <div
-                        className='skill-bar__fill'
-                        style={{ width: inView ? `${pct}%` : '0%' }}
-                      />
-                    </div>
+              <ol className='pillars'>
+                {PILLARS.map((id) => (
+                  <li key={id} className='pillar'>
+                    <span className='pillar__num' aria-hidden='true'>
+                      {String(id).padStart(2, '0')}
+                    </span>
+                    <span className='pillar__name'>{t(k(`about_mix_${id}`))}</span>
+                    <span className='pillar__sub'>{t(k(`about_mix_${id}_sub`))}</span>
                   </li>
                 ))}
-              </ul>
+              </ol>
             </div>
           </div>
         </div>

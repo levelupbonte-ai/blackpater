@@ -43,7 +43,7 @@
   background:
     radial-gradient(40% 35% at 25% 30%, rgba(59, 79, 196, 0.22), transparent 70%),
     radial-gradient(35% 30% at 78% 72%, rgba(30, 120, 140, 0.14), transparent 70%);
-  animation: pgDrift 26s ease-in-out infinite alternate;
+  opacity: 0.8;
 }
 @keyframes pgDrift {
   to {
@@ -594,21 +594,21 @@
   justify-content: space-between;
   gap: 5px;
   padding: 12px 14px;
-  border-radius: 12px;
-  border: 1.5px solid var(--line-strong);
-  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: var(--card-bg);
   color: var(--bone);
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease;
+  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease, box-shadow var(--dur-2) ease;
 }
 .pg-tier-card:hover {
-  border-color: var(--bone);
+  border-color: var(--bone-dim);
 }
 .pg-tier-card[aria-checked='true'] {
   border-color: var(--accent-primary);
-  background: rgba(212, 175, 55, 0.11);
-  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.25);
+  background: var(--copper-soft);
+  box-shadow: 0 0 0 1px var(--accent-primary);
 }
 .pg-tier-card__top {
   display: flex;
@@ -672,11 +672,11 @@
 }
 .pg-checkout-box {
   margin-top: 28px;
-  padding: clamp(24px, 3.5vw, 34px);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-l);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  padding: clamp(24px, 3.5vw, 36px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-2);
 }
 .pg-checkout-reveal {
   animation: pgCheckoutEmergence 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;

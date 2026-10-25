@@ -15,8 +15,7 @@ import {
 } from '../../../shared/questionnaire.js';
 import type { TranslationKey } from '../../i18n';
 import { useCheckout } from './useCheckout';
-
-type TierKey = 'solo' | 'duo' | 'family';
+import { takeFreshTier, type TierKey } from './tier-preselection';
 
 const ERROR_KEYS: Record<string, TranslationKey> = {
   rate_limited: 'err_rate_limited',
@@ -360,6 +359,11 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const { state: checkoutState, pay } = useCheckout(activeOffer.id);
 
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // Plan just chosen on /abonnements: applied to the next questionnaire opened.
+  const freshTier = useRef<TierKey | null>(null);
+  useEffect(() => {
+    freshTier.current ??= takeFreshTier();
+  }, []);
 
   const ctx: Ctx = useMemo(() => ({ c: country || 'US', a: answers }), [country, answers]);
   const visibleQuestions = useMemo(
@@ -467,7 +471,10 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           loadedHist = Array.isArray(parsed.hist) ? parsed.hist : [];
         }
       }
-      if (!loadedAnswers.groupTier) {
+      if (freshTier.current) {
+        loadedAnswers = { ...loadedAnswers, groupTier: freshTier.current };
+        freshTier.current = null;
+      } else if (!loadedAnswers.groupTier) {
         const preselected = readStorage('pg:preselected_tier');
         if (preselected === 'solo' || preselected === 'duo' || preselected === 'family') {
           loadedAnswers = { ...loadedAnswers, groupTier: preselected };

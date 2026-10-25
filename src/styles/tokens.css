@@ -1,32 +1,36 @@
-/* Design tokens — Executive Portfolio System (Restful Dark & Clean Light Themes) */
+/* Design tokens — dark (default) and light themes.
+   Colour, type, space, shape, depth and motion all come from here: pages use
+   the tokens, never raw values, so both themes stay consistent. */
 :root,
 html[data-theme='dark'] {
   color-scheme: dark;
 
-  /* Surfaces & Text (Calm Deep Slate — zero eye strain) */
+  /* Surfaces & text */
   --ink: #0a0e17;
-  --char: #0e1420;
+  --char: #0d131e;
   --char-2: #141c2b;
-  --surface: rgba(18, 25, 38, 0.76);
-  --surface-2: rgba(26, 36, 54, 0.85);
-  --surface-solid: #121926;
-  --nav-bg: rgba(10, 14, 23, 0.82);
-  --nav-bg-scrolled: rgba(10, 14, 23, 0.94);
+  --surface: #111827;
+  --surface-2: #162032;
+  --surface-solid: #111827;
+  --surface-raised: #172133;
+  --nav-bg: rgba(10, 14, 23, 0.78);
+  --nav-bg-scrolled: rgba(10, 14, 23, 0.9);
 
   --bone: #f1f5f9;
-  --bone-dim: #94a3b8;
-  --bone-mute: #64748b;
-  --bone-faint: rgba(148, 163, 184, 0.1);
-  --line: rgba(148, 163, 184, 0.12);
-  --line-strong: rgba(148, 163, 184, 0.22);
+  --bone-dim: #a3b1c6;
+  --bone-mute: #74839a;
+  --bone-faint: rgba(148, 163, 184, 0.08);
+  --line: rgba(148, 163, 184, 0.13);
+  --line-strong: rgba(148, 163, 184, 0.26);
 
-  /* Executive Accents (Calm Steel Blue & Soft Champagne, no harsh neon) */
+  /* Accents */
   --bronze: #cbd5e1;
   --copper: #93c5fd;
-  --copper-soft: rgba(59, 130, 246, 0.12);
-  --accent-primary: #3b82f6;
-  --accent-secondary: #60a5fa;
+  --copper-soft: rgba(59, 130, 246, 0.14);
+  --accent-primary: #4f8ff7;
+  --accent-secondary: #7aaaf9;
   --accent-grad: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+  --accent-ink: #0a0e17;
   --btn-primary-bg: #f1f5f9;
   --btn-primary-fg: #0a0e17;
   --btn-primary-hover: #ffffff;
@@ -49,8 +53,8 @@ html[data-theme='dark'] {
   --fs-lg: clamp(1.15rem, 1.05rem + 0.45vw, 1.35rem);
   --fs-xl: clamp(1.4rem, 1.2rem + 1vw, 2rem);
   --fs-2xl: clamp(1.8rem, 1.35rem + 1.6vw, 2.55rem);
-  --fs-3xl: clamp(2.2rem, 1.65rem + 2.4vw, 3.4rem);
-  --tracking-label: 0.06em;
+  --fs-3xl: clamp(2.15rem, 1.6rem + 2.4vw, 3.4rem);
+  --tracking-label: 0.08em;
 
   /* Space (4px base) */
   --s-1: 4px;
@@ -63,20 +67,43 @@ html[data-theme='dark'] {
   --s-8: 64px;
   --s-9: 96px;
   --s-10: 128px;
-  --section: clamp(64px, 7vw, 108px);
+  --section: clamp(64px, 7vw, 112px);
   --pad: clamp(16px, 3vw, 44px);
-  --content: min(1680px, 94vw);
+  --content: min(1240px, 100%);
   --prose: 68ch;
 
-  /* Shape & Motion */
+  /* Shape */
   --radius-s: 8px;
   --radius: 12px;
-  --radius-l: 16px;
-  --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.5);
-  --card-shadow: 0 8px 28px -10px rgba(0, 0, 0, 0.3);
+  --radius-l: 18px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* Depth — layered, soft shadows; cards rest at 1 and lift to 2 */
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 2px 6px rgba(0, 0, 0, 0.35), 0 22px 44px -18px rgba(0, 0, 0, 0.65);
+  --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--line-strong);
+  --shadow: var(--shadow-2);
+  --card-shadow: var(--shadow-1);
+
+  /* Card system */
+  --card-bg: var(--surface);
+  --card-border: var(--line);
+  --card-border-hover: var(--line-strong);
+  --card-pad: clamp(22px, 2.4vw, 30px);
+  --card-radius: var(--radius-l);
+  --card-lift: -3px;
+
+  /* Motion */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
-  --nav-h: 68px;
+  --dur-1: 160ms;
+  --dur-2: 260ms;
+  --dur-3: 520ms;
+  --dur-reveal: 760ms;
+  --nav-h: 72px;
+  --nav-h-compact: 60px;
 }
 
 html[data-theme='light'] {
@@ -85,30 +112,34 @@ html[data-theme='light'] {
   --ink: #f8fafc;
   --char: #f1f5f9;
   --char-2: #e2e8f0;
-  --surface: rgba(255, 255, 255, 0.9);
-  --surface-2: rgba(248, 250, 252, 0.96);
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
   --surface-solid: #ffffff;
-  --nav-bg: rgba(248, 250, 252, 0.85);
-  --nav-bg-scrolled: rgba(255, 255, 255, 0.96);
+  --surface-raised: #ffffff;
+  --nav-bg: rgba(248, 250, 252, 0.8);
+  --nav-bg-scrolled: rgba(255, 255, 255, 0.9);
 
   --bone: #0f172a;
   --bone-dim: #475569;
   --bone-mute: #64748b;
-  --bone-faint: rgba(15, 23, 42, 0.06);
+  --bone-faint: rgba(15, 23, 42, 0.05);
   --line: rgba(15, 23, 42, 0.09);
-  --line-strong: rgba(15, 23, 42, 0.16);
+  --line-strong: rgba(15, 23, 42, 0.18);
 
   --bronze: #334155;
-  --copper: #2563eb;
+  --copper: #1d4ed8;
   --copper-soft: rgba(37, 99, 235, 0.08);
   --accent-primary: #2563eb;
   --accent-secondary: #1d4ed8;
   --accent-grad: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+  --accent-ink: #ffffff;
   --btn-primary-bg: #0f172a;
   --btn-primary-fg: #ffffff;
   --btn-primary-hover: #1e293b;
-  --success: #059669;
+  --success: #047857;
   --danger: #dc2626;
-  --shadow: 0 20px 45px -18px rgba(15, 23, 42, 0.1);
-  --card-shadow: 0 6px 22px -8px rgba(15, 23, 42, 0.06);
+
+  --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px -12px rgba(15, 23, 42, 0.12);
+  --shadow-2: 0 2px 6px rgba(15, 23, 42, 0.05), 0 24px 44px -20px rgba(15, 23, 42, 0.2);
+  --shadow-pop: 0 16px 40px -12px rgba(15, 23, 42, 0.22), 0 0 0 1px var(--line);
 }

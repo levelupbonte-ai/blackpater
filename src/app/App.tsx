@@ -61,7 +61,12 @@ const Routes: React.FC = () => {
   }, [route, lang]);
 
   const Page = route ? PAGES[route.id] : NotFoundPage;
-  return <Page key={route?.id || 'not-found'} />;
+  const key = route?.id || 'not-found';
+  return (
+    <div className='route-view' key={key}>
+      <Page />
+    </div>
+  );
 };
 
 export const App: React.FC = () => (

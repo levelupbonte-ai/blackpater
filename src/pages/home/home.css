@@ -1,4 +1,4 @@
-/* Home page sections — Modern Portfolio Design (inspired by Muhammad Murad v0 Portfolio) */
+/* Home page sections. Cards use the shared card tokens (src/styles/tokens.css). */
 
 /* Hero ------------------------------------------------------------------ */
 .hero {
@@ -174,22 +174,27 @@
   margin: 0;
 }
 .hero__stat-card {
-  padding: clamp(20px, 2.2vw, 26px);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--card-shadow);
-  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease);
+  padding: var(--card-pad);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-1);
+  transition:
+    transform var(--dur-3) var(--ease-out),
+    box-shadow var(--dur-3) var(--ease-out),
+    border-color var(--dur-2) ease;
 }
-.hero__stat-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--line-strong);
+@media (hover: hover) {
+  .hero__stat-card:hover {
+    transform: translateY(var(--card-lift));
+    box-shadow: var(--shadow-2);
+    border-color: var(--card-border-hover);
+  }
 }
 .hero__stat-val {
   font-family: var(--display);
-  font-weight: 800;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   font-size: clamp(1.95rem, 2.8vw, 2.6rem);
   line-height: 1;
   color: var(--bone);
@@ -339,11 +344,11 @@
 }
 .about__profile-card,
 .about__card {
-  padding: clamp(22px, 2.8vw, 32px);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--card-shadow);
+  padding: clamp(22px, 2.8vw, 34px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-1);
 }
 .about__profile-card {
   height: 100%;
@@ -355,7 +360,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 4.2;
-  border-radius: var(--radius-s);
+  border-radius: var(--radius);
   overflow: hidden;
   background: var(--char-2);
 }
@@ -364,10 +369,12 @@
   height: 100%;
   object-fit: cover;
   object-position: 50% 22%;
-  transition: transform 0.35s var(--ease);
+  transition: transform 1.2s var(--ease-out);
 }
-.about__photo:hover img {
-  transform: scale(1.03);
+@media (hover: hover) {
+  .about__photo:hover img {
+    transform: scale(1.025);
+  }
 }
 .about__photo figcaption {
   position: absolute;
@@ -398,9 +405,12 @@
 
 .about__card-title {
   font-family: var(--display);
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin-bottom: var(--s-4);
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--s-5);
+  padding-bottom: var(--s-4);
+  border-bottom: 1px solid var(--line);
   color: var(--bone);
 }
 .about__roles {
@@ -442,44 +452,40 @@
   color: var(--bone-dim);
 }
 
-/* Skill Progress Bars (v0 SkillProgress component style) */
-.skill-bars {
+/* Foundations — numbered list, no figures */
+.pillars {
   display: grid;
-  gap: var(--s-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-5) var(--s-6);
 }
-.skill-bar__head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+@media (max-width: 560px) {
+  .pillars {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.pillar {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 14px;
+  row-gap: 2px;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 6px;
 }
-.skill-bar__name {
+.pillar__num {
+  grid-row: span 2;
+  font-family: var(--display);
+  font-size: 0.8rem;
   font-weight: 600;
-  font-size: 0.92rem;
-  color: var(--bone);
-}
-.skill-bar__meta {
-  font-size: var(--fs-xs);
-  color: var(--bone-dim);
+  color: var(--copper);
   font-variant-numeric: tabular-nums;
 }
-.skill-bar__meta strong {
-  color: var(--copper);
+.pillar__name {
+  font-weight: 600;
+  font-size: 0.96rem;
+  color: var(--bone);
 }
-.skill-bar__track {
-  width: 100%;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--bone-faint);
-  overflow: hidden;
-}
-.skill-bar__fill {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--accent-grad);
-  transition: width 1s var(--ease);
+.pillar__sub {
+  font-size: var(--fs-sm);
+  color: var(--bone-dim);
 }
 
 @media (max-width: 920px) {

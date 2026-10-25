@@ -13,8 +13,6 @@ export const Hero: React.FC = () => {
   const { t } = useLanguage();
   const k = (s: string) => s as TranslationKey;
 
-  const quoteWords = `« ${t('hero_quote_line1')} ${t('hero_quote_line2')} » — ${t('about_sub')}.`.split(' ');
-
   return (
     <section className='hero' id='hero' aria-label={t('hero_label')}>
       <div className='container hero__container'>
@@ -29,19 +27,8 @@ export const Hero: React.FC = () => {
               <span className='hero__realname'>{t('hero_prof_label')}</span>
             </h1>
 
-            {/* Staggered Word-by-Word Quote Construction */}
             <p className='hero__lead hero-anim hero-anim--2'>
-              <span className='word-reveal'>
-                {quoteWords.map((w, idx) => (
-                  <span
-                    key={idx}
-                    className='word-reveal__word'
-                    style={{ animationDelay: `${0.16 + idx * 0.035}s` }}
-                  >
-                    {w}{' '}
-                  </span>
-                ))}
-              </span>
+              « {t('hero_quote_line1')} {t('hero_quote_line2')} » — {t('about_sub')}.
             </p>
 
             <div className='hero__actions hero-anim hero-anim--3'>

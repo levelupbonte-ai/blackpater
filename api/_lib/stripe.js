@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 
 let cached = null;
 
-function readEnv(name) {
+export function readEnv(name) {
   const raw = process.env[name];
   if (typeof raw !== 'string') return '';
   // Tolerate copy/paste artefacts (surrounding quotes, whitespace, newlines).

@@ -75,7 +75,7 @@ blockquote {
   margin: 0;
 }
 ::selection {
-  background: rgba(59, 130, 246, 0.22);
+  background: var(--copper-soft);
   color: var(--bone);
 }
 :focus {
@@ -116,100 +116,95 @@ blockquote {
   top: 12px;
 }
 
-/* Top scroll progress bar & subtle ambient background */
-.scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  z-index: 100;
-  background: var(--accent-primary);
-  transform-origin: 0% 50%;
-  pointer-events: none;
-}
-.ambient-canvas {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.65;
-}
-
-/* Progressive Scroll Construction & Text Reveal Animations */
-.reveal-on-scroll {
+/* Motion system
+   - Reveal on scroll (once): elements get .reveal from src/lib/motion.ts and
+     are only hidden while html.motion-ok is set, i.e. JS is running, the
+     browser has IntersectionObserver and the visitor accepts motion.
+     Without it, everything is simply visible.
+   - Staggered groups: --reveal-delay is set per child of a grid.
+   - Route change: the new page fades in (.route-view).
+   - Hero: a short, one-time fade-up on first paint. */
+html.motion-ok .reveal {
   opacity: 0;
-  transform: translateY(26px) scale(0.985);
-  filter: blur(2px);
+  transform: translate3d(0, 18px, 0);
   transition:
-    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: calc(var(--reveal-idx, 0) * 90ms);
-  will-change: opacity, transform, filter;
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
 }
-.reveal-on-scroll.is-revealed {
+html.motion-ok .reveal.is-revealed {
   opacity: 1;
-  transform: translateY(0) scale(1);
-  filter: blur(0);
+  transform: none;
+}
+/* Once revealed, hand transitions back to the element's own hover styles. */
+html.motion-ok .reveal.is-settled {
+  transition-delay: 0ms;
 }
 
-@keyframes heroFadeUp {
+@keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(22px) scale(0.985);
-    filter: blur(3px);
+    transform: translate3d(0, 14px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
+    transform: none;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* Kept for older section styles that reference it. */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.route-view {
+  animation: routeIn var(--dur-3) var(--ease-out) backwards;
+}
+@keyframes routeIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
 .hero-anim {
-  opacity: 0;
-  animation: heroFadeUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeUp 0.8s var(--ease-out) both;
 }
 .hero-anim--1 {
-  animation-delay: 0.06s;
+  animation-delay: 0.05s;
 }
 .hero-anim--2 {
-  animation-delay: 0.16s;
+  animation-delay: 0.13s;
 }
 .hero-anim--3 {
-  animation-delay: 0.26s;
+  animation-delay: 0.21s;
 }
 .hero-anim--4 {
-  animation-delay: 0.36s;
+  animation-delay: 0.29s;
 }
 .hero-anim--5 {
-  animation-delay: 0.46s;
+  animation-delay: 0.37s;
 }
 .hero-anim--6 {
-  animation-delay: 0.56s;
-}
-
-@keyframes wordRise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-    filter: blur(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-
-.word-reveal__word {
-  display: inline-block;
-  margin-right: 0.26em;
-  opacity: 0;
-  animation: wordRise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.45s;
 }
 
 /* Layout */
@@ -262,8 +257,23 @@ section {
   color: var(--bone-dim);
 }
 .eyebrow {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   color: var(--copper);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+}
+.eyebrow::before {
+  content: '';
+  width: 18px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+.section-header-center .eyebrow::before {
+  display: none;
 }
 .lead {
   font-size: var(--fs-md);
@@ -321,7 +331,7 @@ section {
 .text-link {
   color: var(--copper);
   text-decoration: underline;
-  text-decoration-color: rgba(147, 197, 253, 0.35);
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
   text-underline-offset: 3px;
   transition: color 0.18s ease, text-decoration-color 0.18s ease;
 }
@@ -380,11 +390,11 @@ section {
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
-  .reveal-on-scroll,
+  .reveal,
   .hero-anim,
-  .word-reveal__word {
+  .route-view {
     opacity: 1 !important;
     transform: none !important;
-    filter: none !important;
+    animation: none !important;
   }
 }

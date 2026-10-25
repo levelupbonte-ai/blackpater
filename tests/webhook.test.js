@@ -27,6 +27,7 @@ function setup(secret = SECRET) {
   const handler = createWebhookHandler({
     getWebhookSecret: () => secret,
     log: silentLog,
+    forwardPayment: async () => ({ ok: true }),
     hooks: {
       onCheckoutPaid: async (s, e) => paid.push([s.id, e.id]),
       onCheckoutPending: async (s) => pending.push(s.id),
@@ -115,6 +116,7 @@ test('a failing fulfilment returns 500 so Stripe retries, then succeeds once', a
   const handler = createWebhookHandler({
     getWebhookSecret: () => SECRET,
     log: silentLog,
+    forwardPayment: async () => ({ ok: true }),
     hooks: {
       onCheckoutPaid: async (s) => {
         if (fail) throw new Error('downstream unavailable');

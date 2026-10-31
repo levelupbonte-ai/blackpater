@@ -6,7 +6,13 @@
  *   - swaps self-hosted media for the versions managed in the dashboard
  *     (content block "media": { "<file name>": "<url>" }),
  *   - fills [data-lu-text="key"] elements from content block "texts",
- *   - shows or hides the "Built by LevelUp" credit (websites.show_powered_by).
+ *   - shows or hides the "Built by LevelUp" credit (websites.show_powered_by),
+ *   - counts page views for the dashboard's Analytics page: one per page load
+ *     and per client-side navigation, with only the path, the referrer and the
+ *     browser language. No cookie, no storage, no identifier; nothing is sent
+ *     under Do Not Track or when window.LEVELUP.analytics is false. The
+ *     database keeps daily counters only and accepts views from this site's
+ *     own domains (blackpater.com, www.blackpater.com).
  */
 (function () {
   'use strict';
@@ -82,4 +88,58 @@
       }
     })
     .catch(function () { /* static content stays as is */ });
+
+  // ------------------------------------------------------------------ page views
+
+  function doNotTrack() {
+    var n = window.navigator || {};
+    var v = n.doNotTrack || window.doNotTrack || n.msDoNotTrack;
+    return v === '1' || v === 'yes' || v === 1;
+  }
+
+  var lastPath = null;
+  var lastHref = null;
+  function pageview() {
+    var path = location.pathname || '/';
+    if (path === lastPath) return;
+    // First view: the page that sent the visitor; afterwards the previous page
+    // of this site (counted as a direct visit by the database).
+    var referrer = lastHref === null ? document.referrer : lastHref;
+    lastPath = path;
+    lastHref = location.href;
+    var lang = navigator.language || '';
+    var body = JSON.stringify({
+      p_website_id: cfg.websiteId,
+      p_path: path.slice(0, 2000),
+      p_referrer: /^https?:\/\//i.test(referrer || '') ? String(referrer).slice(0, 2000) : null,
+      p_lang: /^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$/.test(lang) ? lang : null
+    });
+    var url = cfg.supabaseUrl + '/rest/v1/rpc/track_pageview';
+    function post(keepalive) {
+      return fetch(url, { method: 'POST', headers: headers, credentials: 'omit', keepalive: keepalive, body: body });
+    }
+    // keepalive: the view is still sent if the visitor leaves right away. A
+    // browser that cannot keep this request alive gets a normal request.
+    try {
+      post(true).catch(function () {
+        return post(false);
+      }).catch(function () { /* analytics never break the page */ });
+    } catch (e) { /* idem */ }
+  }
+
+  if (cfg.analytics !== false && !doNotTrack() && !window.__levelupPageviews) {
+    window.__levelupPageviews = true;
+    // Client-side routes (src/app/router.tsx uses pushState / replaceState).
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var original = history[m];
+      if (typeof original !== 'function') return;
+      history[m] = function () {
+        var result = original.apply(this, arguments);
+        pageview();
+        return result;
+      };
+    });
+    window.addEventListener('popstate', pageview);
+    pageview();
+  }
 })();

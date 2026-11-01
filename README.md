@@ -34,7 +34,7 @@ src/components/        Shared UI (page header, FAQ, article card, trust row, ico
 src/pages/<page>/      One folder per page, with its own components and CSS
 src/i18n/*.ts          All strings, French + English (tests check both exist)
 src/lib/               Checkout client (duplicate-safe), contact details
-public/js/levelup*.js  LevelUp runtime (unchanged)
+public/js/levelup*.js  LevelUp runtime: dashboard media / texts, credit, cookie-free page views
 public/payment/        Accepted-payment marks (Simple Icons, CC0 — see NOTICE.txt)
 ```
 

@@ -1,25 +1,6 @@
 # robots.txt for blackpater.com
 User-agent: *
 Allow: /
-
-# Googlebot, Googlebot-Image, Bingbot & Search Engine Crawlers
-User-agent: Googlebot
-Allow: /
-
-User-agent: Googlebot-Image
-Allow: /
-Allow: /*.ico
-Allow: /*.png
-Allow: /*.svg
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Applebot
-Allow: /
+Disallow: /api/
 
 Sitemap: https://blackpater.com/sitemap.xml
-Host: https://blackpater.com

@@ -41,6 +41,8 @@ html[data-theme='dark'] {
   --congo-b: #1b6fd6;
   --congo-y: #f7d618;
   --congo-r: #ce1126;
+  --rust: #f0915d;
+  --rust-soft: rgba(240, 145, 93, 0.12);
 
   /* Typography */
   --display: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -109,37 +111,41 @@ html[data-theme='dark'] {
 html[data-theme='light'] {
   color-scheme: light;
 
-  --ink: #f8fafc;
-  --char: #f1f5f9;
-  --char-2: #e2e8f0;
+  /* Warm ivory and deep ink, with the logo's blue and the jacket's rust as
+     accents: a calm, premium base that keeps Black Pater's identity. */
+  --ink: #f7f3ec;
+  --char: #f0eadf;
+  --char-2: #e7dfd1;
   --surface: #ffffff;
-  --surface-2: #f8fafc;
+  --surface-2: #fbf8f3;
   --surface-solid: #ffffff;
   --surface-raised: #ffffff;
-  --nav-bg: rgba(248, 250, 252, 0.8);
-  --nav-bg-scrolled: rgba(255, 255, 255, 0.9);
+  --nav-bg: rgba(247, 243, 236, 0.82);
+  --nav-bg-scrolled: rgba(251, 248, 243, 0.92);
 
-  --bone: #0f172a;
-  --bone-dim: #475569;
-  --bone-mute: #64748b;
-  --bone-faint: rgba(15, 23, 42, 0.05);
-  --line: rgba(15, 23, 42, 0.09);
-  --line-strong: rgba(15, 23, 42, 0.18);
+  --bone: #121826;
+  --bone-dim: #454c5a;
+  --bone-mute: #5d6371;
+  --bone-faint: rgba(18, 24, 38, 0.05);
+  --line: rgba(18, 24, 38, 0.1);
+  --line-strong: rgba(18, 24, 38, 0.2);
 
-  --bronze: #334155;
-  --copper: #1d4ed8;
-  --copper-soft: rgba(37, 99, 235, 0.08);
-  --accent-primary: #2563eb;
-  --accent-secondary: #1d4ed8;
-  --accent-grad: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+  --bronze: #3a3f4b;
+  --copper: #0a52c2;
+  --copper-soft: rgba(10, 82, 194, 0.08);
+  --accent-primary: #0a52c2;
+  --accent-secondary: #0844a1;
+  --accent-grad: linear-gradient(90deg, #0a52c2 0%, #1d6fe0 100%);
   --accent-ink: #ffffff;
-  --btn-primary-bg: #0f172a;
+  --rust: #ad4317;
+  --rust-soft: rgba(173, 67, 23, 0.09);
+  --btn-primary-bg: #121826;
   --btn-primary-fg: #ffffff;
-  --btn-primary-hover: #1e293b;
+  --btn-primary-hover: #252d3d;
   --success: #047857;
-  --danger: #dc2626;
+  --danger: #b91c1c;
 
-  --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px -12px rgba(15, 23, 42, 0.12);
-  --shadow-2: 0 2px 6px rgba(15, 23, 42, 0.05), 0 24px 44px -20px rgba(15, 23, 42, 0.2);
-  --shadow-pop: 0 16px 40px -12px rgba(15, 23, 42, 0.22), 0 0 0 1px var(--line);
+  --shadow-1: 0 1px 2px rgba(18, 24, 38, 0.04), 0 8px 24px -14px rgba(18, 24, 38, 0.14);
+  --shadow-2: 0 2px 6px rgba(18, 24, 38, 0.05), 0 28px 50px -24px rgba(18, 24, 38, 0.24);
+  --shadow-pop: 0 18px 44px -14px rgba(18, 24, 38, 0.24), 0 0 0 1px var(--line);
 }

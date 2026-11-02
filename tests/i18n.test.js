@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const files = ['common', 'home', 'articles', 'offer', 'payment'];
+const files = ['common', 'home', 'articles', 'offer', 'payment', 'portal'];
 
 test('every French string has a non-empty English translation (and vice versa)', async () => {
   for (const f of files) {
@@ -16,5 +16,12 @@ test('no non-Stripe payment wording in user-facing strings', async () => {
     const { fr, en } = await import(`../src/i18n/${f}.ts`);
     const all = JSON.stringify([fr, en]);
     assert.ok(!/mobile money|orange money|m-pesa|airtel|wave|mtn|cinetpay|flutterwave/i.test(all), `${f} mentions another payment method`);
+  }
+});
+
+test('visitor-facing strings never name the hosting or database providers', async () => {
+  for (const f of files) {
+    const { fr, en } = await import(`../src/i18n/${f}.ts`);
+    assert.ok(!/supabase|vercel/i.test(JSON.stringify([fr, en])), `${f} names a provider`);
   }
 });

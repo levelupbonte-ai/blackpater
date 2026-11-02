@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '../context/LanguageContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import { RouterProvider, useRouter } from './router';
@@ -16,6 +16,9 @@ import { TermsPage } from '../pages/legal/TermsPage';
 import { RefundPage } from '../pages/legal/RefundPage';
 import { PrivacyPage } from '../pages/legal/PrivacyPage';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
+
+// The client space is loaded only when visited (keeps the public pages light).
+const PortalPage = lazy(() => import('../pages/portal/PortalPage'));
 import { NOT_FOUND, findRoute } from '../../shared/routes.js';
 import { CONFIRMATION_PATH, confirmationPath, readSessionIdParam } from '../../shared/validation.js';
 
@@ -31,7 +34,8 @@ const PAGES: Record<string, React.ComponentType> = {
   'payment-cancelled': CancelledPage,
   'legal-terms': TermsPage,
   'legal-refund': RefundPage,
-  'legal-privacy': PrivacyPage
+  'legal-privacy': PrivacyPage,
+  portal: PortalPage
 };
 
 function setMetaDescription(content: string) {
@@ -64,15 +68,17 @@ const Routes: React.FC = () => {
   const key = route?.id || 'not-found';
   return (
     <div className='route-view' key={key}>
-      <Page />
+      <Suspense fallback={<div className='po-loading' role='status' aria-live='polite' />}>
+        <Page />
+      </Suspense>
     </div>
   );
 };
 
-export const App: React.FC = () => (
+export const App: React.FC<{ initialPath?: string }> = ({ initialPath }) => (
   <ThemeProvider>
     <LanguageProvider>
-      <RouterProvider>
+      <RouterProvider initialPath={initialPath}>
         <SiteLayout>
           <Routes />
         </SiteLayout>

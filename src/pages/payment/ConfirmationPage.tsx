@@ -183,11 +183,26 @@ export const ConfirmationPage: React.FC = () => {
             'success',
             'pay_paid_title',
             t('pay_paid_text', { amount }),
-            <a className='btn btn--primary btn--lg' href={mailto}>
-              <Icon name='mail' />
-              {t('pay_start_whatsapp')}
-            </a>
+            <>
+              <Link className='btn btn--primary btn--lg' to='/espace-client'>
+                <Icon name='user' />
+                {t('pay_portal_cta')}
+              </Link>
+              <a className='btn btn--outline btn--lg' href={mailto}>
+                <Icon name='mail' />
+                {t('pay_start_whatsapp')}
+              </a>
+            </>
           )}
+          <aside className='pay-portal' aria-labelledby='pay-portal-title'>
+            <span className='pay-portal__icon' aria-hidden='true'>
+              <Icon name='lock' />
+            </span>
+            <div>
+              <h2 id='pay-portal-title'>{t('pay_portal_title')}</h2>
+              <p>{t('pay_portal_text')}</p>
+            </div>
+          </aside>
           <dl className='pay-ref'>
             <dt>{t('pay_reference')}</dt>
             <dd title={sessionId}>{shortRef(sessionId)}</dd>

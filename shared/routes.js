@@ -24,14 +24,14 @@ export const ROUTES = [
     indexable: true,
     meta: {
       fr: {
-        title: 'Black Pater (blackpater) — Jean-Pierre Lofumbwa · Le Prof | Site Officiel & Presse (VoyageUtah, CCIS, Komelate)',
+        title: 'Black Pater — Accompagnement voyage, études et visas par Jean-Pierre Lofumbwa',
         description:
-          "Site officiel de Black Pater (blackpater / Jean-Pierre Lofumbwa · « Le Prof »). Éducateur congolais, ambassadeur culturel en Utah & créateur de contenu. Publications VoyageUtah, Connected CCIS & Komelate."
+          'Black Pater : accompagnement voyage, études et visas par Jean-Pierre Lofumbwa (« Le Prof »), en français et en anglais, depuis Salt Lake City. Formules Solo, Duo et Famille, paiement unique.'
       },
       en: {
-        title: 'Black Pater (blackpater) — Jean-Pierre Lofumbwa · “Le Prof” | Official Website & Press',
+        title: 'Black Pater — Travel, study & visa guidance by Jean-Pierre Lofumbwa',
         description:
-          'Official website of Black Pater (Jean-Pierre Lofumbwa, “Le Prof”): Congolese Cultural Ambassador, educator and content creator in Salt Lake City, Utah.'
+          'Black Pater: travel, study and visa guidance by Jean-Pierre Lofumbwa (“Le Prof”), in English and French, from Salt Lake City. Solo, Duo and Family plans, one-time payment.'
       }
     }
   },
@@ -164,6 +164,22 @@ export const ROUTES = [
     }
   },
   {
+    id: 'portal',
+    path: '/espace-client',
+    file: 'espace-client/index.html',
+    indexable: false,
+    meta: {
+      fr: {
+        title: 'Espace client — Black Pater',
+        description: 'Votre espace privé Black Pater : réservation, actualités, documents et messages.'
+      },
+      en: {
+        title: 'Client space — Black Pater',
+        description: 'Your private Black Pater space: booking, updates, documents and messages.'
+      }
+    }
+  },
+  {
     id: 'legal-terms',
     path: '/legal/conditions-de-vente',
     file: 'legal/conditions-de-vente/index.html',
@@ -233,7 +249,9 @@ export const REDIRECTS = [
   { source: '/medias.html', destination: '/medias' },
   { source: '/contact.html', destination: '/contact' },
   { source: '/legal', destination: '/legal/conditions-de-vente' },
-  { source: '/cgv', destination: '/legal/conditions-de-vente' }
+  { source: '/cgv', destination: '/legal/conditions-de-vente' },
+  { source: '/client', destination: '/espace-client' },
+  { source: '/my-space', destination: '/espace-client' }
 ];
 
 export function normalizePath(pathname) {

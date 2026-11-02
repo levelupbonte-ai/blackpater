@@ -20,10 +20,22 @@ export const HOME_FAQ: FaqItem[] = [
     aEn: 'Top student in the Democratic Republic of Congo at the 2015 State Exam (85%, Latin-Philosophy). In the United States, named to the Columbia College Dean’s List for Fall 2023 (GPA above 3.5). His coursework is archived on CollegeSidekick and his story was featured in VoyageUtah.'
   },
   {
-    q: 'En quoi consiste l’accompagnement « Démarches Voyage » ?',
-    qEn: 'What is the “Travel & Visa Guidance” offer?',
-    a: 'Un accompagnement d’orientation pour 1 $ (paiement unique) : informations vérifiées sur les visas (F-1, B1/B2), les bourses et les admissions universitaires, le guide des erreurs éliminatoires, des conseils réalistes sur le coût de la vie et le logement, et un échange direct sur WhatsApp avec l’équipe de Jean-Pierre Lofumbwa. Tous les détails sont sur la page de l’offre.',
-    aEn: 'Orientation guidance for $1 (one-time payment): verified information on visas (F-1, B1/B2), scholarships and university admissions, the guide to disqualifying mistakes, realistic advice on cost of living and housing, and direct WhatsApp contact with Jean-Pierre Lofumbwa’s team. Full details are on the offer page.'
+    q: 'En quoi consiste l’accompagnement voyage de Black Pater ?',
+    qEn: 'What does Black Pater’s travel guidance include?',
+    a: 'Un accompagnement d’orientation pour préparer un voyage, des études ou des démarches de visa : un questionnaire adapté à votre destination, l’enregistrement officiel de votre dossier et un échange avec l’équipe de Jean-Pierre Lofumbwa. Trois formules : Solo (1 personne), Duo (2 personnes) et Famille (jusqu’à 5 personnes), en paiement unique. Les prix sont affichés sur la page des formules.',
+    aEn: 'Orientation guidance to prepare a trip, studies or visa procedures: a questionnaire adapted to your destination, the official registration of your file and contact with Jean-Pierre Lofumbwa’s team. Three plans: Solo (1 person), Duo (2 people) and Family (up to 5 people), each a one-time payment. Prices are shown on the plans page.'
+  },
+  {
+    q: 'Le paiement est-il sécurisé ?',
+    qEn: 'Is the payment secure?',
+    a: 'Oui. Le paiement se fait sur une page de paiement sécurisée (carte, Apple Pay ou Google Pay) ; vos données bancaires ne passent jamais par ce site. C’est un paiement unique, sans renouvellement, et le reçu vous est envoyé par e-mail.',
+    aEn: 'Yes. You pay on a secure checkout page (card, Apple Pay or Google Pay); your card details never go through this site. It is a one-time payment with no renewal, and the receipt is emailed to you.'
+  },
+  {
+    q: 'Qu’est-ce que l’espace client ?',
+    qEn: 'What is the client space?',
+    a: 'Après votre paiement, vous recevez par e-mail l’accès à votre espace privé sur blackpater.com/espace-client : le détail de votre réservation, les actualités, les détails du voyage, vos documents, une liste de ce qu’il faut prévoir et une messagerie avec Black Pater. La connexion se fait avec un code à usage unique envoyé par e-mail.',
+    aEn: 'After your payment, you receive by email access to your private space at blackpater.com/espace-client: your booking details, updates, trip details, documents, a checklist of what to bring and a message thread with Black Pater. You sign in with a one-time code sent by email.'
   },
   {
     q: 'Comment inviter Black Pater pour une conférence ou une intervention ?',

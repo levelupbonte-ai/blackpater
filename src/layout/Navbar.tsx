@@ -132,6 +132,14 @@ export const Navbar: React.FC = () => {
           </nav>
 
           <div className='nav__actions'>
+            <Link
+              to='/espace-client'
+              className='nav__space'
+              aria-current={path.startsWith('/espace-client') ? 'page' : undefined}
+            >
+              <Icon name='user' />
+              <span>{t('nav_space')}</span>
+            </Link>
             <LanguageMenu className='langmenu--desktop' />
             <ThemeButton />
             <button
@@ -171,6 +179,11 @@ export const Navbar: React.FC = () => {
             ))}
           </ol>
         </nav>
+        <Link to='/espace-client' className='mmenu__space'>
+          <Icon name='lock' />
+          <span>{t('nav_space_long')}</span>
+          <Icon name='arrowRight' />
+        </Link>
         <div className='mmenu__bottom'>
           <span className='label'>{t('lang_label')}</span>
           <LanguageMenu placement='up' />

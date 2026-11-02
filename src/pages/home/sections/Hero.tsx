@@ -1,103 +1,78 @@
 import React from 'react';
 import { Link } from '../../../app/router';
 import { useLanguage } from '../../../context/LanguageContext';
-import { Icon } from '../../../components/Icon';
-import { SOCIALS } from '../../../data/socials';
-import { CONTACT_EMAIL } from '../../../lib/contact';
+import { Icon, type IconName } from '../../../components/Icon';
 import type { TranslationKey } from '../../../i18n';
 
-const PORTRAIT = '/media/3e0be360f5ad.webp';
-const STATS = [1, 2, 3] as const;
+const TRUST: { icon: IconName; key: TranslationKey }[] = [
+  { icon: 'lock', key: 'hm_trust_1' },
+  { icon: 'receipt', key: 'hm_trust_2' },
+  { icon: 'globe', key: 'hm_trust_3' },
+  { icon: 'shield', key: 'hm_trust_4' }
+];
 
+/**
+ * Home hero: the promise, two actions and the facts a visitor can rely on.
+ * The portrait is the LCP image: responsive WebP, explicit size (no layout
+ * shift), fetched with high priority and never lazy.
+ */
 export const Hero: React.FC = () => {
   const { t } = useLanguage();
-  const k = (s: string) => s as TranslationKey;
-
   return (
-    <section className='hero' id='hero' aria-label={t('hero_label')}>
-      <div className='container hero__container'>
-        <div className='hero__split'>
-          {/* Left column: Brand Wordmark, Subtitle, Quote & CTAs */}
-          <div className='hero__content'>
-            <h1 className='hero__heading hero-anim hero-anim--1'>
-              <span className='hero__name brand-wordmark'>
-                <span className='brand-b'>Black</span>
-                <span className='brand-p'>Pater</span>
-              </span>
-              <span className='hero__realname'>{t('hero_prof_label')}</span>
-            </h1>
-
-            <p className='hero__lead hero-anim hero-anim--2'>
-              « {t('hero_quote_line1')} {t('hero_quote_line2')} » — {t('about_sub')}.
-            </p>
-
-            <div className='hero__actions hero-anim hero-anim--3'>
-              <Link to='/abonnements/accompagnement-voyage' className='btn btn--primary'>
-                <span>{t('nav_offers')}</span>
-                <Icon name='arrowRight' />
-              </Link>
-              <Link to='/parcours' className='btn btn--outline'>
-                <span>{t('nav_journey')}</span>
-              </Link>
-              <Link to='/contact' className='btn btn--secondary'>
-                <Icon name='mail' />
-                <span>{t('nav_contact')}</span>
-              </Link>
-            </div>
-
-            <div className='hero__socials hero-anim hero-anim--4'>
-              {SOCIALS.map((s) => (
-                <a
-                  key={s.id}
-                  href={s.url}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='hero__social-link'
-                  title={`${s.name} (${s.handle})`}
-                >
-                  <span>{s.name}</span>
-                  <Icon name='arrowUpRight' />
-                  <span className='sr-only'> {t('opens_new_tab')}</span>
-                </a>
-              ))}
-              <a href={`mailto:${CONTACT_EMAIL}`} className='hero__social-link' title={CONTACT_EMAIL}>
-                <Icon name='mail' />
-                <span>Email</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Right column: Circular framed portrait with clean status pill right below it */}
-          <div className='hero__visual hero-anim hero-anim--2'>
-            <div className='hero__avatar-wrap'>
-              <div className='hero__avatar-ring' aria-hidden='true' />
-              <div className='hero__avatar'>
-                <img
-                  src={PORTRAIT}
-                  alt='BlackPater — Jean-Pierre Lofumbwa'
-                  width={360}
-                  height={360}
-                  fetchPriority='high'
-                  decoding='async'
-                />
-              </div>
-              <span className='hero__status-pill'>{t('hero_status')}</span>
-            </div>
+    <section className='lux-hero' aria-labelledby='hero-title'>
+      <div className='container lux-hero__grid'>
+        <div className='lux-hero__copy'>
+          <p className='lux-eyebrow hero-anim hero-anim--1'>
+            <span className='lux-eyebrow__dot' aria-hidden='true' />
+            {t('hm_eyebrow')}
+          </p>
+          <h1 id='hero-title' className='lux-hero__title hero-anim hero-anim--1'>
+            {t('hm_title')}
+          </h1>
+          <p className='lux-hero__lead hero-anim hero-anim--2'>{t('hm_lead')}</p>
+          <div className='lux-hero__actions hero-anim hero-anim--3'>
+            <Link to='/abonnements' className='btn btn--primary btn--lg'>
+              <span>{t('hm_cta_offers')}</span>
+              <Icon name='arrowRight' />
+            </Link>
+            <Link to='/espace-client' className='btn btn--outline btn--lg'>
+              <Icon name='user' />
+              <span>{t('hm_cta_space')}</span>
+            </Link>
           </div>
         </div>
 
-        {/* Full-width KPI / Key Facts row below the hero split */}
-        <dl className='hero__stats' aria-label={t('about_facts_label')}>
-          {STATS.map((i) => (
-            <div key={i} className='hero__stat-card'>
-              <dt className='hero__stat-val'>{t(k(`stat_${i}_num`))}</dt>
-              <dd className='hero__stat-txt'>
-                <strong>{t(k(`stat_${i}_title`))}</strong>
-                <span>{t(k(`stat_${i}_sub`))}</span>
-              </dd>
-            </div>
+        <figure className='lux-hero__visual hero-anim hero-anim--2'>
+          <div className='lux-hero__arch' aria-hidden='true' />
+          <img
+            className='lux-hero__img'
+            src='/media/portrait-960.webp'
+            srcSet='/media/portrait-640.webp 640w, /media/portrait-960.webp 960w, /media/portrait-1280.webp 1280w'
+            sizes='(min-width: 960px) 46vw, 92vw'
+            alt='Jean-Pierre Lofumbwa (Black Pater)'
+            width={960}
+            height={762}
+            fetchPriority='high'
+            decoding='async'
+          />
+          <figcaption className='lux-hero__badge'>
+            <strong>{t('hm_portrait_name')}</strong>
+            <span>{t('hm_portrait_role')}</span>
+          </figcaption>
+        </figure>
+      </div>
+
+      <div className='container'>
+        <ul className='lux-trust' aria-label={t('hm_trust_label')}>
+          {TRUST.map((item) => (
+            <li key={item.key}>
+              <span className='lux-trust__icon' aria-hidden='true'>
+                <Icon name={item.icon} />
+              </span>
+              <span>{t(item.key)}</span>
+            </li>
           ))}
-        </dl>
+        </ul>
       </div>
     </section>
   );

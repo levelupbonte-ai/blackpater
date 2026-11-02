@@ -4,6 +4,7 @@ import { createBoundedSet } from './memory.js';
 import { HttpError, methodNotAllowed, readRawBody, sendJson } from './http.js';
 import * as defaultHooks from './fulfilment.js';
 import { buildPaymentEvent, createLevelUpForwarder, paymentStatusFor } from './levelup.js';
+import { createPortalHandler } from './portal/handler.js';
 
 const BODY_LIMIT = 512 * 1024;
 
@@ -49,6 +50,9 @@ export function createWebhookHandler(deps = {}) {
   const log = deps.log || console;
   const stripeFor = deps.getStripe || getStripe;
   const forward = deps.forwardPayment || createLevelUpForwarder({ log });
+  // After a paid checkout LevelUp creates the customer's portal access and queues
+  // the invitation e-mail; send it now (best effort, bounded, never fails the webhook).
+  const drainPortal = deps.drainPortal || (() => createPortalHandler({ log }).drainNow(5));
 
   /** Sends the record to the LevelUp dashboard; never throws, never fails the webhook. */
   async function forwardRecord(event, record) {
@@ -142,6 +146,16 @@ export function createWebhookHandler(deps = {}) {
     // 2. Owner dashboard (LevelUp). Best effort and bounded in time: Stripe
     //    gets its 200 whatever happens here.
     if (record) await forwardRecord(event, record);
+    if (record?.status === 'paid') {
+      let timer;
+      try {
+        await Promise.race([drainPortal(), new Promise((r) => (timer = setTimeout(r, 4000)))]);
+      } catch {
+        log.warn(JSON.stringify({ evt: 'portal.drain_failed', eventId: event.id }));
+      } finally {
+        clearTimeout(timer);
+      }
+    }
 
     processedEvents.add(event.id);
     return sendJson(res, 200, { received: true });

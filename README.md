@@ -46,6 +46,7 @@ public/payment/        Accepted-payment marks (Simple Icons, CC0 — see NOTICE.
 | `/abonnements/accompagnement-voyage` | Product page — the only place with a pay button |
 | `/paiement/confirmation?session_id=…` | Verified confirmation (noindex) |
 | `/paiement/annule` | Cancelled (noindex) |
+| `/espace-client` (`/client`, `/my-space` → 301) | Client space: sign-in, booking, updates, trip, documents, checklist, messages, account (noindex) |
 | `/legal/conditions-de-vente`, `/legal/remboursement`, `/legal/confidentialite` | Legal |
 
 Old URLs (`/abonnements.html`, `/articles.html`, `/index.html`, `/biographie`, `/medias`,
@@ -228,6 +229,70 @@ show the “temporarily unavailable” state — that is expected).
   offer); adjust if that changes.
 - Social follower counts and fictional phone-mockup statistics were removed; add real,
   dated figures only if you want them back.
+
+## Client space (`/espace-client`)
+
+After paying, a customer has a private space on this site. It is served by
+`api/portal/[action].js` (one function, `api/_lib/portal/`) and the LevelUp
+database functions `portal_*` (see the LevelUp dashboard repo,
+`supabase/migrations/20261101120000_client_portal.sql`).
+
+- **Who gets access.** A paid payment recorded in LevelUp (the webhook already
+  forwards it) creates the customer and queues an invitation e-mail; the owner can
+  also invite someone from the LevelUp dashboard (*Client portal*). Anyone else who
+  asks for a code sees the same message: “If you have a booking, check your email.”
+- **Sign-in.** A 6-digit code sent by e-mail: 10 minutes, works once, replaced by a
+  newer code, 5 wrong tries at most, rate-limited per address, per IP and per site
+  (database) plus a per-IP limiter here. Optional password (Account page): at least
+  10 characters, refused if common, personal or found in known breaches (Have I Been
+  Pwned range API, only 5 characters of a SHA-1 leave the server), bcrypt cost 12 in
+  the database; creating or changing it needs a fresh e-mailed code; “Forgot password”
+  is simply the code sign-in. Changing the e-mail needs a code sent to the old **and**
+  the new address. Same neutral error for an unknown e-mail and a wrong password.
+- **Sessions.** A random token in an `HttpOnly; Secure; SameSite=Strict` cookie
+  (`__Host-bp_portal`), stored as SHA-256 only, 7 days, never readable by page
+  scripts. “Sign out of all devices” revokes every session. Each new sign-in e-mails
+  the customer (browser and OS, minute, UTC).
+- **E-mails** are sent from this server with **Black Pater's own Resend key**
+  (never LevelUp's): codes right away; access, new update, new message and sign-in
+  alerts from the LevelUp queue, drained after each sign-in and paid webhook, when
+  the dashboard signs a “send now” call (`PORTAL_NOTIFY_SECRET`) and once a day by
+  Vercel Cron (`/api/portal/outbox`, `CRON_SECRET`). Without the keys the space fails
+  closed (`503`, “opens very soon”) and the log says which variable is missing.
+- **Documents** are streamed by this server after a 60-second ticket (no storage link
+  ever reaches the browser). Receipts are looked up live from the payment provider.
+
+### Owner setup for the client space
+
+1. **Resend** (resend.com, Black Pater's own account): *Domains → Add domain* →
+   `blackpater.com` (or a subdomain such as `mail.blackpater.com`), add the DNS
+   records it shows (SPF `TXT`, DKIM `TXT`/`CNAME`, optional DMARC `TXT
+   _dmarc v=DMARC1; p=none;`) at the domain's DNS host, wait for *Verified*, then
+   *API Keys → Create* with **Sending access** only, restricted to that domain.
+2. **LevelUp dashboard** → Developers → Server keys → *Create*: name “Client portal”,
+   **Live**, scope **Client portal** only (shown once).
+3. **Vercel → blackpater → Settings → Environment Variables** (Production, all
+   **Sensitive**), then redeploy:
+
+| Name | Value |
+| --- | --- |
+| `LEVELUP_PORTAL_KEY` | the `lu_live_…` key from step 2 |
+| `BLACKPATER_RESEND_API_KEY` | the `re_…` key from step 1 |
+| `BLACKPATER_EMAIL_FROM` | e.g. `Black Pater <espace@blackpater.com>` (verified domain) |
+| `BLACKPATER_EMAIL_REPLY_TO` | optional, default `lofumbwapater@gmail.com` |
+| `PORTAL_NOTIFY_SECRET` | optional: `openssl rand -hex 32`; the same value in the LevelUp dashboard's Vercel project |
+| `CRON_SECRET` | optional but recommended: `openssl rand -hex 32` (Vercel sends it to the daily cron) |
+
+## Search engines
+
+Every public page is prerendered at build time (`src/entry-server.tsx`, English,
+light theme) into its own HTML file with its title, description, canonical URL and
+the JSON-LD built from the offer catalog (`shared/structured-data.js`:
+`ProfessionalService` — the site says it is not a travel agency — with the three
+real prices). The browser hydrates that HTML. `robots.txt` allows everything but
+`/api/`; `sitemap.xml` lists the indexable pages. After deploying, add the site in
+Google Search Console (domain property `blackpater.com`) and submit
+`https://blackpater.com/sitemap.xml`.
 
 ## Copy principles
 

@@ -123,6 +123,62 @@ const paths: Record<string, React.ReactNode> = {
       <path d='M15.5 9a4 4 0 0 1 0 6' />
     </>
   ),
+  home: (
+    <>
+      <path d='M3 10.5 12 3l9 7.5' />
+      <path d='M5 9.5V21h14V9.5' />
+    </>
+  ),
+  bell: (
+    <>
+      <path d='M6 8a6 6 0 1 1 12 0c0 7 3 8.5 3 8.5H3S6 15 6 8' />
+      <path d='M10 20a2 2 0 0 0 4 0' />
+    </>
+  ),
+  plane: <path d='M10.5 13.5 3 11l1.5-1.5 7.5 1L17 5.5a2 2 0 0 1 3 3L15 13.5l1 7.5L14.5 22.5 12 15l-3 3v2.5L7.5 22 6 18l-4-1.5L3.5 15H6z' />,
+  file: (
+    <>
+      <path d='M14 3H6v18h12V7z' />
+      <path d='M14 3v4h4M9 13h6M9 17h6' />
+    </>
+  ),
+  list: (
+    <>
+      <path d='M9 6h11M9 12h11M9 18h11' />
+      <path d='m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2' />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx='12' cy='8' r='4' />
+      <path d='M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6' />
+    </>
+  ),
+  logout: (
+    <>
+      <path d='M15 4h4v16h-4' />
+      <path d='M10 17l-5-5 5-5M5 12h11' />
+    </>
+  ),
+  download: (
+    <>
+      <path d='M12 4v11' />
+      <path d='m7 10 5 5 5-5M5 20h14' />
+    </>
+  ),
+  send: <path d='M21 3 10 14M21 3l-7 18-4-7-7-4z' />,
+  calendar: (
+    <>
+      <rect x='3.5' y='5' width='17' height='15.5' rx='2' />
+      <path d='M8 3v4M16 3v4M3.5 10h17' />
+    </>
+  ),
+  key: (
+    <>
+      <circle cx='8' cy='15' r='4' />
+      <path d='m11 12 9-9M17 6l3 3M15 8l2 2' />
+    </>
+  ),
   mute: (
     <>
       <path d='M4 9.5h3.5L12 5.5v13l-4.5-4H4z' />

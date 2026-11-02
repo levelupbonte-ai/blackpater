@@ -86,3 +86,46 @@
 .pay-steps {
   margin-top: var(--s-4);
 }
+
+/* Paid: the way into the client space */
+.pay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: var(--s-5);
+}
+.pay-portal {
+  display: flex;
+  gap: 14px;
+  margin-top: var(--s-6);
+  padding: 20px;
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+}
+.pay-portal h2 {
+  margin: 0 0 6px;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.45rem;
+  color: var(--bone);
+}
+.pay-portal p {
+  margin: 0;
+  color: var(--bone-dim);
+}
+.pay-portal__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(150deg, #1b2a4a, #121826);
+  color: #fff;
+}
+.pay-portal__icon svg {
+  width: 20px;
+  height: 20px;
+}

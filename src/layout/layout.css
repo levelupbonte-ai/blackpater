@@ -570,3 +570,54 @@ body.menu-open {
 .lu-built-by:focus-visible{outline:2px solid var(--copper);outline-offset:3px;border-radius:2px}
 .lu-built-by__label{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase}
 .lu-built-by__logo{height:1rem;width:auto}
+
+/* Navbar entry */
+.nav__space {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--bone);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.nav__space svg {
+  width: 16px;
+  height: 16px;
+}
+
+.nav__space[aria-current='page'] {
+  background: var(--bone-faint);
+}
+@media (hover: hover) {
+  .nav__space:hover {
+    border-color: var(--bone-dim);
+  }
+}
+@media (min-width: 1024px) {
+  .nav__space {
+    display: inline-flex;
+  }
+}
+.mmenu__space {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  margin: 8px 0 0;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+  font-weight: 600;
+}
+.mmenu__space svg {
+  width: 18px;
+  height: 18px;
+}
+.mmenu__space svg:last-child {
+  margin-left: auto;
+}

@@ -7,6 +7,7 @@
  *     (content block "media": { "<file name>": "<url>" }),
  *   - fills [data-lu-text="key"] elements from content block "texts",
  *   - shows or hides the "Built by LevelUp" credit (websites.show_powered_by),
+ *   - tells the dashboard the site is connected (tag_ping, no visitor data),
  *   - counts page views for the dashboard's Analytics page: one per page load
  *     and per client-side navigation, with only the path, the referrer and the
  *     browser language. No cookie, no storage, no identifier; nothing is sent
@@ -88,6 +89,11 @@
       }
     })
     .catch(function () { /* static content stays as is */ });
+
+  // Install heartbeat for the dashboard (Developers > "LevelUp tag: Active").
+  // Site ID and version only, no visitor data. The database accepts it only from
+  // this site's own domains and stores at most one every 10 minutes.
+  rpc('tag_ping', { p_website_id: cfg.websiteId, p_version: 'blackpater-1' }).catch(function () {});
 
   // ------------------------------------------------------------------ page views
 

@@ -36,6 +36,9 @@ export const fr = {
   notfound_title: 'Page introuvable',
   notfound_lead: "Cette page n'existe pas ou a été déplacée. Les contenus du site restent accessibles depuis le menu.",
   notfound_home: "Retour à l'accueil",
+  crash_title: 'Un souci d’affichage',
+  crash_lead: 'Cette page n’a pas pu s’afficher. Rechargez-la : vos informations ne sont pas perdues.',
+  crash_reload: 'Recharger la page',
 
   // Payment errors (generic, never provider messages)
   err_payments_unavailable: 'Le service de paiement sécurisé est momentanément indisponible. Veuillez réessayer ultérieurement.',
@@ -82,6 +85,9 @@ export const en: Record<keyof typeof fr, string> = {
   notfound_title: 'Page not found',
   notfound_lead: 'This page does not exist or has moved. Everything on the site is still available from the menu.',
   notfound_home: 'Back to home',
+  crash_title: 'Something went wrong',
+  crash_lead: 'This page could not be displayed. Reload it: nothing you entered is lost.',
+  crash_reload: 'Reload the page',
 
   err_payments_unavailable: 'The secure payment service is temporarily unavailable. Please try again later.',
   err_rate_limited: 'For security reasons, please wait a moment before trying again.',

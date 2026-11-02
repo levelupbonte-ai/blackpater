@@ -16,6 +16,7 @@ import { TermsPage } from '../pages/legal/TermsPage';
 import { RefundPage } from '../pages/legal/RefundPage';
 import { PrivacyPage } from '../pages/legal/PrivacyPage';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
+import { RouteErrorBoundary } from './RouteErrorBoundary';
 
 // The client space is loaded only when visited (keeps the public pages light).
 const PortalPage = lazy(() => import('../pages/portal/PortalPage'));
@@ -67,11 +68,13 @@ const Routes: React.FC = () => {
   const Page = route ? PAGES[route.id] : NotFoundPage;
   const key = route?.id || 'not-found';
   return (
-    <div className='route-view' key={key}>
-      <Suspense fallback={<div className='po-loading' role='status' aria-live='polite' />}>
-        <Page />
-      </Suspense>
-    </div>
+    <RouteErrorBoundary resetKey={key}>
+      <div className='route-view' key={key}>
+        <Suspense fallback={<div className='po-loading' role='status' aria-live='polite' />}>
+          <Page />
+        </Suspense>
+      </div>
+    </RouteErrorBoundary>
   );
 };
 

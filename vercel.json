@@ -54,6 +54,16 @@
       "source": "/cgv",
       "destination": "/legal/conditions-de-vente",
       "statusCode": 301
+    },
+    {
+      "source": "/client",
+      "destination": "/espace-client",
+      "statusCode": 301
+    },
+    {
+      "source": "/my-space",
+      "destination": "/espace-client",
+      "statusCode": 301
     }
   ],
   "rewrites": [
@@ -88,6 +98,10 @@
     {
       "source": "/paiement/annule",
       "destination": "/paiement/annule/index.html"
+    },
+    {
+      "source": "/espace-client",
+      "destination": "/espace-client/index.html"
     },
     {
       "source": "/legal/conditions-de-vente",
@@ -174,6 +188,25 @@
           "value": "no-store"
         }
       ]
+    },
+    {
+      "source": "/espace-client",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/portal/outbox",
+      "schedule": "23 7 * * *"
     }
   ]
 }

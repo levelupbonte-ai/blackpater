@@ -1,6 +1,9 @@
 // Payment result pages (/paiement/confirmation, /paiement/annule).
 export const fr = {
   pay_kicker: 'Paiement',
+  pay_portal_title: 'Votre espace client privé',
+  pay_portal_text: 'Une invitation est envoyée à l’adresse e-mail utilisée lors du paiement. Connectez-vous avec cette adresse : vous recevez un code à usage unique, sans mot de passe. Votre réservation, les actualités, vos documents et vos messages s’y trouvent.',
+  pay_portal_cta: 'Accéder à mon espace',
   pay_verifying_title: 'Vérification du paiement',
   pay_verifying_text: 'Un instant.',
   pay_paid_title: 'Adhésion confirmée',
@@ -34,6 +37,9 @@ export const fr = {
 
 export const en: Record<keyof typeof fr, string> = {
   pay_kicker: 'Payment',
+  pay_portal_title: 'Your private client space',
+  pay_portal_text: 'An invitation is sent to the email address you used at checkout. Sign in with that address: you receive a one-time code, no password needed. Your booking, updates, documents and messages are there.',
+  pay_portal_cta: 'Go to my space',
   pay_verifying_title: 'Verifying your payment',
   pay_verifying_text: 'One moment.',
   pay_paid_title: 'Membership confirmed',

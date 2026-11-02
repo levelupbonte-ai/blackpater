@@ -13,7 +13,7 @@
   min-height: 44px;
   padding: 10px 20px;
   border: 1px solid var(--btn-bd);
-  border-radius: var(--radius-s);
+  border-radius: var(--radius-pill);
   background: var(--btn-bg);
   color: var(--btn-fg);
   font-size: 0.9rem;
@@ -86,6 +86,24 @@
 .btn--copper:hover {
   --btn-bg: #eab308;
   --btn-bd: #eab308;
+}
+.btn--light {
+  --btn-bg: #ffffff;
+  --btn-fg: #121826;
+  --btn-bd: #ffffff;
+}
+.btn--light:hover {
+  --btn-bg: #f3efe7;
+  --btn-bd: #f3efe7;
+}
+.btn--ghost-light {
+  --btn-bg: transparent;
+  --btn-fg: #ffffff;
+  --btn-bd: rgba(255, 255, 255, 0.38);
+}
+.btn--ghost-light:hover {
+  --btn-bg: rgba(255, 255, 255, 0.08);
+  --btn-bd: rgba(255, 255, 255, 0.7);
 }
 .btn--lg {
   min-height: 50px;

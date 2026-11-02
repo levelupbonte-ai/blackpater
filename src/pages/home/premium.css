@@ -1,0 +1,308 @@
+/* Home — premium layer: hero, plans, steps, closing call to action.
+   Mobile first; motion is transform/opacity only and stops under
+   prefers-reduced-motion (see base.css and src/lib/motion.ts). */
+
+.lux-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 var(--s-4);
+  color: var(--rust);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.lux-eyebrow__dot {
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+}
+
+/* ------------------------------------------------------------------ hero */
+.lux-hero {
+  position: relative;
+  padding: calc(var(--nav-h) + clamp(20px, 5vw, 64px)) 0 clamp(40px, 6vw, 72px);
+  overflow: hidden;
+}
+.lux-hero::before {
+  /* soft warm light behind the copy, no image request */
+  content: '';
+  position: absolute;
+  inset: -20% 40% auto -20%;
+  height: 80%;
+  background: radial-gradient(closest-side, rgba(173, 67, 23, 0.07), transparent);
+  pointer-events: none;
+}
+.lux-hero__grid {
+  display: grid;
+  gap: clamp(28px, 5vw, 56px);
+  align-items: center;
+}
+.lux-hero__title {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2.35rem, 1.5rem + 4.2vw, 4.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  color: var(--bone);
+  text-wrap: balance;
+  max-width: 14ch;
+}
+.lux-hero__lead {
+  margin: var(--s-5) 0 0;
+  max-width: 52ch;
+  font-size: clamp(1.02rem, 0.98rem + 0.3vw, 1.15rem);
+  line-height: 1.7;
+  color: var(--bone-dim);
+}
+.lux-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: var(--s-6);
+}
+.lux-hero__actions .btn {
+  flex: 1 1 auto;
+}
+.lux-hero__visual {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 960 / 762;
+  width: 100%;
+  max-width: 620px;
+  justify-self: center;
+}
+.lux-hero__arch {
+  position: absolute;
+  inset: 12% 8% 0;
+  border-radius: 999px 999px 28px 28px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.14), transparent 60%),
+    linear-gradient(160deg, #1b2a4a 0%, #121826 70%);
+  box-shadow: var(--shadow-2);
+}
+.lux-hero__img {
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+.lux-hero__badge {
+  position: absolute;
+  left: 4%;
+  bottom: 6%;
+  display: grid;
+  gap: 2px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #121826;
+  box-shadow: var(--shadow-pop);
+  font-size: 0.82rem;
+}
+.lux-hero__badge strong {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.lux-hero__badge span {
+  color: #454c5a;
+}
+
+.lux-trust {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  margin-top: clamp(32px, 5vw, 56px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  background: var(--line);
+}
+.lux-trust li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--surface-2);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--bone);
+}
+.lux-trust__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--copper-soft);
+  color: var(--copper);
+}
+.lux-trust__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (min-width: 640px) {
+  .lux-trust {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .lux-hero__actions .btn {
+    flex: 0 0 auto;
+  }
+}
+@media (min-width: 960px) {
+  .lux-hero__grid {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+  .lux-trust {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ------------------------------------------------------------------ sections */
+.lux-section {
+  padding: var(--section) 0;
+}
+.lux-section--tint {
+  background: var(--char);
+}
+.lux-head {
+  max-width: 720px;
+  margin: 0 auto clamp(28px, 4vw, 48px);
+  text-align: center;
+}
+.lux-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2rem, 1.4rem + 2.6vw, 3.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--bone);
+  text-wrap: balance;
+}
+.lux-lead {
+  margin: var(--s-4) auto 0;
+  max-width: 58ch;
+  color: var(--bone-dim);
+  font-size: 1.05rem;
+}
+
+/* ------------------------------------------------------------------ steps */
+.lux-steps {
+  display: grid;
+  gap: 16px;
+  counter-reset: step;
+}
+.lux-step {
+  position: relative;
+  padding: 26px 24px 24px;
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) {
+  .lux-step:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-2);
+  }
+}
+.lux-step__num {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  color: var(--bone-mute);
+}
+.lux-step__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  background: var(--rust-soft);
+  color: var(--rust);
+}
+.lux-step__icon svg {
+  width: 20px;
+  height: 20px;
+}
+.lux-step h3 {
+  margin: 0 0 8px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--bone);
+}
+.lux-step p {
+  margin: 0;
+  color: var(--bone-dim);
+  font-size: 0.95rem;
+}
+@media (min-width: 720px) {
+  .lux-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1080px) {
+  .lux-steps {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ------------------------------------------------------------------ closing CTA */
+.lux-cta {
+  padding: 0 0 var(--section);
+}
+.lux-cta__inner {
+  display: grid;
+  gap: 24px;
+  padding: clamp(32px, 5vw, 56px);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgba(240, 145, 93, 0.22), transparent 55%),
+    linear-gradient(150deg, #1b2a4a 0%, #121826 75%);
+  color: #ffffff;
+  box-shadow: var(--shadow-2);
+}
+.lux-cta h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.8rem);
+  line-height: 1.1;
+}
+.lux-cta p {
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+.lux-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+@media (min-width: 900px) {
+  .lux-cta__inner {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+}
+
+/* FAQ and press keep their own styles; give them the same rhythm here. */
+.lux-hero + .tiers {
+  border-top: 1px solid var(--line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-step {
+    transition: none;
+  }
+}

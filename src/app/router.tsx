@@ -46,8 +46,11 @@ const RouterContext = createContext<RouterValue>({ path: '/', search: '', hash: 
  * served by the host), history API without URL hashes, focus moved to the main
  * region on navigation for screen-reader users.
  */
-export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [loc, setLoc] = useState<Location>(readLocation);
+export const RouterProvider: React.FC<{ children: React.ReactNode; initialPath?: string }> = ({ children, initialPath }) => {
+  // On the server (build-time prerender) there is no window: the page path is given.
+  const [loc, setLoc] = useState<Location>(() =>
+    typeof window === 'undefined' ? { path: normalizePath(initialPath || '/'), search: '', hash: '' } : readLocation()
+  );
   const navigated = useRef(false);
 
   const navigate = useCallback((to: string, opts: { replace?: boolean } = {}) => {

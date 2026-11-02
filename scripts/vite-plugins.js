@@ -37,7 +37,8 @@ function escapeHtml(s) {
 
 function setMeta(html, attr, key, value) {
   const re = new RegExp(`(<meta ${attr}="${key.replace(/[:]/g, '\\:')}" content=")[^"]*(")`);
-  return html.replace(re, `$1${escapeHtml(value)}$2`);
+  // Function replacers: a value such as "$2.60" must never be read as a group reference.
+  return html.replace(re, (_, a, b) => `${a}${escapeHtml(value)}${b}`);
 }
 
 /** Rewrites the head of index.html for one route: title, description, canonical, social cards. */
@@ -45,16 +46,16 @@ export function renderRouteHtml(template, { path: routePath, meta, indexable }, 
   const url = routePath ? `${SITE_URL}${routePath === '/' ? '/' : routePath}` : null;
   // English is the default language of the site (and of the prerendered HTML).
   const { title, description } = meta.en;
-  let html = template.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
+  let html = template.replace(/<title>[^<]*<\/title>/, () => `<title>${escapeHtml(title)}</title>`);
   html = setMeta(html, 'name', 'description', description);
   html = setMeta(html, 'property', 'og:title', title);
   html = setMeta(html, 'property', 'og:description', description);
   html = setMeta(html, 'name', 'twitter:title', title);
   html = setMeta(html, 'name', 'twitter:description', description);
   if (url) {
-    html = html.replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${url}">`);
+    html = html.replace(/<link rel="canonical" href="[^"]*">/, () => `<link rel="canonical" href="${url}">`);
     html = setMeta(html, 'property', 'og:url', url);
-    html = html.replace(/(<link rel="alternate" hreflang="[a-z-]+" href=")[^"]*(">)/g, `$1${url}$2`);
+    html = html.replace(/(<link rel="alternate" hreflang="[a-z-]+" href=")[^"]*(">)/g, (_, a, b) => `${a}${url}${b}`);
   } else {
     html = html.replace(/<link rel="canonical" href="[^"]*">\n?/, '').replace(/<link rel="alternate" hreflang="[a-z-]+" href="[^"]*">\n?/g, '');
   }
@@ -63,12 +64,12 @@ export function renderRouteHtml(template, { path: routePath, meta, indexable }, 
   }
   if (body) {
     // Real page content, rendered at build time; the browser hydrates it.
-    html = html.replace(/<div id="root">[\s\S]*?<\/div>\s*<\/div>\s*(<script)/, `<div id="root" data-ssr>${body}</div>\n$1`);
+    html = html.replace(/<div id="root">[\s\S]*?<\/div>\s*<\/div>\s*(<script)/, (_, s) => `<div id="root" data-ssr>${body}</div>\n${s}`);
   } else {
     // Hidden pre-render text inside #root (replaced by React on load).
     html = html.replace(
       /(<div class="sr-prerender"[^>]*>)[\s\S]*?(<\/div>\s*<\/div>\s*<script)/,
-      `$1\n    <h1>${escapeHtml(title)}</h1>\n    <p>${escapeHtml(description)}</p>\n  $2`
+      (_, a, b) => `${a}\n    <h1>${escapeHtml(title)}</h1>\n    <p>${escapeHtml(description)}</p>\n  ${b}`
     );
   }
   return html;

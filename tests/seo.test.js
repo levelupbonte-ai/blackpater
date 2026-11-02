@@ -54,3 +54,11 @@ test('every public page has its own English title and description', () => {
     titles.add(r.meta.en.title);
   }
 });
+
+test('prices with "$" survive the HTML rewrite (no regex group references)', () => {
+  const route = ROUTES.find((r) => r.id === 'offer-travel');
+  const html = renderRouteHtml(template, route, '<p>$2.60 / $5 / $11</p>');
+  assert.ok(html.includes('<p>$2.60 / $5 / $11</p>'));
+  assert.ok(html.includes(`<meta property="og:title" content="${route.meta.en.title.replace(/&/g, '&amp;')}">`));
+  assert.ok(!html.includes('<script1'));
+});

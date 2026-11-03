@@ -14,9 +14,7 @@
   text-transform: uppercase;
 }
 .lux-eyebrow__dot {
-  width: 22px;
-  height: 1px;
-  background: currentColor;
+  display: none;
 }
 
 /* ------------------------------------------------------------------ hero */

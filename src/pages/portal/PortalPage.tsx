@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Link, useRouter } from '../../app/router';
-import { Icon, type IconName } from '../../components/Icon';
+import { Icon, WhatsAppIcon, type IconName } from '../../components/Icon';
 import {
   PortalError,
+  daysLeft,
   digits,
   formatDate,
   formatMoney,
@@ -11,9 +12,13 @@ import {
   isCode,
   isEmail,
   portalApi,
-  unreadCount,
+  telHref,
+  whatsappHref,
   type PortalHome,
-  type PortalItem
+  type PortalItem,
+  type PortalLocked,
+  type PortalMessage,
+  type PortalPlan
 } from './api';
 import { getOffer } from '../../../shared/offers.js';
 import type { TranslationKey } from '../../i18n';
@@ -58,7 +63,7 @@ function errorText(t: T, err: unknown): string {
 
 const RESEND_SECONDS = 30;
 
-const SignIn: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) => {
+const SignIn: React.FC<{ onSignedIn: () => void; notice?: string | null }> = ({ onSignedIn, notice }) => {
   const { t, lang } = useLanguage();
   const [step, setStep] = useState<'email' | 'code' | 'password'>('email');
   const [email, setEmail] = useState('');
@@ -134,6 +139,11 @@ const SignIn: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) => {
         <p className='po-kicker'>{t('po_kicker')}</p>
         <h1 className='po-auth__title'>{t('po_signin_title')}</h1>
         <p className='po-auth__lead'>{t('po_signin_text')}</p>
+        {notice && (
+          <p className='po-success' role='status'>
+            {notice}
+          </p>
+        )}
 
         {step === 'email' && (
           <form className='po-form' onSubmit={requestCode} noValidate>
@@ -251,33 +261,42 @@ const SignIn: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) => {
 
 /* ------------------------------------------------------------------ dashboard */
 
-type View = 'overview' | 'updates' | 'trip' | 'documents' | 'checklist' | 'messages' | 'booking' | 'settings';
+type View = 'home' | 'info' | 'messages' | 'account';
 const VIEWS: { id: View; icon: IconName; label: Parameters<T>[0] }[] = [
-  { id: 'overview', icon: 'home', label: 'po_nav_overview' },
-  { id: 'updates', icon: 'bell', label: 'po_nav_updates' },
-  { id: 'trip', icon: 'plane', label: 'po_nav_trip' },
-  { id: 'documents', icon: 'file', label: 'po_nav_documents' },
-  { id: 'checklist', icon: 'list', label: 'po_nav_checklist' },
+  { id: 'home', icon: 'home', label: 'po_nav_home' },
+  { id: 'info', icon: 'bell', label: 'po_nav_info' },
   { id: 'messages', icon: 'chat', label: 'po_nav_messages' },
-  { id: 'booking', icon: 'receipt', label: 'po_nav_booking' },
-  { id: 'settings', icon: 'user', label: 'po_nav_settings' }
+  { id: 'account', icon: 'user', label: 'po_nav_account' }
 ];
-/** The bottom bar on phones keeps five targets; the rest are reached from Home. */
-const MOBILE_TABS: View[] = ['overview', 'updates', 'documents', 'messages', 'settings'];
+/** Old links (e-mails, bookmarks) still land in the right place. */
+const LEGACY_VIEWS: Record<string, View> = {
+  overview: 'home',
+  updates: 'info',
+  trip: 'info',
+  documents: 'info',
+  checklist: 'info',
+  booking: 'account',
+  settings: 'account',
+  plans: 'account'
+};
 
 function readView(search: string): View {
-  const v = new URLSearchParams(search).get('view');
-  return VIEWS.some((x) => x.id === v) ? (v as View) : 'overview';
+  const v = new URLSearchParams(search).get('view') || '';
+  if (VIEWS.some((x) => x.id === v)) return v as View;
+  return LEGACY_VIEWS[v] ?? 'home';
 }
+const viewPath = (v: View) => (v === 'home' ? '/espace-client' : `/espace-client?view=${v}`);
 
 const Confirm: React.FC<{
   open: boolean;
   title: string;
   text: string;
   confirmLabel: string;
+  danger?: boolean;
+  busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
-}> = ({ open, title, text, confirmLabel, onConfirm, onCancel }) => {
+}> = ({ open, title, text, confirmLabel, danger, busy, onConfirm, onCancel }) => {
   const { t } = useLanguage();
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -294,7 +313,7 @@ const Confirm: React.FC<{
         <button type='button' className='btn btn--secondary' onClick={onCancel}>
           {t('po_cancel')}
         </button>
-        <button type='button' className='btn btn--primary' onClick={onConfirm} autoFocus>
+        <button type='button' className={`btn btn--primary${danger ? ' po-btn-danger' : ''}`} onClick={onConfirm} disabled={busy} aria-busy={busy} autoFocus>
           {confirmLabel}
         </button>
       </div>
@@ -302,47 +321,190 @@ const Confirm: React.FC<{
   );
 };
 
-const Empty: React.FC<{ icon: IconName; text: string }> = ({ icon, text }) => (
+const Empty: React.FC<{ icon: IconName; title?: string; text: string; children?: React.ReactNode }> = ({ icon, title, text, children }) => (
   <div className='po-empty'>
     <span className='po-empty__icon' aria-hidden='true'>
       <Icon name={icon} />
     </span>
+    {title && <strong>{title}</strong>}
     <p>{text}</p>
+    {children}
   </div>
 );
 
-const Section: React.FC<{ title: string; children: React.ReactNode; action?: React.ReactNode }> = ({ title, children, action }) => (
-  <section className='po-section' aria-labelledby={`po-h-${title}`}>
+const Section: React.FC<{ id: string; title: string; lead?: string; children: React.ReactNode; action?: React.ReactNode }> = ({
+  id,
+  title,
+  lead,
+  children,
+  action
+}) => (
+  <section className='po-section' aria-labelledby={`po-h-${id}`} id={id}>
     <div className='po-section__head'>
-      <h2 id={`po-h-${title}`}>{title}</h2>
+      <div>
+        <h2 id={`po-h-${id}`}>{title}</h2>
+        {lead && <p className='po-section__lead'>{lead}</p>}
+      </div>
       {action}
     </div>
     {children}
   </section>
 );
 
-const UpdateCard: React.FC<{ item: PortalItem }> = ({ item }) => {
-  const { lang, t } = useLanguage();
+function planForLevel(plans: PortalPlan[], level: number) {
+  return plans.filter((p) => p.level >= level).sort((a, b) => a.level - b.level)[0] ?? null;
+}
+
+function payErrorText(t: T, err: unknown) {
+  const code = err instanceof PortalError ? err.code : 'generic';
+  if (code === 'payments_unavailable') return t('po_err_payments');
+  if (code === 'already_subscribed') return t('po_err_already');
+  if (code === 'nothing_due') return t('po_err_nothing_due');
+  return errorText(t, err);
+}
+
+/** Free offer, plan, or payment due: what the member has right now, and the next step. */
+const AccessCard: React.FC<{ home: PortalHome; onPlans?: () => void }> = ({ home, onPlans }) => {
+  const { t, lang } = useLanguage();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { access, plans } = home;
+  const sub = access.subscription;
+
+  const pay = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const { url } = await portalApi.payPlan();
+      window.location.assign(url);
+    } catch (err) {
+      setError(payErrorText(t, err));
+      setBusy(false);
+    }
+  };
+
+  const cta =
+    onPlans && plans.length > 0 ? (
+      <button type='button' className='btn btn--primary' onClick={onPlans}>
+        {t('po_choose_plan')} <Icon name='arrowRight' />
+      </button>
+    ) : null;
+
+  if (sub?.status === 'past_due') {
+    return (
+      <div className='po-card po-access po-access--warn' role='status'>
+        <span className='po-access__icon' aria-hidden='true'>
+          <Icon name='alert' />
+        </span>
+        <div className='po-access__body'>
+          <strong>{t('po_plan_past_due_title')}</strong>
+          <p>{t('po_plan_past_due_text')}</p>
+          <button type='button' className='btn btn--primary' onClick={pay} disabled={busy} aria-busy={busy}>
+            <Icon name='card' /> {t('po_pay_now')}
+          </button>
+          {error && (
+            <p className='po-error' role='alert'>
+              {error}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (sub?.status === 'active') {
+    const end = formatDate(sub.current_period_end, lang);
+    return (
+      <div className='po-card po-access po-access--plan'>
+        <span className='po-access__icon' aria-hidden='true'>
+          <Icon name='star' />
+        </span>
+        <div className='po-access__body'>
+          <span className='po-kicker'>{t('po_plans_title')}</span>
+          <strong>{t('po_plan_active_title', { name: sub.plan_name })}</strong>
+          <p>
+            {formatMoney(sub.amount, sub.currency, lang)} {t('po_per_month')}
+            {end && ` · ${sub.cancel_at_period_end ? t('po_plan_ends', { date: end }) : t('po_plan_renews', { date: end })}`}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (access.trial_active) {
+    const left = daysLeft(access.trial_ends_at);
+    const total = Math.max(access.trial_days, left, 1);
+    const date = formatDate(access.trial_ends_at, lang);
+    return (
+      <div className='po-card po-access po-access--trial'>
+        <span className='po-access__icon' aria-hidden='true'>
+          <Icon name='clock' />
+        </span>
+        <div className='po-access__body'>
+          <span className='po-kicker'>{t('po_trial_title')}</span>
+          <strong>{left <= 1 ? t('po_trial_last', { date }) : t('po_trial_left', { n: left, date })}</strong>
+          <div className='po-bar' role='progressbar' aria-valuemin={0} aria-valuemax={total} aria-valuenow={left} aria-label={t('po_trial_title')}>
+            <span style={{ transform: `scaleX(${left / total})` }} />
+          </div>
+          <p>{plans.length ? t('po_trial_text') : t('po_plans_soon')}</p>
+          {cta}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <article className={`po-card po-update${item.read ? '' : ' is-unread'}`}>
-      <header className='po-update__head'>
-        <time dateTime={item.published_at}>{formatDate(item.published_at, lang)}</time>
-        {!item.read && <span className='po-badge'>{t('po_new')}</span>}
-      </header>
-      <h3>{item.title}</h3>
-      {item.body && <p className='po-prose'>{item.body}</p>}
-    </article>
+    <div className='po-card po-access po-access--ended'>
+      <span className='po-access__icon' aria-hidden='true'>
+        <Icon name='lock' />
+      </span>
+      <div className='po-access__body'>
+        <strong>{t('po_trial_over_title')}</strong>
+        <p>{plans.length ? t('po_trial_over_text') : t('po_plans_soon')}</p>
+        {cta}
+      </div>
+    </div>
   );
 };
 
-const TripCard: React.FC<{ item: PortalItem }> = ({ item }) => {
+/** Phone and WhatsApp: members only, never on the public site. */
+const ContactCard: React.FC<{ home: PortalHome; onWrite: () => void }> = ({ home, onWrite }) => {
+  const { t } = useLanguage();
+  const { phone, whatsapp, note } = home.contact || {};
+  return (
+    <div className='po-card po-contact'>
+      <div>
+        <strong>{t('po_contact_title')}</strong>
+        <p className='po-note'>{note || t('po_contact_text')}</p>
+      </div>
+      <div className='po-contact__actions'>
+        <button type='button' className='btn btn--primary' onClick={onWrite}>
+          <Icon name='chat' /> {t('po_contact_write')}
+        </button>
+        {whatsapp && (
+          <a className='btn btn--secondary' href={whatsappHref(whatsapp)} target='_blank' rel='noopener noreferrer'>
+            <WhatsAppIcon /> {t('po_contact_whatsapp')}
+          </a>
+        )}
+        {phone && (
+          <a className='btn btn--secondary' href={telHref(phone)}>
+            <Icon name='phone' /> {t('po_contact_call')} <span className='po-contact__num'>{phone}</span>
+          </a>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const KIND_ICON: Record<PortalItem['kind'], IconName> = { update: 'bell', trip: 'plane', document: 'file', checklist: 'list' };
+
+const TripBody: React.FC<{ item: PortalItem }> = ({ item }) => {
   const { lang, t } = useLanguage();
   const trip = item.trip;
   if (!trip) return null;
   const dates = [formatDate(trip.start_date, lang), formatDate(trip.end_date, lang)].filter(Boolean).join(' → ');
   return (
-    <article className='po-card po-trip'>
-      <h3>{item.title}</h3>
+    <>
       <dl className='po-facts'>
         {dates && (
           <div>
@@ -369,7 +531,6 @@ const TripCard: React.FC<{ item: PortalItem }> = ({ item }) => {
           </div>
         )}
       </dl>
-      {item.body && <p className='po-prose'>{item.body}</p>}
       {trip.steps.length > 0 && (
         <>
           <h4 className='po-subtitle'>{t('po_itinerary')}</h4>
@@ -387,264 +548,32 @@ const TripCard: React.FC<{ item: PortalItem }> = ({ item }) => {
           </ol>
         </>
       )}
-    </article>
+    </>
   );
 };
 
-const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSignedOut: () => void }> = ({ home, reload, onSignedOut }) => {
-  const { t, lang } = useLanguage();
-  const { search, navigate } = useRouter();
-  const view = readView(search);
-  const [data, setData] = useState(home);
-  useEffect(() => setData(home), [home]);
-
-  const go = useCallback((v: View) => navigate(v === 'overview' ? '/espace-client' : `/espace-client?view=${v}`), [navigate]);
-
-  const updates = data.items.filter((i) => i.kind === 'update');
-  const trips = data.items.filter((i) => i.kind === 'trip');
-  const documents = data.items.filter((i) => i.kind === 'document');
-  const checklists = data.items.filter((i) => i.kind === 'checklist');
-  const unreadMessages = data.messages.filter((m) => !m.read).length;
-  const unreadByView: Partial<Record<View, number>> = {
-    updates: updates.filter((i) => !i.read).length,
-    trip: trips.filter((i) => !i.read).length,
-    documents: documents.filter((i) => !i.read).length,
-    checklist: checklists.filter((i) => !i.read).length,
-    messages: unreadMessages
-  };
-
-  // Opening a section marks what it shows as read.
-  useEffect(() => {
-    const kind = { updates: 'update', trip: 'trip', checklist: 'checklist' }[view as string];
-    const unread = kind ? data.items.filter((i) => i.kind === kind && !i.read) : [];
-    if (unread.length) {
-      unread.forEach((i) => void portalApi.read(i.id).catch(() => {}));
-      setData((d) => ({ ...d, items: d.items.map((i) => (unread.includes(i) ? { ...i, read: true } : i)) }));
-    }
-    if (view === 'messages' && unreadMessages) {
-      void portalApi.read(null, true).catch(() => {});
-      setData((d) => ({ ...d, messages: d.messages.map((m) => ({ ...m, read: true })) }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]);
-
-  const name = data.customer.name?.split(' ')[0];
-  const total = unreadCount(data);
-
-  return (
-    <div className='po-shell'>
-      <aside className='po-side'>
-        <div className='po-side__who'>
-          <span className='po-avatar' aria-hidden='true'>
-            {(data.customer.name || data.customer.email).slice(0, 1).toUpperCase()}
-          </span>
-          <div>
-            <strong>{data.customer.name || t('po_welcome_anon')}</strong>
-            <span>{data.customer.email}</span>
-          </div>
-        </div>
-        <nav aria-label={t('po_nav_label')}>
-          <ul className='po-nav'>
-            {VIEWS.map((v) => (
-              <li key={v.id}>
-                <Link
-                  to={v.id === 'overview' ? '/espace-client' : `/espace-client?view=${v.id}`}
-                  className={`po-nav__link${view === v.id ? ' is-active' : ''}`}
-                  aria-current={view === v.id ? 'page' : undefined}
-                >
-                  <Icon name={v.icon} />
-                  <span>{t(v.label)}</span>
-                  {!!unreadByView[v.id] && <span className='po-count'>{unreadByView[v.id]}</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </aside>
-
-      <div className='po-main'>
-        {view === 'overview' && (
-          <>
-            <header className='po-hero' data-reveal>
-              <p className='po-kicker'>{t('po_kicker')}</p>
-              <h1>{name ? t('po_welcome', { name }) : t('po_welcome_anon')}</h1>
-              <p>{t('po_overview_text')}</p>
-              {total > 0 && <span className='po-pill'>{t('po_unread', { n: total })}</span>}
-            </header>
-            {data.bookings[0] && (
-              <button type='button' className='po-card po-summary' onClick={() => go('booking')}>
-                <span className='po-summary__label'>{t('po_booking_title')}</span>
-                <span className='po-summary__offer'>{offerLabel(t, data.bookings[0].offer_id, data.bookings[0].offer_name)}</span>
-                <span className='po-summary__meta'>
-                  {formatMoney(data.bookings[0].amount, data.bookings[0].currency, lang)}
-                  {data.bookings[0].paid_at && ` · ${formatDate(data.bookings[0].paid_at, lang)}`}
-                  {' · '}
-                  <span className={`po-status po-status--${data.bookings[0].status}`}>
-                    {data.bookings[0].status === 'paid' ? t('po_status_paid') : t('po_status_refunded')}
-                  </span>
-                </span>
-                <Icon name='chevronRight' className='po-summary__chev' />
-              </button>
-            )}
-            <div className='po-tiles'>
-              {VIEWS.filter((v) => v.id !== 'overview').map((v) => (
-                <button type='button' key={v.id} className='po-tile' onClick={() => go(v.id)}>
-                  <Icon name={v.icon} />
-                  <span>{t(v.label)}</span>
-                  {!!unreadByView[v.id] && <span className='po-count'>{unreadByView[v.id]}</span>}
-                </button>
-              ))}
-            </div>
-            <Section
-              title={t('po_latest')}
-              action={
-                updates.length > 0 ? (
-                  <button type='button' className='po-link' onClick={() => go('updates')}>
-                    {t('po_see_all')} <Icon name='arrowRight' />
-                  </button>
-                ) : undefined
-              }
-            >
-              {updates.length ? (
-                <div className='po-timeline'>
-                  {updates.slice(0, 3).map((i) => (
-                    <UpdateCard key={i.id} item={i} />
-                  ))}
-                </div>
-              ) : (
-                <Empty icon='bell' text={t('po_updates_empty')} />
-              )}
-            </Section>
-          </>
-        )}
-
-        {view === 'updates' && (
-          <Section title={t('po_updates_title')}>
-            {updates.length ? (
-              <div className='po-timeline'>
-                {updates.map((i) => (
-                  <UpdateCard key={i.id} item={i} />
-                ))}
-              </div>
-            ) : (
-              <Empty icon='bell' text={t('po_updates_empty')} />
-            )}
-          </Section>
-        )}
-
-        {view === 'trip' && (
-          <Section title={t('po_trip_title')}>
-            {trips.length ? trips.map((i) => <TripCard key={i.id} item={i} />) : <Empty icon='plane' text={t('po_trip_empty')} />}
-          </Section>
-        )}
-
-        {view === 'documents' && (
-          <Section title={t('po_documents_title')}>
-            {documents.length ? (
-              <>
-                <ul className='po-docs'>
-                  {documents.map((d) => (
-                    <li key={d.id} className='po-card po-doc'>
-                      <span className='po-doc__icon' aria-hidden='true'>
-                        <Icon name='file' />
-                      </span>
-                      <div className='po-doc__text'>
-                        <strong>{d.title}</strong>
-                        <span>
-                          {[d.document?.name, formatSize(d.document?.size ?? null, lang), formatDate(d.published_at, lang)].filter(Boolean).join(' · ')}
-                        </span>
-                        {d.body && <p>{d.body}</p>}
-                      </div>
-                      <a
-                        className='btn btn--secondary po-doc__btn'
-                        href={portalApi.fileUrl(d.id)}
-                        download
-                        onClick={() => setData((x) => ({ ...x, items: x.items.map((i) => (i.id === d.id ? { ...i, read: true } : i)) }))}
-                      >
-                        <Icon name='download' />
-                        <span>{t('po_download')}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-                <p className='po-note'>
-                  <Icon name='lock' /> {t('po_download_note')}
-                </p>
-              </>
-            ) : (
-              <Empty icon='file' text={t('po_documents_empty')} />
-            )}
-          </Section>
-        )}
-
-        {view === 'checklist' && (
-          <Section title={t('po_checklist_title')}>
-            {checklists.length ? (
-              checklists.map((c) => <Checklist key={c.id} item={c} onChange={(checked) => setData((x) => ({ ...x, items: x.items.map((i) => (i.id === c.id ? { ...i, checked } : i)) }))} />)
-            ) : (
-              <Empty icon='list' text={t('po_checklist_empty')} />
-            )}
-          </Section>
-        )}
-
-        {view === 'messages' && (
-          <Messages home={data} onSent={(m) => setData((x) => ({ ...x, messages: [...x.messages, m] }))} />
-        )}
-
-        {view === 'booking' && <Booking home={data} />}
-
-        {view === 'settings' && <Settings home={data} reload={reload} onSignedOut={onSignedOut} />}
-      </div>
-
-      <nav className='po-tabbar' aria-label={t('po_nav_label')}>
-        {MOBILE_TABS.map((id) => {
-          const v = VIEWS.find((x) => x.id === id)!;
-          return (
-            <Link
-              key={id}
-              to={id === 'overview' ? '/espace-client' : `/espace-client?view=${id}`}
-              className={`po-tabbar__link${view === id ? ' is-active' : ''}`}
-              aria-current={view === id ? 'page' : undefined}
-            >
-              <span className='po-tabbar__icon'>
-                <Icon name={v.icon} />
-                {!!unreadByView[id] && <span className='po-dot' aria-label={t('po_unread', { n: unreadByView[id]! })} />}
-              </span>
-              <span>{t(v.label)}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
-  );
-};
-
-const Checklist: React.FC<{ item: PortalItem; onChange: (checked: number[]) => void }> = ({ item, onChange }) => {
+const ChecklistBody: React.FC<{ item: PortalItem; onChange: (checked: number[]) => void }> = ({ item, onChange }) => {
   const { t } = useLanguage();
   const list = item.checklist ?? [];
   const done = list.filter((_, i) => item.checked.includes(i)).length;
   const toggle = async (index: number, checked: boolean) => {
-    const optimistic = checked ? [...item.checked, index] : item.checked.filter((x) => x !== index);
-    onChange(optimistic);
+    const before = item.checked;
+    onChange(checked ? [...before, index] : before.filter((x) => x !== index));
     try {
       const res = await portalApi.checklist(item.id, index, checked);
       onChange(res.checked);
     } catch {
-      onChange(item.checked);
+      onChange(before);
     }
   };
   return (
-    <article className='po-card po-check'>
-      <header className='po-check__head'>
-        <h3>{item.title}</h3>
-        <span className='po-progress' aria-hidden='true'>
-          {t('po_checklist_progress', { done, total: list.length })}
-        </span>
-      </header>
+    <>
+      <div className='po-check__head'>
+        <span className='po-progress'>{t('po_checklist_progress', { done, total: list.length })}</span>
+      </div>
       <div className='po-bar' role='progressbar' aria-valuemin={0} aria-valuemax={list.length} aria-valuenow={done} aria-label={item.title}>
         <span style={{ transform: `scaleX(${list.length ? done / list.length : 0})` }} />
       </div>
-      {item.body && <p className='po-prose'>{item.body}</p>}
       <ul className='po-check__list'>
         {list.map((label, i) => {
           const checked = item.checked.includes(i);
@@ -661,69 +590,500 @@ const Checklist: React.FC<{ item: PortalItem; onChange: (checked: number[]) => v
           );
         })}
       </ul>
+    </>
+  );
+};
+
+const kindLabel = (t: T, kind: PortalItem['kind']) => t(`po_kind_${kind}` as TranslationKey);
+
+const FeedCard: React.FC<{ item: PortalItem; fresh: boolean; onChecklist: (checked: number[]) => void }> = ({ item, fresh, onChecklist }) => {
+  const { t, lang } = useLanguage();
+  return (
+    <article className={`po-card po-feed-card po-feed-card--${item.kind}${fresh ? ' is-unread' : ''}`}>
+      <header className='po-feed-card__meta'>
+        <span className={`po-kind po-kind--${item.kind}`}>
+          <Icon name={KIND_ICON[item.kind]} /> {kindLabel(t, item.kind)}
+        </span>
+        <time dateTime={item.published_at}>{formatDate(item.published_at, lang)}</time>
+        {fresh && <span className='po-badge'>{t('po_new')}</span>}
+      </header>
+      <h3>{item.title}</h3>
+      {item.body && <p className='po-prose'>{item.body}</p>}
+      {item.kind === 'trip' && <TripBody item={item} />}
+      {item.kind === 'checklist' && <ChecklistBody item={item} onChange={onChecklist} />}
+      {item.kind === 'document' && (
+        <div className='po-doc'>
+          <span className='po-doc__icon' aria-hidden='true'>
+            <Icon name='file' />
+          </span>
+          <span className='po-doc__text'>
+            <strong>{item.document?.name || item.title}</strong>
+            <span>{formatSize(item.document?.size ?? null, lang)}</span>
+          </span>
+          <a className='btn btn--secondary po-doc__btn' href={portalApi.fileUrl(item.id)} download>
+            <Icon name='download' />
+            <span>{t('po_download')}</span>
+          </a>
+        </div>
+      )}
     </article>
   );
 };
 
-const Messages: React.FC<{ home: PortalHome; onSent: (m: PortalHome['messages'][number]) => void }> = ({ home, onSent }) => {
+const LockedCard: React.FC<{ item: PortalLocked; plans: PortalPlan[]; onPlans: () => void }> = ({ item, plans, onPlans }) => {
+  const { t, lang } = useLanguage();
+  const plan = planForLevel(plans, item.min_level);
+  return (
+    <article className='po-card po-locked'>
+      <span className='po-locked__icon' aria-hidden='true'>
+        <Icon name='lock' />
+      </span>
+      <div className='po-locked__body'>
+        <span className='po-feed-card__meta'>
+          <span className={`po-kind po-kind--${item.kind}`}>
+            <Icon name={KIND_ICON[item.kind]} /> {kindLabel(t, item.kind)}
+          </span>
+          <time dateTime={item.published_at}>{formatDate(item.published_at, lang)}</time>
+        </span>
+        <strong>{item.title}</strong>
+        <span className='po-note'>{plan ? t('po_locked_title', { plan: plan.name }) : t('po_locked_generic')}</span>
+      </div>
+      {plans.length > 0 && (
+        <button type='button' className='btn btn--secondary' onClick={onPlans}>
+          {t('po_locked_cta')}
+        </button>
+      )}
+    </article>
+  );
+};
+
+const InfoFeed: React.FC<{
+  data: PortalHome;
+  setData: React.Dispatch<React.SetStateAction<PortalHome>>;
+  markRead: (ids: string[]) => void;
+  onPlans: () => void;
+}> = ({ data, setData, markRead, onPlans }) => {
+  const { t } = useLanguage();
+  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  // What was new when the page opened keeps its "New" badge during this visit.
+  const [fresh] = useState(() => new Set(data.items.filter((i) => !i.read).map((i) => i.id)));
+
+  useEffect(() => {
+    const unread = data.items.filter((i) => !i.read).slice(0, 20);
+    if (!unread.length) return;
+    unread.forEach((i) => void portalApi.read(i.id).catch(() => {}));
+    markRead(unread.map((i) => i.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const items = filter === 'unread' ? data.items.filter((i) => fresh.has(i.id)) : data.items;
+
+  return (
+    <>
+      <Section
+        id='info'
+        title={t('po_info_title')}
+        lead={t('po_info_lead')}
+        action={
+          fresh.size > 0 ? (
+            <div className='po-chips' role='group' aria-label={t('po_info_title')}>
+              {(['all', 'unread'] as const).map((f) => (
+                <button key={f} type='button' className={`po-chip${filter === f ? ' is-active' : ''}`} aria-pressed={filter === f} onClick={() => setFilter(f)}>
+                  {f === 'all' ? t('po_filter_all') : `${t('po_filter_unread')} · ${fresh.size}`}
+                </button>
+              ))}
+            </div>
+          ) : undefined
+        }
+      >
+        {items.length ? (
+          <div className='po-feed'>
+            {items.map((i) => (
+              <FeedCard
+                key={i.id}
+                item={i}
+                fresh={fresh.has(i.id)}
+                onChecklist={(checked) => setData((x) => ({ ...x, items: x.items.map((it) => (it.id === i.id ? { ...it, checked } : it)) }))}
+              />
+            ))}
+          </div>
+        ) : (
+          <Empty icon='bell' text={t('po_info_empty')} />
+        )}
+      </Section>
+      {data.locked.length > 0 && (
+        <Section id='locked' title={t('po_locked_section')}>
+          <div className='po-feed'>
+            {data.locked.map((l) => (
+              <LockedCard key={l.id} item={l} plans={data.plans} onPlans={onPlans} />
+            ))}
+          </div>
+        </Section>
+      )}
+    </>
+  );
+};
+
+/* ------------------------------------------------------------------ messages */
+
+type ChatMessage = PortalMessage & { pending?: boolean; failed?: boolean };
+
+const MAX_MESSAGE = 4000;
+
+function dayKey(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function dayLabel(t: T, iso: string, lang: string) {
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date(Date.now() - 86400000);
+  if (dayKey(iso) === dayKey(today.toISOString())) return t('po_chat_today');
+  if (dayKey(iso) === dayKey(yesterday.toISOString())) return t('po_chat_yesterday');
+  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' }).format(d);
+}
+
+const timeOf = (iso: string, lang: string) =>
+  new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+
+const Chat: React.FC<{
+  data: PortalHome;
+  messages: ChatMessage[];
+  setMessages: (fn: (m: ChatMessage[]) => ChatMessage[]) => void;
+}> = ({ data, messages, setMessages }) => {
   const { t, lang } = useLanguage();
   const [body, setBody] = useState('');
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const end = useRef<HTMLDivElement>(null);
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [home.messages.length]);
-  const send = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = body.trim();
-    if (!text) return;
-    setBusy(true);
-    setError(null);
+  const thread = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLTextAreaElement>(null);
+  const nearBottom = useRef(true);
+  const finePointer = useMemo(() => typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches, []);
+
+  // Stay at the bottom when new messages arrive, unless the member scrolled up to read.
+  useEffect(() => {
+    const el = thread.current;
+    if (el && nearBottom.current) el.scrollTop = el.scrollHeight;
+  }, [messages.length]);
+
+  // The box grows with the text, up to a limit.
+  useEffect(() => {
+    const el = input.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
+  }, [body]);
+
+  const deliver = async (tempId: string, text: string) => {
     try {
       const res = await portalApi.message(text);
-      onSent({ id: res.id, sender: 'customer', body: text, created_at: res.created_at, read: true });
-      setBody('');
+      setMessages((list) => {
+        const already = list.some((m) => m.id === res.id);
+        return already
+          ? list.filter((m) => m.id !== tempId)
+          : list.map((m) => (m.id === tempId ? { ...m, id: res.id, created_at: res.created_at, pending: false, failed: false } : m));
+      });
     } catch (err) {
+      setMessages((list) => list.map((m) => (m.id === tempId ? { ...m, pending: false, failed: true } : m)));
       setError(err instanceof PortalError && err.code === 'rate_limited' ? t('po_err_rate') : t('po_err_message'));
-    } finally {
-      setBusy(false);
     }
   };
+
+  const send = (text: string) => {
+    const clean = text.trim();
+    if (!clean) return;
+    setError(null);
+    const tempId = `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    nearBottom.current = true;
+    setMessages((list) => [...list, { id: tempId, sender: 'customer', body: clean, created_at: new Date().toISOString(), read: true, pending: true }]);
+    setBody('');
+    void deliver(tempId, clean);
+    input.current?.focus();
+  };
+
+  const retry = (m: ChatMessage) => {
+    setError(null);
+    setMessages((list) => list.map((x) => (x.id === m.id ? { ...x, pending: true, failed: false } : x)));
+    void deliver(m.id, m.body);
+  };
+
+  const lastOwn = [...messages].reverse().find((m) => m.sender === 'customer' && !m.pending && !m.failed);
+  const { phone, whatsapp } = data.contact || {};
+  let lastDay = '';
+
   return (
-    <Section title={t('po_messages_title')}>
-      <div className='po-thread' aria-live='polite'>
-        {home.messages.length === 0 && <Empty icon='chat' text={t('po_messages_empty')} />}
-        {home.messages.map((m) => (
-          <div key={m.id} className={`po-bubble po-bubble--${m.sender}`}>
-            <p>{m.body}</p>
-            <span>
-              {m.sender === 'customer' ? t('po_you') : 'Black Pater'} · {formatDate(m.created_at, lang, true)}
-            </span>
+    <section className='po-chat' aria-labelledby='po-chat-title'>
+      <header className='po-chat__head'>
+        <span className='po-chat__avatar' aria-hidden='true'>
+          BP
+        </span>
+        <div className='po-chat__who'>
+          <h2 id='po-chat-title'>Black Pater</h2>
+          <p>{t('po_chat_sub')}</p>
+        </div>
+        <div className='po-chat__quick'>
+          {whatsapp && (
+            <a className='po-icon-btn' href={whatsappHref(whatsapp)} target='_blank' rel='noopener noreferrer' aria-label={t('po_contact_whatsapp')}>
+              <WhatsAppIcon />
+            </a>
+          )}
+          {phone && (
+            <a className='po-icon-btn' href={telHref(phone)} aria-label={`${t('po_contact_call')} ${phone}`}>
+              <Icon name='phone' />
+            </a>
+          )}
+        </div>
+      </header>
+
+      <div
+        className='po-chat__thread'
+        ref={thread}
+        role='log'
+        aria-live='polite'
+        aria-label={t('po_messages_title')}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+        }}
+      >
+        {messages.length === 0 && (
+          <div className='po-chat__start'>
+            <Empty icon='chat' title={t('po_chat_start')} text={t('po_chat_start_text')}>
+              <div className='po-chips po-chips--wrap'>
+                {(['po_chat_q1', 'po_chat_q2', 'po_chat_q3'] as const).map((k) => (
+                  <button
+                    key={k}
+                    type='button'
+                    className='po-chip'
+                    onClick={() => {
+                      setBody(t(k) + ' : ');
+                      input.current?.focus();
+                    }}
+                  >
+                    {t(k)}
+                  </button>
+                ))}
+              </div>
+            </Empty>
           </div>
-        ))}
-        <div ref={end} />
-      </div>
-      <form className='po-compose' onSubmit={send}>
-        <label className='po-field'>
-          <span className='po-field__label'>{t('po_message_label')}</span>
-          <textarea rows={3} maxLength={4000} value={body} placeholder={t('po_message_placeholder')} onChange={(e) => setBody(e.target.value)} />
-        </label>
-        {error && (
-          <p className='po-error' role='alert'>
-            {error}
-          </p>
         )}
-        <button className='btn btn--primary' type='submit' disabled={busy || !body.trim()} aria-busy={busy}>
+        {messages.map((m) => {
+          const key = dayKey(m.created_at);
+          const separator = key !== lastDay ? dayLabel(t, m.created_at, lang) : null;
+          lastDay = key;
+          const own = m.sender === 'customer';
+          return (
+            <React.Fragment key={m.id}>
+              {separator && (
+                <div className='po-chat__day' role='separator'>
+                  <span>{separator}</span>
+                </div>
+              )}
+              <div className={`po-msg po-msg--${own ? 'me' : 'them'}${m.failed ? ' is-failed' : ''}${m.pending ? ' is-pending' : ''}`}>
+                <div className='po-msg__bubble'>
+                  <p>{m.body}</p>
+                  <span className='po-msg__meta'>
+                    <time dateTime={m.created_at}>{timeOf(m.created_at, lang)}</time>
+                    {own && m.pending && <span>· {t('po_chat_sending')}</span>}
+                    {own && m === lastOwn && <span className={m.seen ? 'is-seen' : undefined}>· {m.seen ? t('po_chat_seen') : t('po_chat_sent')}</span>}
+                  </span>
+                </div>
+                {m.failed && (
+                  <button type='button' className='po-msg__retry' onClick={() => retry(m)}>
+                    <Icon name='refresh' /> {t('po_chat_failed')}
+                  </button>
+                )}
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+
+      <form
+        className='po-chat__compose'
+        onSubmit={(e) => {
+          e.preventDefault();
+          send(body);
+        }}
+      >
+        <label className='po-sr' htmlFor='po-chat-input'>
+          {t('po_message_label')}
+        </label>
+        <textarea
+          id='po-chat-input'
+          ref={input}
+          rows={1}
+          maxLength={MAX_MESSAGE}
+          value={body}
+          placeholder={t('po_chat_placeholder')}
+          onChange={(e) => setBody(e.target.value)}
+          onKeyDown={(e) => {
+            if (finePointer && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              send(body);
+            }
+          }}
+          aria-describedby='po-chat-hint'
+        />
+        <button className='po-chat__send' type='submit' disabled={!body.trim()} aria-label={t('po_send')}>
           <Icon name='send' />
-          {t('po_send')}
         </button>
       </form>
+      <p className='po-chat__hint' id='po-chat-hint'>
+        {error ? (
+          <span className='po-error' role='alert'>
+            {error}
+          </span>
+        ) : body.length > MAX_MESSAGE - 500 ? (
+          t('po_chat_chars', { n: MAX_MESSAGE - body.length })
+        ) : finePointer ? (
+          t('po_chat_hint')
+        ) : null}
+      </p>
+    </section>
+  );
+};
+
+/* ------------------------------------------------------------------ account */
+
+const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (text: string) => void }> = ({ home, reload, flash }) => {
+  const { t, lang } = useLanguage();
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [ask, setAsk] = useState<null | { kind: 'cancel' } | { kind: 'switch'; plan: PortalPlan }>(null);
+  const sub = home.access.subscription;
+  const running = sub && (sub.status === 'active' || sub.status === 'past_due') ? sub : null;
+
+  const act = async (key: string, fn: () => Promise<void>) => {
+    setBusy(key);
+    setError(null);
+    try {
+      await fn();
+    } catch (err) {
+      setError(payErrorText(t, err));
+    } finally {
+      setBusy(null);
+      setAsk(null);
+    }
+  };
+
+  const choose = (plan: PortalPlan) =>
+    act(`plan-${plan.level}`, async () => {
+      const res = await portalApi.subscribe(plan.level);
+      if (res.url) {
+        window.location.assign(res.url);
+        await new Promise(() => {}); // keep the button busy while the payment page opens
+      }
+      await reload();
+      flash(t('po_plan_saved'));
+    });
+
+  return (
+    <Section id='plans' title={t('po_plans_title')} lead={home.plans.length ? t('po_plans_lead') : undefined}>
+      <AccessCard home={home} />
+      {home.plans.length === 0 ? (
+        <p className='po-note'>{t('po_plans_soon')}</p>
+      ) : (
+        <div className='po-plans'>
+          {home.plans.map((p) => {
+            const current = running?.level === p.level;
+            return (
+              <article key={p.level} className={`po-card po-plan${current ? ' is-current' : ''}`}>
+                {current && <span className='po-plan__tag'>{t('po_plan_current')}</span>}
+                <h3>{p.name}</h3>
+                <p className='po-plan__price'>
+                  <strong>{formatMoney(p.amount, p.currency, lang)}</strong> <span>{t('po_per_month')}</span>
+                </p>
+                {p.description && <p className='po-plan__desc'>{p.description}</p>}
+                {p.features.length > 0 && (
+                  <ul className='po-plan__features'>
+                    {p.features.map((f, i) => (
+                      <li key={i}>
+                        <Icon name='check' /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {current ? (
+                  running?.cancel_at_period_end ? (
+                    <button
+                      type='button'
+                      className='btn btn--primary'
+                      disabled={busy !== null}
+                      aria-busy={busy === 'resume'}
+                      onClick={() =>
+                        act('resume', async () => {
+                          await portalApi.resumePlan();
+                          await reload();
+                          flash(t('po_plan_saved'));
+                        })
+                      }
+                    >
+                      {t('po_plan_resume')}
+                    </button>
+                  ) : (
+                    <button type='button' className='btn btn--secondary' disabled>
+                      <Icon name='check' /> {t('po_plan_current')}
+                    </button>
+                  )
+                ) : (
+                  <button
+                    type='button'
+                    className={`btn ${running ? 'btn--secondary' : 'btn--primary'}`}
+                    disabled={busy !== null}
+                    aria-busy={busy === `plan-${p.level}`}
+                    onClick={() => (running ? setAsk({ kind: 'switch', plan: p }) : void choose(p))}
+                  >
+                    {running ? t('po_plan_switch') : t('po_plan_choose')}
+                  </button>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
+      {running && !running.cancel_at_period_end && (
+        <button type='button' className='po-link po-link--muted' onClick={() => setAsk({ kind: 'cancel' })}>
+          {t('po_plan_cancel')}
+        </button>
+      )}
+      {error && (
+        <p className='po-error' role='alert'>
+          {error}
+        </p>
+      )}
+      <Confirm
+        open={ask !== null}
+        busy={busy !== null}
+        danger={ask?.kind === 'cancel'}
+        title={ask?.kind === 'switch' ? t('po_plan_switch_title', { name: ask.plan.name }) : t('po_plan_cancel_title')}
+        text={
+          ask?.kind === 'switch'
+            ? t('po_plan_switch_text', { name: ask.plan.name, price: formatMoney(ask.plan.amount, ask.plan.currency, lang) })
+            : running?.status === 'past_due'
+              ? t('po_plan_cancel_now_text')
+              : t('po_plan_cancel_text', { date: formatDate(running?.current_period_end ?? null, lang) })
+        }
+        confirmLabel={ask?.kind === 'switch' ? t('po_plan_switch') : t('po_plan_cancel')}
+        onCancel={() => setAsk(null)}
+        onConfirm={() => {
+          if (ask?.kind === 'switch') void choose(ask.plan);
+          else
+            void act('cancel', async () => {
+              await portalApi.cancelPlan();
+              await reload();
+              flash(t('po_plan_canceled_done'));
+            });
+        }}
+      />
     </Section>
   );
 };
 
-const Booking: React.FC<{ home: PortalHome }> = ({ home }) => {
+const Payments: React.FC<{ home: PortalHome }> = ({ home }) => {
   const { t, lang } = useLanguage();
   const [receiptError, setReceiptError] = useState<string | null>(null);
+  if (home.bookings.length === 0) return null;
   const openReceipt = async (id: string) => {
     setReceiptError(null);
     // Open the tab synchronously (popup blockers), then point it at the receipt.
@@ -740,44 +1100,32 @@ const Booking: React.FC<{ home: PortalHome }> = ({ home }) => {
     }
   };
   return (
-    <Section title={t('po_booking_title')}>
-      {home.bookings.length === 0 && <Empty icon='receipt' text={t('po_booking_none')} />}
-      <ul className='po-bookings'>
+    <Section id='payments' title={t('po_payments_title')}>
+      <ul className='po-payments'>
         {home.bookings.map((b) => (
-          <li key={b.id} className='po-card po-booking'>
-            <div className='po-booking__head'>
-              <h3>{offerLabel(t, b.offer_id, b.offer_name)}</h3>
-              <span className={`po-status po-status--${b.status}`}>{b.status === 'paid' ? t('po_status_paid') : t('po_status_refunded')}</span>
-            </div>
-            <dl className='po-facts po-facts--grid'>
-              <div>
-                <dt>{t('po_amount')}</dt>
-                <dd>{formatMoney(b.amount, b.currency, lang)}</dd>
-              </div>
-              {b.paid_at && (
-                <div>
-                  <dt>{t('po_paid_on')}</dt>
-                  <dd>{formatDate(b.paid_at, lang)}</dd>
-                </div>
-              )}
+          <li key={b.id} className='po-card po-payment'>
+            <div className='po-payment__main'>
+              <strong>
+                {t('po_membership')} · {offerLabel(t, b.offer_id, b.offer_name)}
+              </strong>
+              <span className='po-note'>
+                {formatMoney(b.amount, b.currency, lang)}
+                {b.paid_at && ` · ${formatDate(b.paid_at, lang)}`} · {t('po_membership_note')}
+              </span>
               {b.status === 'refunded' && (
-                <div>
-                  <dt>{t('po_status')}</dt>
-                  <dd>
-                    {b.refund === 'partial' && b.amount_refunded !== null
-                      ? t('po_refund_partial', { amount: formatMoney(b.amount_refunded, b.currency, lang), date: formatDate(b.refunded_at, lang) })
-                      : b.refund === 'full'
-                        ? t('po_refund_full', { date: formatDate(b.refunded_at, lang) })
-                        : t('po_refunded_on', { date: formatDate(b.refunded_at, lang) })}
-                  </dd>
-                </div>
+                <span className='po-note'>
+                  {b.refund === 'partial' && b.amount_refunded !== null
+                    ? t('po_refund_partial', { amount: formatMoney(b.amount_refunded, b.currency, lang), date: formatDate(b.refunded_at, lang) })
+                    : b.refund === 'full'
+                      ? t('po_refund_full', { date: formatDate(b.refunded_at, lang) })
+                      : t('po_refunded_on', { date: formatDate(b.refunded_at, lang) })}
+                </span>
               )}
-            </dl>
-            <p className='po-note'>{t('po_one_time')}</p>
+            </div>
+            <span className={`po-status po-status--${b.status}`}>{b.status === 'paid' ? t('po_status_paid') : t('po_status_refunded')}</span>
             {b.receipt && (
-              <button type='button' className='btn btn--secondary' onClick={() => openReceipt(b.id)}>
-                <Icon name='receipt' />
-                {t('po_receipt')}
+              <button type='button' className='po-link' onClick={() => openReceipt(b.id)}>
+                <Icon name='receipt' /> {t('po_receipt')}
               </button>
             )}
             {receiptError === b.id && (
@@ -789,6 +1137,302 @@ const Booking: React.FC<{ home: PortalHome }> = ({ home }) => {
         ))}
       </ul>
     </Section>
+  );
+};
+
+const DeleteAccount: React.FC<{ home: PortalHome; onDeleted: () => void }> = ({ home, onDeleted }) => {
+  const { t } = useLanguage();
+  const [step, setStep] = useState<'idle' | 'code'>('idle');
+  const [code, setCode] = useState('');
+  const [word, setWord] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const expected = t('po_delete_word');
+
+  const run = async (fn: () => Promise<void>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+    } catch (err) {
+      setError(payErrorText(t, err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Section id='delete' title={t('po_delete_title')}>
+      <div className='po-card po-setting po-danger-zone'>
+        <p className='po-note'>{t('po_delete_text')}</p>
+        {step === 'idle' ? (
+          <button
+            type='button'
+            className='btn btn--secondary po-danger'
+            disabled={busy}
+            onClick={() =>
+              run(async () => {
+                await portalApi.deleteCode();
+                setStep('code');
+              })
+            }
+          >
+            <Icon name='trash' /> {t('po_delete_title')}
+          </button>
+        ) : (
+          <form
+            className='po-form'
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!isCode(code)) return setError(t('po_err_code_format'));
+              void run(async () => {
+                await portalApi.deleteAccount(code);
+                onDeleted();
+              });
+            }}
+          >
+            <p className='po-note' role='status'>
+              {t('po_delete_code_sent', { email: home.customer.email })}
+            </p>
+            <label className='po-field'>
+              <span className='po-field__label'>{t('po_code')}</span>
+              <input className='po-code-input' inputMode='numeric' autoComplete='one-time-code' value={code} onChange={(e) => setCode(digits(e.target.value))} />
+            </label>
+            <label className='po-field'>
+              <span className='po-field__label'>{t('po_delete_type', { word: expected })}</span>
+              <input autoComplete='off' autoCapitalize='characters' value={word} onChange={(e) => setWord(e.target.value)} />
+            </label>
+            <div className='po-row'>
+              <button type='submit' className='btn btn--primary po-btn-danger' disabled={busy || code.length !== 6 || word.trim().toUpperCase() !== expected} aria-busy={busy}>
+                {t('po_delete_confirm')}
+              </button>
+              <button type='button' className='po-link' onClick={() => (setStep('idle'), setCode(''), setWord(''))}>
+                {t('po_cancel')}
+              </button>
+            </div>
+          </form>
+        )}
+        {error && (
+          <p className='po-error' role='alert'>
+            {error}
+          </p>
+        )}
+      </div>
+    </Section>
+  );
+};
+
+/* ------------------------------------------------------------------ shell */
+
+const POLL_ACTIVE_MS = 5000;
+const POLL_IDLE_MS = 20000;
+
+const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSignedOut: (notice?: string) => void }> = ({ home, reload, onSignedOut }) => {
+  const { t, lang } = useLanguage();
+  const { search, navigate } = useRouter();
+  const view = readView(search);
+  const [data, setData] = useState(home);
+  const [messages, setMessagesState] = useState<ChatMessage[]>(home.messages);
+  const [notice, setNotice] = useState<string | null>(null);
+  // Items read during this visit stay read when the data is loaded again.
+  const readIds = useRef(new Set<string>());
+  const markRead = useCallback((ids: string[]) => {
+    ids.forEach((id) => readIds.current.add(id));
+    setData((d) => ({ ...d, items: d.items.map((i) => (readIds.current.has(i.id) ? { ...i, read: true } : i)) }));
+  }, []);
+  useEffect(() => {
+    setData({ ...home, items: home.items.map((i) => (readIds.current.has(i.id) ? { ...i, read: true } : i)) });
+    setMessagesState((list) => {
+      const pending = list.filter((m) => m.pending || m.failed);
+      return [...home.messages, ...pending.filter((p) => !home.messages.some((m) => m.id === p.id))];
+    });
+  }, [home]);
+  const setMessages = useCallback((fn: (m: ChatMessage[]) => ChatMessage[]) => setMessagesState(fn), []);
+
+  const go = useCallback((v: View) => navigate(viewPath(v)), [navigate]);
+  const flash = useCallback((text: string) => setNotice(text), []);
+
+  useEffect(() => {
+    if (!notice) return;
+    const id = window.setTimeout(() => setNotice(null), 6000);
+    return () => window.clearTimeout(id);
+  }, [notice]);
+
+  // Back from Stripe: record the plan at once, then tidy the address.
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const outcome = params.get('plan');
+    if (!outcome) return;
+    const sessionId = params.get('session_id');
+    navigate(viewPath('account'), { replace: true });
+    if (outcome === 'ok' && sessionId) {
+      void portalApi
+        .planReturn(sessionId)
+        .then(async (r) => {
+          await reload();
+          flash(r.active ? t('po_plan_ok') : t('po_plan_pending'));
+        })
+        .catch(() => flash(t('po_plan_pending')));
+    } else if (outcome === 'cancel') flash(t('po_plan_aborted'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // The conversation refreshes itself: often while it is open, rarely otherwise, never in a hidden tab.
+  const lastAt = messages.filter((m) => !m.pending && !m.failed && !m.id.startsWith('tmp-')).at(-1)?.created_at ?? null;
+  const lastAtRef = useRef(lastAt);
+  lastAtRef.current = lastAt;
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  useEffect(() => {
+    let timer: number | undefined;
+    let stopped = false;
+    const tick = async () => {
+      if (stopped) return;
+      if (document.visibilityState === 'visible') {
+        try {
+          const res = await portalApi.messagesSince(lastAtRef.current);
+          const seen = new Set(res.seen);
+          const onChat = viewRef.current === 'messages';
+          const incoming = res.messages.map((m) => (onChat && m.sender === 'owner' ? { ...m, read: true } : m));
+          if (onChat && res.messages.some((m) => m.sender === 'owner' && !m.read)) void portalApi.read(null, true).catch(() => {});
+          setMessagesState((list) => {
+            const known = new Set(list.map((m) => m.id));
+            const added = incoming.filter((m) => !known.has(m.id));
+            const updated = list.map((m) => (m.sender === 'customer' && seen.has(m.id) && !m.seen ? { ...m, seen: true } : m));
+            return added.length || updated.some((m, i) => m !== list[i]) ? [...updated, ...added] : list;
+          });
+        } catch (err) {
+          if (err instanceof PortalError && err.status === 401) return onSignedOut();
+        }
+      }
+      timer = window.setTimeout(tick, viewRef.current === 'messages' ? POLL_ACTIVE_MS : POLL_IDLE_MS);
+    };
+    timer = window.setTimeout(tick, view === 'messages' ? POLL_ACTIVE_MS : POLL_IDLE_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        window.clearTimeout(timer);
+        void tick();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view === 'messages']);
+
+  // Opening the conversation marks Black Pater's messages as read.
+  const unreadMessages = messages.filter((m) => !m.read).length;
+  useEffect(() => {
+    if (view === 'messages' && unreadMessages) {
+      void portalApi.read(null, true).catch(() => {});
+      setMessagesState((list) => list.map((m) => (m.read ? m : { ...m, read: true })));
+    }
+  }, [view, unreadMessages]);
+
+  const unreadInfo = data.items.filter((i) => !i.read).length;
+  const badges: Partial<Record<View, number>> = { info: unreadInfo, messages: unreadMessages };
+  const name = data.customer.name?.split(' ')[0];
+  const lastMessage = messages.at(-1);
+
+  return (
+    <div className={`po-shell po-shell--${view}`}>
+      <aside className='po-side'>
+        <div className='po-side__who'>
+          <span className='po-avatar' aria-hidden='true'>
+            {(data.customer.name || data.customer.email).slice(0, 1).toUpperCase()}
+          </span>
+          <div>
+            <strong>{data.customer.name || t('po_welcome_anon')}</strong>
+            <span>{data.customer.email}</span>
+          </div>
+        </div>
+        <nav aria-label={t('po_nav_label')}>
+          <ul className='po-nav'>
+            {VIEWS.map((v) => (
+              <li key={v.id}>
+                <Link to={viewPath(v.id)} className={`po-nav__link${view === v.id ? ' is-active' : ''}`} aria-current={view === v.id ? 'page' : undefined}>
+                  <Icon name={v.icon} />
+                  <span>{t(v.label)}</span>
+                  {!!badges[v.id] && <span className='po-count'>{badges[v.id]}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+
+      <div className='po-main'>
+        {notice && (
+          <p className='po-flash' role='status'>
+            <Icon name='check' /> {notice}
+          </p>
+        )}
+
+        {view === 'home' && (
+          <>
+            <header className='po-hero' data-reveal>
+              <p className='po-kicker'>{t('po_kicker')}</p>
+              <h1>{name ? t('po_welcome', { name }) : t('po_welcome_anon')}</h1>
+              <p>{t('po_member_since', { date: formatDate(data.customer.since, lang) })}</p>
+            </header>
+            <AccessCard home={data} onPlans={() => go('account')} />
+            <div className='po-shortcuts'>
+              <button type='button' className='po-card po-shortcut' onClick={() => go('info')}>
+                <span className='po-shortcut__icon' aria-hidden='true'>
+                  <Icon name='bell' />
+                </span>
+                <span className='po-shortcut__text'>
+                  <strong>{t('po_home_info')}</strong>
+                  <span>{unreadInfo ? t('po_home_info_new', { n: unreadInfo }) : data.items[0]?.title || t('po_home_info_none')}</span>
+                </span>
+                {!!unreadInfo && <span className='po-count'>{unreadInfo}</span>}
+                <Icon name='chevronRight' className='po-shortcut__chev' />
+              </button>
+              <button type='button' className='po-card po-shortcut' onClick={() => go('messages')}>
+                <span className='po-shortcut__icon' aria-hidden='true'>
+                  <Icon name='chat' />
+                </span>
+                <span className='po-shortcut__text'>
+                  <strong>{t('po_home_messages')}</strong>
+                  <span>{unreadMessages ? t('po_home_messages_new', { n: unreadMessages }) : lastMessage?.body || t('po_home_messages_none')}</span>
+                </span>
+                {!!unreadMessages && <span className='po-count'>{unreadMessages}</span>}
+                <Icon name='chevronRight' className='po-shortcut__chev' />
+              </button>
+            </div>
+            <ContactCard home={data} onWrite={() => go('messages')} />
+          </>
+        )}
+
+        {view === 'info' && <InfoFeed data={data} setData={setData} markRead={markRead} onPlans={() => go('account')} />}
+
+        {view === 'messages' && <Chat data={data} messages={messages} setMessages={setMessages} />}
+
+        {view === 'account' && (
+          <>
+            <Plans home={data} reload={reload} flash={flash} />
+            <Payments home={data} />
+            <Settings home={data} reload={reload} onSignedOut={() => onSignedOut()} />
+            <DeleteAccount home={data} onDeleted={() => onSignedOut(t('po_deleted'))} />
+          </>
+        )}
+      </div>
+
+      <nav className='po-tabbar' aria-label={t('po_nav_label')}>
+        {VIEWS.map((v) => (
+          <Link key={v.id} to={viewPath(v.id)} className={`po-tabbar__link${view === v.id ? ' is-active' : ''}`} aria-current={view === v.id ? 'page' : undefined}>
+            <span className='po-tabbar__icon'>
+              <Icon name={v.icon} />
+              {!!badges[v.id] && <span className='po-dot' aria-label={t('po_unread', { n: badges[v.id]! })} />}
+            </span>
+            <span>{t(v.label)}</span>
+          </Link>
+        ))}
+      </nav>
+    </div>
   );
 };
 
@@ -827,7 +1471,7 @@ const Settings: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSign
   };
 
   return (
-    <Section title={t('po_settings_title')}>
+    <Section id='profile' title={t('po_profile_title')}>
       <div className='po-card po-account'>
         <span className='po-avatar po-avatar--lg' aria-hidden='true'>
           {(home.customer.name || home.customer.email).slice(0, 1).toUpperCase()}
@@ -1032,7 +1676,9 @@ export const PortalPage: React.FC = () => {
     void load();
   }, [load]);
 
-  const signedOut = useCallback(() => {
+  const [notice, setNotice] = useState<string | null>(null);
+  const signedOut = useCallback((text?: string) => {
+    setNotice(text ?? null);
     setHome(null);
     setState('signed-out');
     navigate('/espace-client', { replace: true });
@@ -1059,9 +1705,9 @@ export const PortalPage: React.FC = () => {
           </div>
         </section>
       );
-    if (state === 'signed-out' || !home) return <SignIn onSignedIn={() => void load()} />;
+    if (state === 'signed-out' || !home) return <SignIn notice={notice} onSignedIn={() => (setNotice(null), void load())} />;
     return <Dashboard home={home} reload={load} onSignedOut={signedOut} />;
-  }, [state, home, load, signedOut, t]);
+  }, [state, home, load, signedOut, notice, t]);
 
   return <div className='po-page'>{body}</div>;
 };

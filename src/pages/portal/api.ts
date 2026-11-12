@@ -33,9 +33,46 @@ export interface PortalItem {
   trip: PortalTrip | null;
   checklist: string[] | null;
   published_at: string;
+  min_level: number;
   document: { name: string | null; size: number | null; type: string | null } | null;
   read: boolean;
   checked: number[];
+}
+
+/** Information above the member's plan: its title only. */
+export interface PortalLocked {
+  id: string;
+  kind: PortalItem['kind'];
+  title: string;
+  published_at: string;
+  min_level: number;
+}
+
+export interface PortalPlan {
+  level: number;
+  name: string;
+  description: string | null;
+  features: string[];
+  amount: number;
+  currency: string;
+}
+
+export interface PortalSubscription {
+  plan_name: string;
+  level: number;
+  amount: number;
+  currency: string;
+  status: 'active' | 'past_due' | 'canceled' | 'incomplete';
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+}
+
+export interface PortalAccess {
+  level: number;
+  trial_ends_at: string | null;
+  trial_active: boolean;
+  trial_days: number;
+  subscription: PortalSubscription | null;
 }
 
 export interface PortalMessage {
@@ -44,6 +81,8 @@ export interface PortalMessage {
   body: string;
   created_at: string;
   read: boolean;
+  /** The member's own message has been read by Black Pater. */
+  seen?: boolean;
 }
 
 export interface PortalHome {
@@ -51,7 +90,11 @@ export interface PortalHome {
   offers: string[];
   bookings: PortalBooking[];
   items: PortalItem[];
+  locked: PortalLocked[];
   messages: PortalMessage[];
+  access: PortalAccess;
+  plans: PortalPlan[];
+  contact: { phone?: string; whatsapp?: string; note?: string };
 }
 
 export class PortalError extends Error {
@@ -96,6 +139,14 @@ export const portalApi = {
   emailStart: (email: string) => call<{ ok: true }>('email-start', { email }),
   emailConfirm: (oldCode: string, newCode: string) => call<{ ok: true; email: string }>('email-confirm', { oldCode, newCode }),
   signOut: (all: boolean) => call<{ ok: true }>('sign-out', { all }),
+  messagesSince: (after: string | null) => call<{ messages: PortalMessage[]; seen: string[] }>('messages-since', { after }),
+  subscribe: (level: number) => call<{ url?: string; ok?: true; changed?: true }>('subscribe', { level }),
+  planReturn: (sessionId: string) => call<{ ok: true; active: boolean }>('plan-return', { sessionId }),
+  cancelPlan: () => call<{ ok: true }>('cancel-plan', {}),
+  resumePlan: () => call<{ ok: true }>('resume-plan', {}),
+  payPlan: () => call<{ url: string }>('pay-plan', {}),
+  deleteCode: () => call<{ ok: true }>('delete-code', {}),
+  deleteAccount: (code: string) => call<{ ok: true }>('delete-account', { code }),
   fileUrl: (itemId: string) => `/api/portal/file?item=${encodeURIComponent(itemId)}`
 };
 
@@ -134,6 +185,17 @@ export function formatSize(bytes: number | null, lang: string) {
   const nf = new Intl.NumberFormat(lang === 'fr' ? 'fr-FR' : 'en-US', { maximumFractionDigits: 1 });
   return mb >= 1 ? `${nf.format(mb)} MB` : `${nf.format(Math.max(1, Math.round(bytes / 1024)))} KB`;
 }
+
+/** Whole days left before a date (0 on the last day). */
+export function daysLeft(iso: string | null, now = Date.now()) {
+  if (!iso) return 0;
+  const ms = new Date(iso).getTime() - now;
+  return ms > 0 ? Math.ceil(ms / 86400000) : 0;
+}
+
+/** "+1 720…" → "tel:+1720…"; WhatsApp wants digits only. */
+export const telHref = (v: string) => `tel:${v.replace(/[^\d+]/g, '')}`;
+export const whatsappHref = (v: string) => `https://wa.me/${v.replace(/\D/g, '')}`;
 
 export function unreadCount(home: PortalHome) {
   return home.items.filter((i) => !i.read).length + home.messages.filter((m) => !m.read).length;

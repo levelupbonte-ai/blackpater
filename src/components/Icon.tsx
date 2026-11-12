@@ -167,6 +167,21 @@ const paths: Record<string, React.ReactNode> = {
     </>
   ),
   send: <path d='M21 3 10 14M21 3l-7 18-4-7-7-4z' />,
+  trash: (
+    <>
+      <path d='M4 7h16' />
+      <path d='M9.5 7V4.5h5V7' />
+      <path d='M6.5 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5l1-12.5' />
+    </>
+  ),
+  star: <path d='m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z' />,
+  card: (
+    <>
+      <rect x='3' y='5.5' width='18' height='13' rx='2' />
+      <path d='M3 10h18' />
+      <path d='M7 15h3' />
+    </>
+  ),
   calendar: (
     <>
       <rect x='3.5' y='5' width='17' height='15.5' rx='2' />

@@ -483,7 +483,7 @@ const AccessCard: React.FC<{ home: PortalHome; onPlans?: () => void }> = ({ home
 
 /** Install the space as an app and get notifications instead of e-mails. */
 const AppCard: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const app = useMemberApp();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -516,7 +516,7 @@ const AppCard: React.FC = () => {
             </button>
           )}
           {app.push === 'off' && (
-            <button type='button' className='btn btn--primary' disabled={busy} aria-busy={busy} onClick={() => run(app.enable)}>
+            <button type='button' className='btn btn--primary' disabled={busy} aria-busy={busy} onClick={() => run(() => app.enable(lang))}>
               <Icon name='bell' /> {t('po_app_enable')}
             </button>
           )}
@@ -1710,7 +1710,7 @@ const Preferences: React.FC = () => {
               aria-label={t('po_prefs_push')}
               className={`po-switch${pushOn ? ' is-on' : ''}`}
               disabled={busy}
-              onClick={() => void run(pushOn ? app.disable : app.enable)}
+              onClick={() => void run(pushOn ? app.disable : () => app.enable(lang))}
             >
               <span />
             </button>
@@ -2054,6 +2054,13 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
     };
   }, [home]);
   const [data, setData] = useState(home);
+  // E-mails and notifications follow the language chosen in the space.
+  const savedLocale = useRef(home.customer.locale);
+  useEffect(() => {
+    if (lang === savedLocale.current) return;
+    savedLocale.current = lang;
+    void portalApi.locale(lang).catch(() => undefined);
+  }, [lang]);
   const [messages, setMessagesState] = useState<ChatMessage[]>(home.messages);
   const [notice, setNotice] = useState<string | null>(null);
   // Items read during this visit stay read when the data is loaded again.

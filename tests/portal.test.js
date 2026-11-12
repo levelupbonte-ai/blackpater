@@ -359,12 +359,40 @@ test('push first: a device that receives it saves the e-mail; a gone device is r
 });
 
 test('push subscribe: only a well-formed https endpoint and keys reach the database', async () => {
-  const { handler, calls } = setup({ getPushConfig: () => ({ enabled: true, publicKey: 'k'.repeat(87), privateKey: 'p'.repeat(43) }) });
+  const pushes = [];
+  const { handler, calls } = setup({
+    getPushConfig: () => ({ enabled: true, publicKey: 'k'.repeat(87), privateKey: 'p'.repeat(43) }),
+    sendPush: async (_cfg, device, payload) => {
+      pushes.push({ device, payload });
+      return { ok: true, gone: false };
+    },
+    rpc: async (name) => (name === 'portal_home' ? { customer: { name: 'Amani Kabila' } } : { ok: true })
+  });
   const ok = fakeRes();
   await handler(post('push-subscribe', { endpoint: 'https://fcm.googleapis.com/fcm/send/abc123', p256dh: 'B'.repeat(87), auth: 'a'.repeat(22) }, withSession), ok);
   assert.equal(ok.statusCode, 200);
   assert.equal(calls[0].name, 'portal_push_subscribe');
+  // A welcome notification goes to that device right away.
+  assert.equal(pushes.length, 1);
+  assert.equal(pushes[0].device.endpoint, 'https://fcm.googleapis.com/fcm/send/abc123');
+  assert.equal(pushes[0].payload.title, 'Notifications activées');
+  assert.match(pushes[0].payload.body, /^Bienvenue Amani !/);
+  const en = fakeRes();
+  await handler(post('push-subscribe', { endpoint: 'https://fcm.googleapis.com/fcm/send/abc123', p256dh: 'B'.repeat(87), auth: 'a'.repeat(22), lang: 'en' }, withSession), en);
+  assert.equal(pushes[1].payload.title, 'Notifications are on');
+  assert.ok(calls.some((c) => c.name === 'portal_set_locale' && c.args.p_locale === 'en'));
   const bad = fakeRes();
   await handler(post('push-subscribe', { endpoint: 'http://evil.example/x', p256dh: 'B'.repeat(87), auth: 'a'.repeat(22) }, withSession), bad);
+  assert.equal(bad.statusCode, 400);
+});
+
+test('locale: the space language becomes the language of e-mails and notifications', async () => {
+  const { handler, calls } = setup();
+  const res = fakeRes();
+  await handler(post('locale', { lang: 'en' }, withSession), res);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(calls[0], { name: 'portal_set_locale', args: { p_key: KEY, p_session: SESSION, p_locale: 'en' } });
+  const bad = fakeRes();
+  await handler(post('locale', { lang: 'de' }, withSession), bad);
   assert.equal(bad.statusCode, 400);
 });

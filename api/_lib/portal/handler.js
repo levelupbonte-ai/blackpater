@@ -20,7 +20,7 @@ import { createAssistantClient } from './assistant.js';
 import { appGuide } from './app-guide.js';
 import { dossierText } from '../../../shared/dossier.js';
 import { buildPlanCheckout, buildRenewalCheckout, idempotencyKey } from './plans.js';
-import { createPushSender, getPushConfig, pushFor } from './push.js';
+import { createPushSender, getPushConfig, pushFor, welcomePush } from './push.js';
 import { getOffer, getOfferByTier } from '../../../shared/offers.js';
 import { isStripeCheckoutUrl } from '../../../shared/validation.js';
 import {
@@ -70,7 +70,8 @@ export const PORTAL_ACTIONS = [
   'assistant-ask',
   'assistant-handoff',
   'profile',
-  'profile-note'
+  'profile-note',
+  'locale'
 ];
 
 const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key', 'assistant', 'profile']);
@@ -554,8 +555,10 @@ export function createPortalHandler(deps = {}) {
 
     /** This device receives the space's notifications. */
     async 'push-subscribe'(req, res, cfg, ctx) {
-      if (!pushConfigFor().enabled) return sendJson(res, 503, { error: 'push_unavailable' });
-      const { endpoint, p256dh, auth } = pick(await readJsonBody(req, 2048), {
+      const push = pushConfigFor();
+      if (!push.enabled) return sendJson(res, 503, { error: 'push_unavailable' });
+      const { endpoint, p256dh, auth, lang } = pick(await readJsonBody(req, 2048), {
+        lang: req_.lang,
         endpoint: (v) => (typeof v === 'string' && v.length >= 20 && v.length <= 1000 && /^https:\/\/[^\s]+$/.test(v) ? v : undefined),
         p256dh: (v) => (typeof v === 'string' && /^[A-Za-z0-9_-]{40,200}$/.test(v) ? v : undefined),
         auth: (v) => (typeof v === 'string' && /^[A-Za-z0-9_-]{10,100}$/.test(v) ? v : undefined)
@@ -565,7 +568,18 @@ export function createPortalHandler(deps = {}) {
         p_session: ctx.session,
         p_sub: { endpoint, p256dh, auth, device: ctx.device }
       });
-      return sendJson(res, 200, { ok: true });
+      // A first notification right away, in the language of the space: the
+      // member sees at once that it works.
+      let name = null;
+      if (lang) await rpc('portal_set_locale', { p_key: cfg.portalKey, p_session: ctx.session, p_locale: lang }).catch(() => null);
+      try {
+        const me = await rpc('portal_home', { p_key: cfg.portalKey, p_session: ctx.session });
+        name = me?.customer?.name || null;
+      } catch {
+        name = null;
+      }
+      const sent = await sendPush(push, { endpoint, p256dh, auth }, welcomePush(lang || 'fr', name));
+      return sendJson(res, 200, { ok: true, welcome: sent.ok });
     },
 
     async 'push-unsubscribe'(req, res, cfg, ctx) {
@@ -660,6 +674,13 @@ export function createPortalHandler(deps = {}) {
       const { questionId } = pick(await readJsonBody(req, 256), { questionId: req_.uuid });
       const out = await callAssistant(cfg.portalKey, { action: 'handoff', session: ctx.session, questionId });
       return sendJson(res, 200, { ok: true, id: out?.id ?? null });
+    },
+
+    /** The language chosen in the space: e-mails and notifications follow it. */
+    async locale(req, res, cfg, ctx) {
+      const { lang } = pick(await readJsonBody(req, 128), { lang: (v) => (v === 'fr' || v === 'en' ? v : undefined) });
+      await rpc('portal_set_locale', { p_key: cfg.portalKey, p_session: ctx.session, p_locale: lang });
+      return sendJson(res, 200, { ok: true, lang });
     },
 
     /** Sends queued e-mails: signed call from the LevelUp dashboard or the daily Vercel Cron. */

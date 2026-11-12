@@ -210,7 +210,9 @@ export const portalApi = {
   deleteCode: () => call<{ ok: true }>('delete-code', {}),
   deleteAccount: (code: string) => call<{ ok: true }>('delete-account', { code }),
   pushKey: () => call<{ key: string | null }>('push-key'),
-  pushSubscribe: (sub: { endpoint: string; p256dh: string; auth: string }) => call<{ ok: true }>('push-subscribe', sub),
+  pushSubscribe: (sub: { endpoint: string; p256dh: string; auth: string; lang?: string }) =>
+    call<{ ok: true; welcome?: boolean }>('push-subscribe', sub),
+  locale: (lang: string) => call<{ ok: true }>('locale', { lang }),
   pushUnsubscribe: (endpoint: string) => call<{ ok: true }>('push-unsubscribe', { endpoint }),
   assistant: () => call<AssistantThread>('assistant'),
   assistantAsk: (question: string, images: string[], lang: string) =>

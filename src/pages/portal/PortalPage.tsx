@@ -15,6 +15,7 @@ import {
   telHref,
   whatsappHref,
   type AssistantThread,
+  type MemberProfile,
   type PortalHome,
   type PortalItem,
   type PortalLocked,
@@ -24,6 +25,10 @@ import {
 import { formatOfferPrice, getOffer, getOfferByTier } from '../../../shared/offers.js';
 import type { TranslationKey } from '../../i18n';
 import { useMemberApp } from './member-app';
+import { readableDossier } from '../../../shared/dossier.js';
+import { buildPdf, downloadPdf, type PdfBlock } from '../../lib/simple-pdf';
+import { useTheme } from '../../context/ThemeContext';
+import { compressImage, loadLocalImages, saveLocalImages, clearLocalImages } from './local-images';
 import './portal.css';
 
 /** "Duo · 2 people" from the catalog, in the visitor's language; the stored name otherwise. */
@@ -263,12 +268,13 @@ const SignIn: React.FC<{ onSignedIn: () => void; notice?: string | null }> = ({ 
 
 /* ------------------------------------------------------------------ dashboard */
 
-type View = 'home' | 'info' | 'messages' | 'assistant' | 'account';
+type View = 'home' | 'info' | 'messages' | 'assistant' | 'dossier' | 'account';
 const VIEWS: { id: View; icon: IconName; label: Parameters<T>[0] }[] = [
   { id: 'home', icon: 'home', label: 'po_nav_home' },
   { id: 'info', icon: 'bell', label: 'po_nav_info' },
   { id: 'messages', icon: 'chat', label: 'po_nav_messages' },
   { id: 'assistant', icon: 'sparkles', label: 'po_nav_assistant' },
+  { id: 'dossier', icon: 'file', label: 'po_nav_dossier' },
   { id: 'account', icon: 'user', label: 'po_nav_account' }
 ];
 /** Old links (e-mails, bookmarks) still land in the right place. */
@@ -1038,6 +1044,8 @@ const Chat: React.FC<{
 /* ------------------------------------------------------------------ AI assistant */
 
 const MAX_QUESTION = 2000;
+const MAX_IMAGES = 3;
+const STEP_MS = 2600;
 
 /** A source's label: its title (often the website's name), else its host. */
 function sourceLabel(s: { url: string; title: string }) {
@@ -1049,25 +1057,78 @@ function sourceLabel(s: { url: string; title: string }) {
   }
 }
 
+const APP_WORDS = /renouvel|abonnement|adh[ée]sion|forfait|formule|notification|application|\bapp\b|mot de passe|password|compte|account|paiement|payer|re[çc]u|receipt|dossier|messages?\b|espace|renew|subscription|plan\b|install/i;
+
+type StepKey = Parameters<T>[0];
+
+/** What the assistant is doing, step by step, from what the member asked. */
+function workSteps(question: string, images: number, hasProfile: boolean): StepKey[] {
+  const steps: StepKey[] = [hasProfile ? 'po_ai_step_dossier' : 'po_ai_step_space'];
+  if (images) steps.push(images > 1 ? 'po_ai_step_images' : 'po_ai_step_image');
+  if (APP_WORDS.test(question)) steps.push('po_ai_step_app');
+  else steps.push('po_ai_step_web', 'po_ai_step_dates');
+  steps.push('po_ai_step_notes', 'po_ai_step_write');
+  return steps;
+}
+
+const AiStar: React.FC<{ size?: number; className?: string }> = ({ size = 22, className }) => (
+  <img src='/ai-star.svg' alt='' aria-hidden='true' width={size} height={size} className={className} />
+);
+
+/** The live "I'm working" line: each step shows, then gets its check. */
+const Working: React.FC<{ steps: StepKey[] }> = ({ steps }) => {
+  const { t } = useLanguage();
+  const [at, setAt] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  }, [at]);
+  useEffect(() => {
+    if (at >= steps.length - 1) return;
+    const id = window.setTimeout(() => setAt((i) => i + 1), STEP_MS);
+    return () => window.clearTimeout(id);
+  }, [at, steps.length]);
+  return (
+    <div ref={ref} className='po-ai-turn po-ai-turn--working' role='status' aria-live='polite'>
+      <AiStar className='po-ai-turn__star is-spinning' />
+      <ol className='po-ai-steps'>
+        {steps.slice(0, at + 1).map((k, i) => (
+          <li key={k} className={i < at ? 'is-done' : 'is-now'}>
+            {i < at ? <Icon name='check' /> : <span className='po-ai__dots' aria-hidden='true'><i /><i /><i /></span>}
+            <span>{t(k)}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+};
+
 /**
  * The member's AI assistant. The AI runs at LevelUp (keys never on this site);
  * it is always presented as an AI, shows its sources with the date they were
- * checked, and hands a question to Black Pater in one tap.
+ * checked, reads photos the member joins (kept on this device only), and
+ * hands a question to Black Pater in one tap.
  */
 const Assistant: React.FC<{
   thread: AssistantThread;
   setThread: (fn: (t: AssistantThread) => AssistantThread) => void;
   onRenew: () => void;
-}> = ({ thread, setThread, onRenew }) => {
+  onDossier: () => void;
+}> = ({ thread, setThread, onRenew, onDossier }) => {
   const { t, lang } = useLanguage();
   const [body, setBody] = useState('');
-  const [asking, setAsking] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [asking, setAsking] = useState<{ text: string; images: string[]; steps: StepKey[] } | null>(null);
   const [handing, setHanding] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [local, setLocal] = useState<Record<string, string[]>>({});
+  const [viewer, setViewer] = useState<string | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
+  const file = useRef<HTMLInputElement>(null);
   const finePointer = useMemo(() => typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches, []);
   const left = Math.max(0, thread.daily - thread.used);
+  const imagesLeft = Math.max(0, thread.images.daily - thread.images.used);
   const locked = !thread.active;
 
   useEffect(() => {
@@ -1082,20 +1143,68 @@ const Assistant: React.FC<{
     el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
   }, [body]);
 
+  // Photos of earlier questions, if they were sent from this device.
+  const withImages = thread.messages.filter((m) => m.role === 'user' && (m.images ?? 0) > 0).map((m) => m.id).join(',');
+  useEffect(() => {
+    if (!withImages) return;
+    let alive = true;
+    void loadLocalImages(withImages.split(',')).then((found) => alive && setLocal((l) => ({ ...l, ...found })));
+    return () => {
+      alive = false;
+    };
+  }, [withImages]);
+
+  const addFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setError(null);
+    const room = Math.min(MAX_IMAGES - images.length, imagesLeft - images.length);
+    if (room <= 0) {
+      setError(imagesLeft <= images.length ? t('po_ai_err_images') : t('po_ai_err_images_max'));
+      return;
+    }
+    const picked = Array.from(files).slice(0, room);
+    const out: string[] = [];
+    for (const f of picked) {
+      try {
+        out.push(await compressImage(f));
+      } catch {
+        setError(t('po_ai_err_image_read'));
+      }
+    }
+    setImages((list) => [...list, ...out].slice(0, MAX_IMAGES));
+  };
+
   const ask = async (text: string) => {
     const q = text.trim();
     if (!q || asking || left === 0) return;
+    const imgs = images;
     setError(null);
-    setAsking(q);
+    setAsking({ text: q, images: imgs, steps: workSteps(q, imgs.length, thread.has_profile) });
     setBody('');
+    setImages([]);
     try {
-      await portalApi.assistantAsk(q);
+      const { answer } = await portalApi.assistantAsk(q, imgs, lang);
+      if (answer?.question_id && imgs.length) {
+        await saveLocalImages(answer.question_id, imgs);
+        setLocal((l) => ({ ...l, [answer.question_id as string]: imgs }));
+      }
       const fresh = await portalApi.assistant();
       setThread(() => fresh);
     } catch (err) {
       setBody(q);
+      setImages(imgs);
       const code = err instanceof PortalError ? err.code : '';
-      setError(code === 'rate_limited' ? t('po_ai_err_rate') : code === 'membership_expired' ? t('po_ai_locked') : t('po_ai_err_down'));
+      setError(
+        code === 'image_limit'
+          ? t('po_ai_err_images')
+          : code === 'rate_limited'
+            ? t('po_ai_err_rate')
+            : code === 'membership_expired'
+              ? t('po_ai_locked')
+              : code === 'payload_too_large'
+                ? t('po_ai_err_image_read')
+                : t('po_ai_err_down')
+      );
     } finally {
       setAsking(null);
     }
@@ -1117,11 +1226,21 @@ const Assistant: React.FC<{
   const questions = new Map(thread.messages.filter((m) => m.role === 'user').map((m) => [m.id, m]));
   let lastDay = '';
 
+  const Thumbs: React.FC<{ list: string[] }> = ({ list }) => (
+    <div className='po-ai-thumbs'>
+      {list.map((src, i) => (
+        <button key={i} type='button' className='po-ai-thumb' onClick={() => setViewer(src)} aria-label={t('po_ai_image_open')}>
+          <img src={src} alt='' />
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <section className='po-chat po-ai' aria-labelledby='po-ai-title'>
       <header className='po-chat__head'>
-        <span className='po-chat__avatar po-ai__avatar' aria-hidden='true'>
-          <Icon name='sparkles' />
+        <span className='po-ai__avatar' aria-hidden='true'>
+          <AiStar size={30} />
         </span>
         <div className='po-chat__who'>
           <h2 id='po-ai-title'>{t('po_ai_title')}</h2>
@@ -1131,18 +1250,24 @@ const Assistant: React.FC<{
 
       <div className='po-chat__thread' ref={box} role='log' aria-live='polite' aria-busy={!!asking}>
         {thread.messages.length === 0 && !asking && (
-          <div className='po-chat__start'>
-            <Empty icon='sparkles' title={t('po_ai_intro_title')} text={t('po_ai_intro_text')}>
-              {!locked && (
-                <div className='po-chips po-chips--wrap'>
-                  {(['po_ai_q1', 'po_ai_q2', 'po_ai_q3'] as const).map((k) => (
-                    <button key={k} type='button' className='po-chip' onClick={() => void ask(t(k))}>
-                      {t(k)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </Empty>
+          <div className='po-ai-intro'>
+            <AiStar size={56} />
+            <strong>{t('po_ai_intro_title')}</strong>
+            <p>{t('po_ai_intro_text')}</p>
+            {!thread.has_profile && (
+              <button type='button' className='po-link' onClick={onDossier}>
+                {t('po_ai_intro_dossier')}
+              </button>
+            )}
+            {!locked && (
+              <div className='po-chips po-chips--wrap'>
+                {(['po_ai_q1', 'po_ai_q2', 'po_ai_q3'] as const).map((k) => (
+                  <button key={k} type='button' className='po-chip' onClick={() => void ask(t(k))}>
+                    {t(k)}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
         {thread.messages.map((m) => {
@@ -1157,21 +1282,28 @@ const Assistant: React.FC<{
                   <span>{separator}</span>
                 </div>
               )}
-              <div className={`po-msg po-msg--${m.role === 'user' ? 'me' : 'them'}${m.role === 'owner' ? ' po-msg--validated' : ''}`}>
-                <div className='po-msg__bubble'>
-                  {m.role === 'assistant' && (
-                    <span className='po-ai__tag'>
-                      <Icon name='sparkles' /> {t('po_ai_badge')}
-                    </span>
+              {m.role === 'user' && (
+                <div className='po-msg po-msg--me'>
+                  {local[m.id] ? (
+                    <Thumbs list={local[m.id]} />
+                  ) : (
+                    (m.images ?? 0) > 0 && <span className='po-ai__elsewhere'>{t('po_ai_images_elsewhere', { n: m.images ?? 0 })}</span>
                   )}
-                  {m.role === 'owner' && (
-                    <span className='po-ai__tag po-ai__tag--ok'>
-                      <Icon name='check' /> {t('po_ai_validated')}
+                  <div className='po-msg__bubble'>
+                    <p>{m.body}</p>
+                    <span className='po-msg__meta'>
+                      <time dateTime={m.created_at}>{timeOf(m.created_at, lang)}</time>
                     </span>
-                  )}
-                  <p>{m.body}</p>
-                  {m.role === 'assistant' &&
-                    (m.sources.length ? (
+                  </div>
+                </div>
+              )}
+              {m.role === 'assistant' && (
+                <div className='po-ai-turn'>
+                  <AiStar className='po-ai-turn__star' />
+                  <div className='po-ai-turn__body'>
+                    <span className='po-ai__tag'>{t('po_ai_badge')}</span>
+                    <p className='po-ai-turn__text'>{m.body}</p>
+                    {m.sources.length ? (
                       <div className='po-ai__sources'>
                         <strong>
                           {t('po_ai_sources')} · {t('po_ai_checked_on', { date: formatDate(m.created_at, lang) })}
@@ -1188,44 +1320,50 @@ const Assistant: React.FC<{
                       </div>
                     ) : (
                       <p className='po-ai__nosource'>{t('po_ai_no_sources')}</p>
-                    ))}
-                  <span className='po-msg__meta'>
-                    <time dateTime={m.created_at}>{timeOf(m.created_at, lang)}</time>
-                  </span>
+                    )}
+                    <div className='po-ai-turn__foot'>
+                      <time dateTime={m.created_at}>{timeOf(m.created_at, lang)}</time>
+                      {question &&
+                        (question.handed_off ? (
+                          <span className='po-ai__handed'>
+                            <Icon name='check' /> {t('po_ai_handed_off')}
+                          </span>
+                        ) : (
+                          !locked && (
+                            <button type='button' className='po-ai__ask' disabled={handing === question.id} onClick={() => void handoff(question.id)}>
+                              <Icon name='send' /> {handing === question.id ? t('po_ai_asking_bp') : t('po_ai_ask_bp')}
+                            </button>
+                          )
+                        ))}
+                    </div>
+                  </div>
                 </div>
-                {question &&
-                  (question.handed_off ? (
-                    <p className='po-ai__handed'>
-                      <Icon name='check' /> {t('po_ai_handed_off')}
-                    </p>
-                  ) : (
-                    !locked && (
-                      <button type='button' className='po-ai__ask' disabled={handing === question.id} onClick={() => void handoff(question.id)}>
-                        <Icon name='send' /> {handing === question.id ? t('po_ai_asking_bp') : t('po_ai_ask_bp')}
-                      </button>
-                    )
-                  ))}
-              </div>
+              )}
+              {m.role === 'owner' && (
+                <div className='po-msg po-msg--them po-msg--validated'>
+                  <div className='po-msg__bubble'>
+                    <span className='po-ai__tag po-ai__tag--ok'>
+                      <Icon name='check' /> {t('po_ai_validated')}
+                    </span>
+                    <p>{m.body}</p>
+                    <span className='po-msg__meta'>
+                      <time dateTime={m.created_at}>{timeOf(m.created_at, lang)}</time>
+                    </span>
+                  </div>
+                </div>
+              )}
             </React.Fragment>
           );
         })}
         {asking && (
           <>
             <div className='po-msg po-msg--me is-pending'>
+              {asking.images.length > 0 && <Thumbs list={asking.images} />}
               <div className='po-msg__bubble'>
-                <p>{asking}</p>
+                <p>{asking.text}</p>
               </div>
             </div>
-            <div className='po-msg po-msg--them'>
-              <div className='po-msg__bubble po-ai__thinking'>
-                <span className='po-ai__dots' aria-hidden='true'>
-                  <i />
-                  <i />
-                  <i />
-                </span>
-                <p>{t('po_ai_thinking')}</p>
-              </div>
-            </div>
+            <Working steps={asking.steps} />
           </>
         )}
       </div>
@@ -1240,12 +1378,47 @@ const Assistant: React.FC<{
         </div>
       ) : (
         <form
-          className='po-chat__compose'
+          className='po-chat__compose po-ai__compose'
           onSubmit={(e) => {
             e.preventDefault();
             void ask(body);
           }}
         >
+          {images.length > 0 && (
+            <div className='po-ai-pending'>
+              {images.map((src, i) => (
+                <span key={i} className='po-ai-thumb'>
+                  <img src={src} alt='' />
+                  <button type='button' onClick={() => setImages((l) => l.filter((_, j) => j !== i))} aria-label={t('po_ai_image_remove')}>
+                    <Icon name='close' />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <input
+            ref={file}
+            type='file'
+            accept='image/*'
+            multiple
+            hidden
+            onChange={(e) => {
+              void addFiles(e.target.files);
+              e.target.value = '';
+            }}
+          />
+          {thread.images.daily > 0 && (
+            <button
+              type='button'
+              className='po-ai__attach'
+              disabled={!!asking || imagesLeft - images.length <= 0 || images.length >= MAX_IMAGES}
+              onClick={() => file.current?.click()}
+              aria-label={t('po_ai_image_add')}
+              title={t('po_ai_image_add')}
+            >
+              <Icon name='image' />
+            </button>
+          )}
           <label className='po-sr' htmlFor='po-ai-input'>
             {t('po_ai_label')}
           </label>
@@ -1256,7 +1429,7 @@ const Assistant: React.FC<{
             maxLength={MAX_QUESTION}
             value={body}
             disabled={!!asking || left === 0}
-            placeholder={t('po_ai_placeholder')}
+            placeholder={images.length ? t('po_ai_placeholder_image') : t('po_ai_placeholder')}
             onChange={(e) => setBody(e.target.value)}
             onKeyDown={(e) => {
               if (finePointer && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -1277,11 +1450,292 @@ const Assistant: React.FC<{
             {error}
           </span>
         ) : (
-          !locked && (left === 0 ? t('po_ai_left_none') : left === 1 ? t('po_ai_left_one') : t('po_ai_left', { n: left }))
+          !locked && (
+            <>
+              {left === 0 ? t('po_ai_left_none') : left === 1 ? t('po_ai_left_one') : t('po_ai_left', { n: left })}
+              {thread.images.daily > 0 && left > 0 && ` · ${t('po_ai_images_left', { n: imagesLeft })}`}
+            </>
+          )
         )}
       </p>
       <p className='po-ai__disclaimer'>{t('po_ai_disclaimer')}</p>
+      {viewer && (
+        <div className='po-ai-viewer' role='dialog' aria-modal='true' aria-label={t('po_ai_image_open')} onClick={() => setViewer(null)}>
+          <img src={viewer} alt='' />
+          <button type='button' className='po-icon-btn' onClick={() => setViewer(null)} aria-label={t('po_ai_image_close')}>
+            <Icon name='close' />
+          </button>
+        </div>
+      )}
     </section>
+  );
+};
+
+/* ------------------------------------------------------------------ my dossier */
+
+const MAX_NOTE = 2000;
+
+/**
+ * What the member filled in before paying (PaterGuide), in words, their note
+ * about their project, and a PDF to keep. Only they, Black Pater and its AI
+ * assistant read it.
+ */
+const DossierView: React.FC<{ home: PortalHome; onAssistant?: () => void }> = ({ home, onAssistant }) => {
+  const { t, lang } = useLanguage();
+  const [data, setData] = useState<MemberProfile | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [note, setNote] = useState('');
+  const [saving, setSaving] = useState<'idle' | 'busy' | 'saved' | 'error'>('idle');
+
+  useEffect(() => {
+    let alive = true;
+    portalApi
+      .profile()
+      .then((p) => {
+        if (!alive) return;
+        setData(p);
+        setNote(p.note || '');
+      })
+      .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const readable = useMemo(() => (data?.profile ? readableDossier(data.profile, lang, { contact: true }) : null), [data, lang]);
+  const dirty = (data?.note || '') !== note.trim();
+
+  const saveNote = async () => {
+    setSaving('busy');
+    try {
+      const out = await portalApi.profileNote(note);
+      setData((d) => (d ? { ...d, note: out.note } : d));
+      setNote(out.note || '');
+      setSaving('saved');
+    } catch {
+      setSaving('error');
+    }
+  };
+
+  const download = () => {
+    const blocks: PdfBlock[] = [
+      { kind: 'title', text: t('po_dossier_pdf_title') },
+      {
+        kind: 'subtitle',
+        text: [home.customer.name || home.customer.email, data?.updated_at ? t('po_dossier_filled', { date: formatDate(data.updated_at, lang) }) : '']
+          .filter(Boolean)
+          .join(' · ')
+      },
+      { kind: 'space', size: 6 }
+    ];
+    if (readable) {
+      for (const h of readable.header) blocks.push({ kind: 'label', text: h.label }, { kind: 'text', text: h.value });
+      for (const s of readable.sections) {
+        blocks.push({ kind: 'heading', text: s.title });
+        for (const r of s.rows) blocks.push({ kind: 'label', text: r.q }, { kind: 'text', text: r.a });
+      }
+    }
+    if (data?.note) blocks.push({ kind: 'heading', text: t('po_dossier_note_title') }, { kind: 'text', text: data.note });
+    const bytes = buildPdf(blocks, { title: t('po_dossier_pdf_title'), footer: `Black Pater · ${t('po_dossier_pdf_footer', { date: formatDate(new Date().toISOString(), lang) })}` });
+    downloadPdf(bytes, lang === 'en' ? 'black-pater-my-dossier.pdf' : 'black-pater-mon-dossier.pdf');
+  };
+
+  return (
+    <Section
+      id='dossier'
+      title={t('po_dossier_title')}
+      lead={t('po_dossier_lead')}
+      action={
+        data && (readable || data.note) ? (
+          <button type='button' className='btn btn--secondary' onClick={download}>
+            <Icon name='download' /> {t('po_dossier_download')}
+          </button>
+        ) : undefined
+      }
+    >
+      {failed && (
+        <p className='po-error' role='alert'>
+          {t('po_err_generic')}
+        </p>
+      )}
+      {!data && !failed && <div className='po-skeleton' aria-hidden='true' />}
+
+      {data && (
+        <div className='po-card po-dossier-note'>
+          <h3>
+            <Icon name='star' /> {t('po_dossier_note_title')}
+          </h3>
+          <p className='po-note'>{t('po_dossier_note_text')}</p>
+          <label className='po-sr' htmlFor='po-dossier-note'>
+            {t('po_dossier_note_title')}
+          </label>
+          <textarea
+            id='po-dossier-note'
+            rows={5}
+            maxLength={MAX_NOTE}
+            value={note}
+            placeholder={t('po_dossier_note_placeholder')}
+            onChange={(e) => {
+              setNote(e.target.value);
+              if (saving !== 'busy') setSaving('idle');
+            }}
+          />
+          <div className='po-row'>
+            <button type='button' className='btn btn--primary' disabled={!dirty || saving === 'busy'} aria-busy={saving === 'busy'} onClick={() => void saveNote()}>
+              {t('po_dossier_note_save')}
+            </button>
+            <span className='po-note' role='status'>
+              {saving === 'saved' ? t('po_dossier_note_saved') : saving === 'error' ? t('po_err_generic') : `${note.length} / ${MAX_NOTE}`}
+            </span>
+          </div>
+          {onAssistant && (
+            <button type='button' className='po-link' onClick={onAssistant}>
+              <AiStar size={16} /> {t('po_dossier_ask_ai')}
+            </button>
+          )}
+        </div>
+      )}
+
+      {data && !readable && <Empty icon='file' title={t('po_dossier_empty_title')} text={t('po_dossier_empty_text')} />}
+
+      {readable && (
+        <>
+          {readable.header.length > 0 && (
+            <div className='po-card po-dossier'>
+              <dl>
+                {readable.header.map((h) => (
+                  <div key={h.label}>
+                    <dt>{h.label}</dt>
+                    <dd>{h.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+          {readable.sections.map((s) => (
+            <div key={s.title} className='po-card po-dossier'>
+              <h3>{s.title}</h3>
+              <dl>
+                {s.rows.map((r, i) => (
+                  <div key={i}>
+                    <dt>{r.q}</dt>
+                    <dd>{r.a}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+          {data?.updated_at && <p className='po-note'>{t('po_dossier_filled', { date: formatDate(data.updated_at, lang) })}</p>}
+        </>
+      )}
+    </Section>
+  );
+};
+
+/* ------------------------------------------------------------------ preferences */
+
+/** Language, appearance, notifications and the app, in one place. */
+const Preferences: React.FC = () => {
+  const { t, lang, setLang } = useLanguage();
+  const { theme, setTheme } = useTheme();
+  const app = useMemberApp();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const run = async (fn: () => Promise<unknown>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+    } catch {
+      setError(t('po_app_error'));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const pushOn = app.push === 'on';
+  const pushNote =
+    app.push === 'ios-install'
+      ? t('po_app_ios')
+      : app.push === 'denied'
+        ? t('po_app_denied')
+        : app.push === 'unsupported' || app.push === 'unavailable'
+          ? t('po_prefs_push_unavailable')
+          : pushOn
+            ? t('po_app_on')
+            : t('po_prefs_push_text');
+
+  return (
+    <Section id='preferences' title={t('po_prefs_title')}>
+      <div className='po-card po-prefs'>
+        <div className='po-pref'>
+          <div>
+            <strong>
+              <Icon name='globe' /> {t('po_prefs_lang')}
+            </strong>
+          </div>
+          <div className='po-seg' role='radiogroup' aria-label={t('po_prefs_lang')}>
+            {(['fr', 'en'] as const).map((l) => (
+              <button key={l} type='button' role='radio' aria-checked={lang === l} className={lang === l ? 'is-on' : undefined} onClick={() => setLang(l)}>
+                {l === 'fr' ? 'Français' : 'English'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className='po-pref'>
+          <div>
+            <strong>
+              <Icon name={theme === 'dark' ? 'moon' : 'sun'} /> {t('po_prefs_theme')}
+            </strong>
+          </div>
+          <div className='po-seg' role='radiogroup' aria-label={t('po_prefs_theme')}>
+            {(['light', 'dark'] as const).map((v) => (
+              <button key={v} type='button' role='radio' aria-checked={theme === v} className={theme === v ? 'is-on' : undefined} onClick={() => setTheme(v)}>
+                {t(v === 'light' ? 'po_prefs_light' : 'po_prefs_dark')}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className='po-pref'>
+          <div>
+            <strong>
+              <Icon name='bell' /> {t('po_prefs_push')}
+            </strong>
+            <p className='po-note'>{pushNote}</p>
+          </div>
+          {(app.push === 'on' || app.push === 'off') && (
+            <button
+              type='button'
+              role='switch'
+              aria-checked={pushOn}
+              aria-label={t('po_prefs_push')}
+              className={`po-switch${pushOn ? ' is-on' : ''}`}
+              disabled={busy}
+              onClick={() => void run(pushOn ? app.disable : app.enable)}
+            >
+              <span />
+            </button>
+          )}
+        </div>
+        <div className='po-pref'>
+          <div>
+            <strong>
+              <Icon name='download' /> {t('po_prefs_app')}
+            </strong>
+            <p className='po-note'>{app.installed ? t('po_prefs_app_installed') : app.canInstall ? t('po_prefs_app_text') : app.ios ? t('po_prefs_app_ios') : t('po_prefs_app_browser')}</p>
+          </div>
+          {app.canInstall && (
+            <button type='button' className='btn btn--secondary' disabled={busy} onClick={() => void run(app.install)}>
+              {t('po_app_install')}
+            </button>
+          )}
+        </div>
+        {error && (
+          <p className='po-error' role='alert'>
+            {error}
+          </p>
+        )}
+      </div>
+    </Section>
   );
 };
 
@@ -1742,7 +2196,7 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
             {views.map((v) => (
               <li key={v.id}>
                 <Link to={viewPath(v.id)} className={`po-nav__link${view === v.id ? ' is-active' : ''}`} aria-current={view === v.id ? 'page' : undefined}>
-                  <Icon name={v.icon} />
+                  {v.id === 'assistant' ? <AiStar size={20} /> : <Icon name={v.icon} />}
                   <span>{t(v.label)}</span>
                   {!!badges[v.id] && <span className='po-count'>{badges[v.id]}</span>}
                 </Link>
@@ -1753,6 +2207,10 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
       </aside>
 
       <div className='po-main'>
+        <header className='po-appbar' aria-hidden='true'>
+          <img src='/logo.svg' alt='' width={30} height={30} />
+          <strong>{t(VIEWS.find((v) => v.id === view)?.label ?? 'po_nav_home')}</strong>
+        </header>
         {notice && (
           <p className='po-flash' role='status'>
             <Icon name='check' /> {notice}
@@ -1793,7 +2251,7 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
               {assistant?.enabled && !ended && (
                 <button type='button' className='po-card po-shortcut' onClick={() => go('assistant')}>
                   <span className='po-shortcut__icon' aria-hidden='true'>
-                    <Icon name='sparkles' />
+                    <AiStar size={22} />
                   </span>
                   <span className='po-shortcut__text'>
                     <strong>{t('po_home_ai')}</strong>
@@ -1802,6 +2260,16 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
                   <Icon name='chevronRight' className='po-shortcut__chev' />
                 </button>
               )}
+              <button type='button' className='po-card po-shortcut' onClick={() => go('dossier')}>
+                <span className='po-shortcut__icon' aria-hidden='true'>
+                  <Icon name='file' />
+                </span>
+                <span className='po-shortcut__text'>
+                  <strong>{t('po_dossier_title')}</strong>
+                  <span>{t('po_home_dossier_text')}</span>
+                </span>
+                <Icon name='chevronRight' className='po-shortcut__chev' />
+              </button>
             </div>
             <AppCard />
             {!ended && <ContactCard home={data} onWrite={() => go('messages')} />}
@@ -1817,25 +2285,53 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
             <InfoFeed data={data} setData={setData} markRead={markRead} onPlans={() => go('account')} />
           ))}
 
-        {view === 'assistant' && assistant && <Assistant thread={assistant} setThread={setAssistant} onRenew={() => go('account')} />}
+        {view === 'assistant' && assistant && (
+          <Assistant thread={assistant} setThread={setAssistant} onRenew={() => go('account')} onDossier={() => go('dossier')} />
+        )}
+
+        {view === 'dossier' && <DossierView home={data} onAssistant={assistant?.enabled && !ended ? () => go('assistant') : undefined} />}
 
         {view === 'messages' && <Chat data={data} messages={messages} setMessages={setMessages} locked={ended} onRenew={() => go('account')} />}
 
         {view === 'account' && (
           <>
             <Plans home={data} reload={reload} flash={flash} />
+            <button type='button' className='po-card po-shortcut' onClick={() => go('dossier')}>
+              <span className='po-shortcut__icon' aria-hidden='true'>
+                <Icon name='file' />
+              </span>
+              <span className='po-shortcut__text'>
+                <strong>{t('po_dossier_title')}</strong>
+                <span>{t('po_home_dossier_text')}</span>
+              </span>
+              <Icon name='chevronRight' className='po-shortcut__chev' />
+            </button>
+            <Preferences />
             <Payments home={data} />
-            <Settings home={data} reload={reload} onSignedOut={() => onSignedOut()} />
-            <DeleteAccount home={data} onDeleted={() => onSignedOut(t('po_deleted'))} />
+            <Settings
+              home={data}
+              reload={reload}
+              onSignedOut={() => {
+                void clearLocalImages();
+                onSignedOut();
+              }}
+            />
+            <DeleteAccount
+              home={data}
+              onDeleted={() => {
+                void clearLocalImages();
+                onSignedOut(t('po_deleted'));
+              }}
+            />
           </>
         )}
       </div>
 
       <nav className='po-tabbar' aria-label={t('po_nav_label')}>
-        {views.map((v) => (
+        {views.filter((v) => v.id !== 'dossier').map((v) => (
           <Link key={v.id} to={viewPath(v.id)} className={`po-tabbar__link${view === v.id ? ' is-active' : ''}`} aria-current={view === v.id ? 'page' : undefined}>
             <span className='po-tabbar__icon'>
-              <Icon name={v.icon} />
+              {v.id === 'assistant' ? <AiStar size={20} /> : <Icon name={v.icon} />}
               {!!badges[v.id] && <span className='po-dot' aria-label={t('po_unread', { n: badges[v.id]! })} />}
             </span>
             <span>{t(v.label)}</span>

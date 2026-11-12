@@ -124,6 +124,8 @@ export interface AssistantMessage {
   question_id: string | null;
   /** On a question: sent to Black Pater. */
   handed_off: boolean;
+  /** Images joined to a question (kept on the device only). */
+  images?: number;
   created_at: string;
 }
 
@@ -133,7 +135,17 @@ export interface AssistantThread {
   active: boolean;
   daily: number;
   used: number;
+  images: { daily: number; used: number };
+  /** The member has a dossier or a note: the assistant knows their project. */
+  has_profile: boolean;
   messages: AssistantMessage[];
+}
+
+/** The member's dossier: questionnaire answers saved before paying, and their note. */
+export interface MemberProfile {
+  profile: Record<string, unknown> | null;
+  updated_at: string | null;
+  note: string | null;
 }
 
 export interface PortalHome {
@@ -201,7 +213,10 @@ export const portalApi = {
   pushSubscribe: (sub: { endpoint: string; p256dh: string; auth: string }) => call<{ ok: true }>('push-subscribe', sub),
   pushUnsubscribe: (endpoint: string) => call<{ ok: true }>('push-unsubscribe', { endpoint }),
   assistant: () => call<AssistantThread>('assistant'),
-  assistantAsk: (question: string) => call<{ answer: AssistantMessage | null }>('assistant-ask', { question }),
+  assistantAsk: (question: string, images: string[], lang: string) =>
+    call<{ answer: AssistantMessage | null }>('assistant-ask', { question, lang, ...(images.length ? { images } : {}) }),
+  profile: () => call<MemberProfile>('profile'),
+  profileNote: (note: string) => call<{ ok: true; note: string | null }>('profile-note', { note }),
   assistantHandoff: (questionId: string) => call<{ ok: true; id: string | null }>('assistant-handoff', { questionId }),
   fileUrl: (itemId: string) => `/api/portal/file?item=${encodeURIComponent(itemId)}`
 };

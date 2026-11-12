@@ -74,7 +74,8 @@ test('assistant thread: GET with the session, shape kept tight', async () => {
   await handler(fakeReq({ method: 'GET', url: '/api/portal/assistant', headers: withSession }), res);
   assert.equal(res.statusCode, 200);
   assert.equal(calls[0].name, 'portal_ai_thread');
-  assert.deepEqual(Object.keys(res.body).sort(), ['active', 'daily', 'enabled', 'messages', 'used']);
+  assert.deepEqual(Object.keys(res.body).sort(), ['active', 'daily', 'enabled', 'has_profile', 'images', 'messages', 'used']);
+  assert.deepEqual(res.body.images, { daily: 0, used: 0 });
 
   const anon = fakeRes();
   await handler(fakeReq({ method: 'GET', url: '/api/portal/assistant' }), anon);
@@ -89,7 +90,13 @@ test('assistant ask and handoff go to LevelUp with the portal key and session', 
   await handler(post('assistant-ask', { question: '  Quel visa ?  ' }, withSession), res);
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.answer.id, 'a1');
-  assert.deepEqual(ai[0], { key: KEY, payload: { action: 'ask', session: SESSION, question: 'Quel visa ?' } });
+  assert.equal(ai[0].key, KEY);
+  assert.equal(ai[0].payload.action, 'ask');
+  assert.equal(ai[0].payload.session, SESSION);
+  assert.equal(ai[0].payload.question, 'Quel visa ?');
+  assert.equal(ai[0].payload.lang, 'fr');
+  assert.match(ai[0].payload.site.guide, /Mon dossier/);
+  assert.equal(ai[0].payload.images, undefined);
 
   const h = fakeRes();
   await handler(post('assistant-handoff', { questionId: ATTEMPT }, withSession), h);
@@ -136,4 +143,54 @@ test('assistant client: Bearer portal key, status mapped, network failure is ai_
   assert.equal(assistantUrl({}), DEFAULT_ASSISTANT_URL);
   assert.equal(assistantUrl({ LEVELUP_ASSISTANT_URL: 'https://staging.example.com/api/portal/assistant' }), 'https://staging.example.com/api/portal/assistant');
   assert.equal(assistantUrl({ LEVELUP_ASSISTANT_URL: 'http://evil/x' }), DEFAULT_ASSISTANT_URL);
+});
+
+test('assistant ask: the dossier goes to the AI in words, without e-mail or phone', async () => {
+  const profile = { destinationCountry: 'CA', tier: 'solo', fullName: 'Amani K', email: 'amani@example.com', phone: '+1 555 0100', answers: { purpose: 'study' } };
+  const { handler, ai, calls } = setup({ rpc: async (name) => (name === 'portal_profile_me' ? { profile, note: null } : { ok: true }) });
+  const res = fakeRes();
+  await handler(post('assistant-ask', { question: 'Q', lang: 'en' }, withSession), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(calls[0].name, 'portal_profile_me');
+  const d = ai[0].payload.site.dossier;
+  assert.match(d, /Destination: Canada/);
+  assert.match(d, /Study/);
+  assert.doesNotMatch(d, /amani@example\.com|555/);
+  assert.match(ai[0].payload.site.guide, /My dossier/);
+});
+
+test('assistant ask: up to 3 image data URLs pass, anything else is refused', async () => {
+  const { handler, ai } = setup({ rpc: async () => ({ profile: null }) });
+  const img = 'data:image/jpeg;base64,' + 'A'.repeat(100);
+  const ok = fakeRes();
+  await handler(post('assistant-ask', { question: 'Q', images: [img, img] }, withSession), ok);
+  assert.equal(ok.statusCode, 200);
+  assert.equal(ai[0].payload.images.length, 2);
+  for (const images of [[img, img, img, img], ['data:image/svg+xml;base64,AAA'], ['https://x/y.jpg'], 'x']) {
+    const bad = fakeRes();
+    await handler(post('assistant-ask', { question: 'Q', images }, withSession), bad);
+    assert.equal(bad.statusCode, 400);
+  }
+  assert.equal(ai.length, 1);
+});
+
+test('image limit from LevelUp keeps its own code', async () => {
+  const client = createAssistantClient({ fetch: async () => new Response('{"error":"image_limit"}', { status: 429 }) });
+  await assert.rejects(client(KEY, {}), (e) => e.code === 'image_limit' && e.status === 429);
+});
+
+test('profile and note: own dossier read, note saved', async () => {
+  const { handler, calls } = setup({
+    rpc: async (name) => (name === 'portal_profile_me' ? { profile: { tier: 'solo' }, updated_at: '2026-11-10T00:00:00Z', note: 'n' } : { ok: true, note: 'Mon projet' })
+  });
+  const res = fakeRes();
+  await handler(fakeReq({ method: 'GET', url: '/api/portal/profile', headers: withSession }), res);
+  assert.deepEqual(res.body, { profile: { tier: 'solo' }, updated_at: '2026-11-10T00:00:00Z', note: 'n' });
+  const n = fakeRes();
+  await handler(post('profile-note', { note: 'Mon projet' }, withSession), n);
+  assert.equal(n.statusCode, 200);
+  assert.equal(calls.at(-1).name, 'portal_profile_note');
+  const long = fakeRes();
+  await handler(post('profile-note', { note: 'x'.repeat(2001) }, withSession), long);
+  assert.equal(long.statusCode, 400);
 });

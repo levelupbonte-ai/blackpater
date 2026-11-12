@@ -1514,11 +1514,13 @@
   grid-template-rows: auto minmax(0, 1fr) auto auto auto;
 }
 .po-ai__avatar {
-  background: linear-gradient(150deg, #6d4bd8, #1b2a4a);
-}
-.po-ai__avatar svg {
-  width: 20px;
-  height: 20px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: color-mix(in srgb, #843ff4 12%, var(--surface));
 }
 .po-ai__tag {
   display: inline-flex;
@@ -1658,4 +1660,399 @@
   font-size: 0.72rem;
   line-height: 1.4;
   opacity: 0.65;
+}
+
+/* AI answers: no bubble, the LevelUp star beside the text. */
+.po-ai-turn {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 10px;
+  align-self: stretch;
+  margin: 12px 0 6px;
+  max-width: 680px;
+  animation: fadeUp var(--dur-2) var(--ease-out);
+}
+.po-ai-turn__star {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+}
+.po-ai-turn__star.is-spinning {
+  animation: poAiSpin 2.4s linear infinite;
+}
+@keyframes poAiSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.po-ai-turn__body .po-ai__tag {
+  display: block;
+  margin-bottom: 4px;
+}
+.po-ai-turn__text {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--bone);
+}
+.po-ai-turn__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 0.72rem;
+}
+.po-ai-turn__foot time {
+  opacity: 0.6;
+}
+.po-ai-turn__foot .po-ai__ask,
+.po-ai-turn__foot .po-ai__handed {
+  margin: 0;
+}
+.po-ai-steps {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.88rem;
+}
+.po-ai-steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeUp var(--dur-2) var(--ease-out);
+}
+.po-ai-steps li.is-done {
+  opacity: 0.55;
+}
+.po-ai-steps li.is-done svg {
+  width: 14px;
+  height: 14px;
+  color: var(--success, #2f9e6b);
+}
+.po-ai-steps li.is-now span:last-child {
+  background: linear-gradient(90deg, var(--bone) 30%, var(--bone-mute) 50%, var(--bone) 70%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: poAiShimmer 1.8s linear infinite;
+}
+@keyframes poAiShimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .po-ai-turn__star.is-spinning,
+  .po-ai-steps li.is-now span:last-child {
+    animation: none;
+    color: var(--bone);
+  }
+}
+.po-ai-intro {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 460px;
+  margin: auto;
+  padding: 24px 8px;
+  text-align: center;
+}
+.po-ai-intro strong {
+  font-size: 1.1rem;
+}
+.po-ai-intro p {
+  margin: 0;
+  color: var(--bone-mute);
+  line-height: 1.5;
+}
+.po-ai-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.po-ai-thumb {
+  position: relative;
+  display: block;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: zoom-in;
+}
+.po-ai-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.po-ai-pending {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding-bottom: 8px;
+}
+.po-ai-pending .po-ai-thumb {
+  width: 58px;
+  height: 58px;
+  cursor: default;
+}
+.po-ai-pending .po-ai-thumb button {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  cursor: pointer;
+}
+.po-ai-pending .po-ai-thumb button svg {
+  width: 12px;
+  height: 12px;
+}
+.po-ai__compose {
+  flex-wrap: wrap;
+}
+.po-ai__attach {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bone);
+  cursor: pointer;
+}
+.po-ai__attach:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.po-ai__attach svg {
+  width: 20px;
+  height: 20px;
+}
+.po-ai__elsewhere {
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+.po-ai-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.85);
+}
+.po-ai-viewer img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+}
+.po-ai-viewer .po-icon-btn {
+  position: absolute;
+  top: calc(16px + env(safe-area-inset-top));
+  right: 16px;
+  color: #fff;
+}
+
+/* ------------------------------------------------------------------ my dossier */
+
+.po-dossier h3,
+.po-dossier-note h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+.po-dossier-note h3 svg {
+  width: 18px;
+  height: 18px;
+}
+.po-dossier dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.po-dossier dt {
+  color: var(--bone-mute);
+  font-size: 0.82rem;
+}
+.po-dossier dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.po-dossier-note {
+  display: grid;
+  gap: 10px;
+}
+.po-dossier-note textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg, var(--surface));
+  color: var(--bone);
+  font: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+.po-dossier-note .po-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+}
+
+/* ------------------------------------------------------------------ preferences */
+
+.po-prefs {
+  display: grid;
+  gap: 0;
+  padding-block: 4px;
+}
+.po-pref {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.po-pref:last-of-type {
+  border-bottom: 0;
+}
+.po-pref > div:first-child {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.po-pref strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.po-pref strong svg {
+  width: 18px;
+  height: 18px;
+}
+.po-pref .po-note {
+  margin: 4px 0 0;
+}
+.po-seg {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg, transparent);
+}
+.po-seg button {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bone-mute);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.po-seg button.is-on {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+}
+.po-switch {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+  transition: background-color var(--dur-2) var(--ease-out);
+}
+.po-switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.po-switch.is-on {
+  background: var(--success, #2f9e6b);
+}
+.po-switch.is-on span {
+  transform: translateX(20px);
+}
+.po-switch:disabled {
+  opacity: 0.6;
+}
+
+/* ------------------------------------------------------------------ installed app */
+
+.po-appbar {
+  display: none;
+}
+html.is-app {
+  --nav-h: env(safe-area-inset-top, 0px);
+}
+html.is-app .po-appbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 calc(var(--pad) * -1) 8px;
+  padding: calc(10px + env(safe-area-inset-top)) var(--pad) 10px;
+  background: var(--nav-bg-scrolled);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  backdrop-filter: saturate(160%) blur(16px);
+  border-bottom: 1px solid var(--line);
+}
+html.is-app .po-appbar strong {
+  font-size: 1.05rem;
+}
+html.is-app .po-page {
+  padding-top: 0;
+}
+html.is-app .po-chat {
+  height: calc(100dvh - 60px - env(safe-area-inset-top) - 84px - env(safe-area-inset-bottom));
+}
+@media (min-width: 960px) {
+  html.is-app .po-appbar {
+    display: none;
+  }
+  html.is-app .po-page {
+    padding-top: 24px;
+  }
 }

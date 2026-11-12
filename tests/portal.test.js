@@ -326,3 +326,45 @@ test('helpers: cookie round trip, device labels, client hash', () => {
   assert.equal(clientHash('203.0.113.7', KEY), clientHash('203.0.113.7', KEY));
   assert.notEqual(clientHash('203.0.113.7', KEY), clientHash('203.0.113.8', KEY));
 });
+
+test('push first: a device that receives it saves the e-mail; a gone device is removed', async () => {
+  const pushes = [];
+  const results = [];
+  const rows = [
+    { id: 1, kind: 'message', locale: 'fr', to: 'jane@example.com', push: [{ id: 7, endpoint: 'https://push.example/a', p256dh: 'x'.repeat(60), auth: 'y'.repeat(20) }, { id: 8, endpoint: 'https://push.example/gone', p256dh: 'x'.repeat(60), auth: 'y'.repeat(20) }] },
+    { id: 2, kind: 'message', locale: 'en', to: 'joe@example.com', push: [] },
+    { id: 3, kind: 'signin', locale: 'en', to: 'joe@example.com', data: { at: '2026-11-12T10:00:00Z' }, push: [{ id: 9, endpoint: 'https://push.example/b', p256dh: 'x'.repeat(60), auth: 'y'.repeat(20) }] }
+  ];
+  const { handler, sent } = setup({
+    rpc: (name, args) => {
+      if (name === 'portal_outbox_claim') return rows;
+      if (name === 'portal_push_result') results.push(args);
+      return { ok: true };
+    },
+    getPushConfig: () => ({ enabled: true, publicKey: 'k'.repeat(87), privateKey: 'p'.repeat(43) }),
+    sendPush: async (cfg, device, note) => {
+      pushes.push([device.id, note]);
+      return device.endpoint.endsWith('gone') ? { ok: false, gone: true } : { ok: true, gone: false };
+    }
+  });
+  const out = await handler.drainNow(10);
+  assert.equal(out.sent, 3);
+  // Row 1 pushed (no e-mail), row 2 had no device (e-mail), row 3 is a sign-in alert (always e-mail).
+  assert.deepEqual(sent.map((s) => s.mail.subject.slice(0, 3)).length, 2);
+  assert.deepEqual(pushes.map((p) => p[0]), [7, 8]);
+  assert.equal(pushes[0][1].url, '/espace-client?view=messages');
+  assert.equal(pushes[0][1].title, 'Nouveau message');
+  assert.doesNotMatch(JSON.stringify(pushes[0][1]), /jane|example/);
+  assert.deepEqual(results.map((r) => [r.p_id, r.p_ok, r.p_gone]), [[7, true, false], [8, false, true]]);
+});
+
+test('push subscribe: only a well-formed https endpoint and keys reach the database', async () => {
+  const { handler, calls } = setup({ getPushConfig: () => ({ enabled: true, publicKey: 'k'.repeat(87), privateKey: 'p'.repeat(43) }) });
+  const ok = fakeRes();
+  await handler(post('push-subscribe', { endpoint: 'https://fcm.googleapis.com/fcm/send/abc123', p256dh: 'B'.repeat(87), auth: 'a'.repeat(22) }, withSession), ok);
+  assert.equal(ok.statusCode, 200);
+  assert.equal(calls[0].name, 'portal_push_subscribe');
+  const bad = fakeRes();
+  await handler(post('push-subscribe', { endpoint: 'http://evil.example/x', p256dh: 'B'.repeat(87), auth: 'a'.repeat(22) }, withSession), bad);
+  assert.equal(bad.statusCode, 400);
+});

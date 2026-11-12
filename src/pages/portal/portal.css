@@ -1487,3 +1487,14 @@
 .po-chat__locked span {
   flex: 1 1 200px;
 }
+
+/* Installable app and notifications */
+.po-app {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.po-app .po-row {
+  flex-wrap: wrap;
+}

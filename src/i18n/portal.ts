@@ -255,7 +255,16 @@ export const fr = {
   po_formula_base_f2: 'La messagerie avec Black Pater',
   po_formula_base_f3: 'Les informations gratuites',
   po_formula_includes_base: 'Tout ce que donne la formule de base',
-  po_formula_back_base: 'Revenir à la base'
+  po_formula_back_base: 'Revenir à la base',
+  po_app_title: 'L’app Black Pater',
+  po_app_text: 'Installez votre espace sur votre téléphone et soyez prévenu tout de suite d’un nouveau message ou d’une nouvelle information, sans attendre l’e-mail.',
+  po_app_on: 'Les notifications sont activées sur cet appareil. Vous recevez les nouveautés ici plutôt que par e-mail.',
+  po_app_ios: 'Sur iPhone : touchez le bouton Partager, puis « Sur l’écran d’accueil ». Ouvrez Black Pater depuis l’écran d’accueil, puis activez les notifications ici.',
+  po_app_denied: 'Les notifications sont bloquées pour ce site. Autorisez-les dans les réglages de votre navigateur pour les recevoir.',
+  po_app_install: 'Installer l’app',
+  po_app_enable: 'Activer les notifications',
+  po_app_disable: 'Désactiver les notifications sur cet appareil',
+  po_app_error: 'Cela n’a pas fonctionné. Réessayez dans un instant.'
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -514,5 +523,14 @@ export const en: Record<keyof typeof fr, string> = {
   po_formula_base_f2: 'Messages with Black Pater',
   po_formula_base_f3: 'The free information',
   po_formula_includes_base: 'Everything the base formula gives',
-  po_formula_back_base: 'Back to base'
+  po_formula_back_base: 'Back to base',
+  po_app_title: 'The Black Pater app',
+  po_app_text: 'Install your space on your phone and be told right away about a new message or new information, without waiting for the e-mail.',
+  po_app_on: 'Notifications are on for this device. You get the news here instead of by e-mail.',
+  po_app_ios: 'On iPhone: tap the Share button, then “Add to Home Screen”. Open Black Pater from the home screen, then turn notifications on here.',
+  po_app_denied: 'Notifications are blocked for this site. Allow them in your browser settings to receive them.',
+  po_app_install: 'Install the app',
+  po_app_enable: 'Turn on notifications',
+  po_app_disable: 'Turn off notifications on this device',
+  po_app_error: 'That did not work. Please try again in a moment.'
 };

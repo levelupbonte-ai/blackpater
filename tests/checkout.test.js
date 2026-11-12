@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { getOffer, priceFor } from '../shared/offers.js';
 import { createCheckoutHandler, BUCKET_MS } from '../api/_lib/checkout.js';
 import { createRateLimiter } from '../api/_lib/memory.js';
 import { fakeReq, fakeRes, fakeStripe, jsonPost, silentLog } from './helpers.js';
@@ -27,12 +28,33 @@ test('price comes from the server catalog, never from the request', async () => 
   const res = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT });
   assert.equal(res.statusCode, 200);
   const params = stripe.calls.create[0].params;
-  assert.equal(params.line_items[0].price_data.unit_amount, 260);
+  // After the launch week: the regular monthly price.
+  assert.equal(params.line_items[0].price_data.unit_amount, 500);
+  assert.equal(params.metadata.price, 'regular');
+  assert.equal(params.allow_promotion_codes, true);
   assert.equal(params.line_items[0].price_data.currency, 'usd');
   assert.equal(params.client_reference_id, ATTEMPT);
   assert.equal(params.payment_method_types, undefined);
   assert.equal(params.mode, 'payment');
   assert.match(params.success_url, /^https:\/\/blackpater\.com\/paiement\/confirmation\?session_id=\{CHECKOUT_SESSION_ID\}$/);
+});
+
+test('launch week: first month at the launch price, regular price shown on the payment page', async () => {
+  const launch = Date.parse('2026-11-15T12:00:00Z');
+  const { stripe, handler } = setup({ now: () => launch });
+  const res = await call(handler, { offerId: 'accompagnement-voyage-famille', attemptId: ATTEMPT });
+  assert.equal(res.statusCode, 200);
+  const params = stripe.calls.create[0].params;
+  assert.equal(params.line_items[0].price_data.unit_amount, 1100);
+  assert.equal(params.metadata.price, 'launch');
+  assert.match(params.custom_text.submit.message, /16\s\$ \/ mois/);
+  assert.match(params.custom_text.submit.message, /sans prélèvement automatique/);
+});
+
+test('the launch price stops at the announced time', () => {
+  const offer = getOffer('accompagnement-voyage-duo');
+  assert.deepEqual(priceFor(offer, Date.parse('2026-11-17T06:59:58Z')), { amount: 500, regular: 900, launch: true });
+  assert.deepEqual(priceFor(offer, Date.parse('2026-11-17T07:00:00Z')), { amount: 900, regular: 900, launch: false });
 });
 
 test('repeated taps for one attempt reuse a single Checkout Session', async () => {

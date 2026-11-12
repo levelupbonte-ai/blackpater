@@ -3,7 +3,9 @@ import './offer-tiers.css';
 import { Link, useRouter } from '../app/router';
 import { useLanguage } from '../context/LanguageContext';
 import { Icon } from './Icon';
-import { ECOSYSTEM_TIERS, formatOfferPrice } from '../../shared/offers.js';
+import { ECOSYSTEM_TIERS, formatOfferPrice, priceFor } from '../../shared/offers.js';
+import { useLaunchClock } from '../lib/launch';
+import { LaunchCountdown } from './LaunchCountdown';
 import type { TranslationKey } from '../i18n';
 import { preselectTier, type TierKey } from '../pages/offer-travel/tier-preselection';
 
@@ -27,6 +29,7 @@ export const OfferTiers: React.FC = () => {
   const { lang, t } = useLanguage();
   const { navigate } = useRouter();
   const k = (s: string) => s as TranslationKey;
+  const now = useLaunchClock();
 
   const start = (tier: TierKey) => (e: React.MouseEvent<HTMLAnchorElement>) => {
     preselectTier(tier);
@@ -36,12 +39,16 @@ export const OfferTiers: React.FC = () => {
   };
 
   return (
+        <>
+          <LaunchCountdown />
           <ul className='tiers__grid' aria-label={t('offers_list_label')}>
             {ECOSYSTEM_TIERS.map((offer) => {
               const tier = offer.tier as TierKey;
               const keys = TIER_KEYS[tier];
               const recommended = tier === RECOMMENDED_TIER;
               const tierName = lang === 'en' ? keys.name.split('|').pop() : keys.name.split('|')[0];
+              const price = priceFor(offer, now);
+              const regular = formatOfferPrice(offer, lang, price.regular);
               return (
                 <li key={offer.id} className={`tier${recommended ? ' tier--featured' : ''}`}>
                   <div className='tier__head'>
@@ -51,8 +58,19 @@ export const OfferTiers: React.FC = () => {
                   <p className='tier__sub'>{t(keys.sub)}</p>
 
                   <p className='tier__price'>
-                    <span className='tier__amount'>{formatOfferPrice(offer, lang)}</span>
-                    <span className='tier__once'>{t('offers_tier_once')}</span>
+                    {price.launch && (
+                      <span className='tier__was'>
+                        <span className='tier__launch'>{t('offers_tier_launch')}</span>
+                        <s aria-label={t('offers_tier_was', { regular })}>{regular}</s>
+                      </span>
+                    )}
+                    <span className='tier__amount' suppressHydrationWarning>
+                      {formatOfferPrice(offer, lang, price.amount)}
+                      <span className='tier__per'>{t('offers_tier_per_month')}</span>
+                    </span>
+                    <span className='tier__once'>
+                      {price.launch ? t('offers_tier_launch_note', { regular }) : t('offers_tier_once')}
+                    </span>
                   </p>
 
                   <ul className='tier__list'>
@@ -77,5 +95,6 @@ export const OfferTiers: React.FC = () => {
               );
             })}
           </ul>
+        </>
   );
 };

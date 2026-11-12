@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { getOffer } from '../../shared/offers.js';
+import { MEMBERSHIP_DAYS, formatOfferPrice, getOffer, priceFor } from '../../shared/offers.js';
 import { getStripe } from './stripe.js';
 import { createRateLimiter, createTtlMap } from './memory.js';
 import { HttpError, getClientIp, methodNotAllowed, readJsonBody, resolveOrigin, sendJson } from './http.js';
@@ -21,7 +21,9 @@ function paramsHash(params) {
   return createHash('sha256').update(JSON.stringify(params)).digest('hex').slice(0, 12);
 }
 
-export function buildSessionParams({ offer, attemptId, origin, bucket }) {
+export function buildSessionParams({ offer, attemptId, origin, bucket, now = Date.now() }) {
+  const price = priceFor(offer, now);
+  const regular = formatOfferPrice(offer, 'fr', price.regular);
   const expiresAt = Math.floor(((bucket + 1) * BUCKET_MS + EXPIRY_MARGIN_MS) / 1000);
   return {
     mode: 'payment',
@@ -32,7 +34,7 @@ export function buildSessionParams({ offer, attemptId, origin, bucket }) {
         quantity: 1,
         price_data: {
           currency: offer.currency,
-          unit_amount: offer.amount,
+          unit_amount: price.amount,
           product_data: { name: offer.stripeName, description: offer.stripeDescription }
         }
       }
@@ -41,14 +43,22 @@ export function buildSessionParams({ offer, attemptId, origin, bucket }) {
     submit_type: 'pay',
     billing_address_collection: 'auto',
     client_reference_id: attemptId,
-    metadata: { offer_id: offer.id, attempt_id: attemptId, site: 'blackpater.com' },
+    metadata: {
+      offer_id: offer.id,
+      attempt_id: attemptId,
+      site: 'blackpater.com',
+      price: price.launch ? 'launch' : 'regular',
+      months: '1'
+    },
     payment_intent_data: {
       description: offer.stripeName,
-      metadata: { offer_id: offer.id, attempt_id: attemptId, site: 'blackpater.com' }
+      metadata: { offer_id: offer.id, attempt_id: attemptId, site: 'blackpater.com', price: price.launch ? 'launch' : 'regular' }
     },
+    // Promotion codes created in the Stripe Dashboard (Products → Coupons).
+    allow_promotion_codes: true,
     custom_text: {
       submit: {
-        message: `Paiement unique, sans renouvellement. Conditions de vente / Terms of sale: ${origin}/legal/conditions-de-vente`
+        message: `${price.launch ? `Prix de lancement pour le 1er mois, puis ${regular} / mois. ` : ''}Accès de ${MEMBERSHIP_DAYS} jours, sans prélèvement automatique : vous êtes prévenu avant la fin pour renouveler depuis votre espace. / ${MEMBERSHIP_DAYS} days of access, no automatic charge. Conditions de vente / Terms of sale: ${origin}/legal/conditions-de-vente`
       }
     },
     managed_payments: {
@@ -138,7 +148,7 @@ export function createCheckoutHandler(deps = {}) {
 
       // 3. Create — idempotent for this attempt within the time window.
       const bucket = Math.floor(t / BUCKET_MS);
-      const params = buildSessionParams({ offer, attemptId, origin: resolveOrigin(req), bucket });
+      const params = buildSessionParams({ offer, attemptId, origin: resolveOrigin(req), bucket, now: t });
       const idempotencyKey = `bp_checkout_${offer.id}_${attemptId}_${bucket}_${paramsHash(params)}`;
       let session;
       try {

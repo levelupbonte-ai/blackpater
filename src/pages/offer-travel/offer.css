@@ -246,3 +246,16 @@
     max-width: 280px;
   }
 }
+.buy__price {
+  flex-wrap: wrap;
+}
+.buy__was {
+  width: 100%;
+  color: var(--bone-mute);
+  font-size: 0.95rem;
+}
+.buy__per {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--bone-mute);
+}

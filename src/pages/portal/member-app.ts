@@ -103,7 +103,7 @@ export function useMemberApp() {
     setInstallEvent(null);
   }, [installEvent]);
 
-  const enable = useCallback(async () => {
+  const enable = useCallback(async (lang?: string) => {
     if (!key) return false;
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
@@ -116,7 +116,12 @@ export function useMemberApp() {
       (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64ToBytes(key) }));
     const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
     if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return false;
-    await portalApi.pushSubscribe({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth });
+    await portalApi.pushSubscribe({
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth: json.keys.auth,
+      ...(lang === 'fr' || lang === 'en' ? { lang } : {})
+    });
     setPush('on');
     return true;
   }, [key]);

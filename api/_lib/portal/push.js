@@ -37,6 +37,18 @@ const TEXT = {
   }
 };
 
+const WELCOME = {
+  en: { title: 'Notifications are on', body: (name) => `Welcome${name ? ` ${name}` : ''}! You will be told here about Black Pater's messages, new information and reminders.` },
+  fr: { title: 'Notifications activées', body: (name) => `Bienvenue${name ? ` ${name}` : ''} ! Vous serez prévenu ici des messages de Black Pater, des nouvelles informations et des rappels.` }
+};
+
+/** Sent once to a device right after its notifications are turned on. */
+export function welcomePush(lang, name) {
+  const t = WELCOME[lang === 'fr' ? 'fr' : 'en'];
+  const first = typeof name === 'string' ? name.trim().split(/\s+/)[0].slice(0, 30) : '';
+  return { title: t.title, body: t.body(first), url: '/espace-client', tag: 'bp-welcome' };
+}
+
 /** The notification for one outbox row, or null when that kind is never pushed. */
 export function pushFor(row) {
   const t = TEXT[row.locale === 'fr' ? 'fr' : 'en'];

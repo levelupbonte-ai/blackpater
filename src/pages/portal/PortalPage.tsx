@@ -22,6 +22,7 @@ import {
 } from './api';
 import { formatOfferPrice, getOffer, getOfferByTier } from '../../../shared/offers.js';
 import type { TranslationKey } from '../../i18n';
+import { useMemberApp } from './member-app';
 import './portal.css';
 
 /** "Duo · 2 people" from the catalog, in the visitor's language; the stored name otherwise. */
@@ -467,6 +468,61 @@ const AccessCard: React.FC<{ home: PortalHome; onPlans?: () => void }> = ({ home
           </button>
         )}
         {errorLine}
+      </div>
+    </div>
+  );
+};
+
+/** Install the space as an app and get notifications instead of e-mails. */
+const AppCard: React.FC = () => {
+  const { t } = useLanguage();
+  const app = useMemberApp();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  if (app.push === 'loading' || (app.push === 'unsupported' && !app.canInstall)) return null;
+  const run = async (fn: () => Promise<unknown>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+    } catch {
+      setError(t('po_app_error'));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className='po-card po-app'>
+      <span className='po-access__icon' aria-hidden='true'>
+        <Icon name='bell' />
+      </span>
+      <div className='po-access__body'>
+        <strong>{t('po_app_title')}</strong>
+        <p>{app.push === 'on' ? t('po_app_on') : t('po_app_text')}</p>
+        {app.push === 'ios-install' && <p className='po-note'>{t('po_app_ios')}</p>}
+        {app.push === 'denied' && <p className='po-note'>{t('po_app_denied')}</p>}
+        <div className='po-row'>
+          {app.canInstall && (
+            <button type='button' className='btn btn--secondary' disabled={busy} onClick={() => run(app.install)}>
+              <Icon name='download' /> {t('po_app_install')}
+            </button>
+          )}
+          {app.push === 'off' && (
+            <button type='button' className='btn btn--primary' disabled={busy} aria-busy={busy} onClick={() => run(app.enable)}>
+              <Icon name='bell' /> {t('po_app_enable')}
+            </button>
+          )}
+          {app.push === 'on' && (
+            <button type='button' className='po-link po-link--muted' disabled={busy} onClick={() => run(app.disable)}>
+              {t('po_app_disable')}
+            </button>
+          )}
+        </div>
+        {error && (
+          <p className='po-error' role='alert'>
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -1455,6 +1511,7 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
                 <Icon name='chevronRight' className='po-shortcut__chev' />
               </button>
             </div>
+            <AppCard />
             {!ended && <ContactCard home={data} onWrite={() => go('messages')} />}
           </>
         )}

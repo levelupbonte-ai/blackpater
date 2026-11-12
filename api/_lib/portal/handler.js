@@ -17,6 +17,7 @@ import { getPortalConfig, missingConfig } from './config.js';
 import { PortalDbError, createPortalDb } from './db.js';
 import { buildEmail, createMailer } from './email.js';
 import { buildPlanCheckout, buildRenewalCheckout, idempotencyKey } from './plans.js';
+import { createPushSender, getPushConfig, pushFor } from './push.js';
 import { getOffer, getOfferByTier } from '../../../shared/offers.js';
 import { isStripeCheckoutUrl } from '../../../shared/validation.js';
 import {
@@ -55,11 +56,14 @@ export const PORTAL_ACTIONS = [
   'renew',
   'plan-buy',
   'reminders',
+  'push-key',
+  'push-subscribe',
+  'push-unsubscribe',
   'delete-code',
   'delete-account'
 ];
 
-const GET_ACTIONS = new Set(['status', 'me', 'file']);
+const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key']);
 const NO_SESSION = new Set(['status', 'request-code', 'verify-code', 'password-sign-in', 'outbox']);
 
 function cleanEmail(value) {
@@ -167,6 +171,8 @@ export function createPortalHandler(deps = {}) {
   const configFor = deps.getConfig || getPortalConfig;
   const rpc = deps.rpc || createPortalDb({ fetch: deps.fetch });
   const send = deps.send || createMailer({ fetch: deps.fetch });
+  const pushConfigFor = deps.getPushConfig || getPushConfig;
+  const sendPush = deps.sendPush || createPushSender();
   const log = deps.log || console;
   const stripeFor = deps.getStripe || getStripe;
   const fetchImpl = deps.fetch || ((...a) => globalThis.fetch(...a));
@@ -185,9 +191,28 @@ export function createPortalHandler(deps = {}) {
       log.warn(JSON.stringify({ evt: 'portal.outbox_claim_failed', code: err?.code || 'error' }));
       return { sent, failed };
     }
+    const pushCfg = pushConfigFor();
     for (const row of Array.isArray(rows) ? rows : []) {
-      const mail = emailForOutbox(row, origin);
-      const result = mail && row.to ? await send(cfg, { to: row.to, ...mail }) : { ok: false, reason: 'invalid' };
+      // Push first: when at least one of the member's devices got it, no e-mail.
+      let pushed = false;
+      const note = pushCfg.enabled ? pushFor(row) : null;
+      if (note && Array.isArray(row.push)) {
+        for (const device of row.push.slice(0, 10)) {
+          const out = await sendPush(pushCfg, device, note);
+          if (out.ok) pushed = true;
+          try {
+            await rpc('portal_push_result', { p_key: cfg.portalKey, p_id: device.id, p_ok: out.ok, p_gone: out.gone });
+          } catch {
+            /* bookkeeping only */
+          }
+        }
+      }
+      const mail = pushed ? null : emailForOutbox(row, origin);
+      const result = pushed
+        ? { ok: true }
+        : mail && row.to
+          ? await send(cfg, { to: row.to, ...mail })
+          : { ok: false, reason: 'invalid' };
       if (result.ok) sent += 1;
       else failed += 1;
       try {
@@ -507,6 +532,36 @@ export function createPortalHandler(deps = {}) {
       await rpc('portal_delete_account_finish', { p_key: cfg.portalKey, p_session: ctx.session });
       log.info?.(JSON.stringify({ evt: 'portal.account_deleted' }));
       return sendJson(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(null, { secure: isSecure(req) }) });
+    },
+
+    /** The public key the browser needs to subscribe (null: push not set up). */
+    async 'push-key'(req, res) {
+      const push = pushConfigFor();
+      return sendJson(res, 200, { key: push.enabled ? push.publicKey : null });
+    },
+
+    /** This device receives the space's notifications. */
+    async 'push-subscribe'(req, res, cfg, ctx) {
+      if (!pushConfigFor().enabled) return sendJson(res, 503, { error: 'push_unavailable' });
+      const { endpoint, p256dh, auth } = pick(await readJsonBody(req, 2048), {
+        endpoint: (v) => (typeof v === 'string' && v.length >= 20 && v.length <= 1000 && /^https:\/\/[^\s]+$/.test(v) ? v : undefined),
+        p256dh: (v) => (typeof v === 'string' && /^[A-Za-z0-9_-]{40,200}$/.test(v) ? v : undefined),
+        auth: (v) => (typeof v === 'string' && /^[A-Za-z0-9_-]{10,100}$/.test(v) ? v : undefined)
+      });
+      await rpc('portal_push_subscribe', {
+        p_key: cfg.portalKey,
+        p_session: ctx.session,
+        p_sub: { endpoint, p256dh, auth, device: ctx.device }
+      });
+      return sendJson(res, 200, { ok: true });
+    },
+
+    async 'push-unsubscribe'(req, res, cfg, ctx) {
+      const { endpoint } = pick(await readJsonBody(req, 1200), {
+        endpoint: (v) => (typeof v === 'string' && v.length >= 20 && v.length <= 1000 ? v : undefined)
+      });
+      await rpc('portal_push_unsubscribe', { p_key: cfg.portalKey, p_session: ctx.session, p_endpoint: endpoint });
+      return sendJson(res, 200, { ok: true });
     },
 
     /** Sends queued e-mails: signed call from the LevelUp dashboard or the daily Vercel Cron. */

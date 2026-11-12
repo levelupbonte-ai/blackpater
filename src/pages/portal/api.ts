@@ -170,6 +170,9 @@ export const portalApi = {
   reminders: (on: boolean) => call<{ ok: true; reminders: boolean }>('reminders', { on }),
   deleteCode: () => call<{ ok: true }>('delete-code', {}),
   deleteAccount: (code: string) => call<{ ok: true }>('delete-account', { code }),
+  pushKey: () => call<{ key: string | null }>('push-key'),
+  pushSubscribe: (sub: { endpoint: string; p256dh: string; auth: string }) => call<{ ok: true }>('push-subscribe', sub),
+  pushUnsubscribe: (endpoint: string) => call<{ ok: true }>('push-unsubscribe', { endpoint }),
   fileUrl: (itemId: string) => `/api/portal/file?item=${encodeURIComponent(itemId)}`
 };
 

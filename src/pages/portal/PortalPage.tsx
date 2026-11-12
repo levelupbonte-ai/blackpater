@@ -391,11 +391,13 @@ const AccessCard: React.FC<{ home: PortalHome; onPlans?: () => void }> = ({ home
   const left = daysLeft(membership?.until ?? null);
   const plan = access.plan?.active ? access.plan : null;
 
+  const renewPlan = plan ? plans.find((p) => p.level === plan.level) : null;
+  const renewPrice = renewPlan ? formatMoney(renewPlan.amount, renewPlan.currency, lang) : price;
   const renew = async () => {
     setBusy(true);
     setError(null);
     try {
-      await goPay(portalApi.renew);
+      await goPay(renewPlan ? () => portalApi.planBuy(renewPlan.level) : portalApi.renew);
     } catch (err) {
       setError(payErrorText(t, err));
       setBusy(false);
@@ -403,7 +405,7 @@ const AccessCard: React.FC<{ home: PortalHome; onPlans?: () => void }> = ({ home
   };
   const renewButton = (primary: boolean) => (
     <button type='button' className={`btn ${primary ? 'btn--primary' : 'btn--secondary'}`} onClick={renew} disabled={busy} aria-busy={busy}>
-      <Icon name='card' /> {t('po_renew_cta', { price })}
+      <Icon name='card' /> {t('po_renew_cta', { price: renewPrice })}
     </button>
   );
   const errorLine = error && (
@@ -973,10 +975,10 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
   const [error, setError] = useState<string | null>(null);
   const [ask, setAsk] = useState(false);
   const { membership } = home;
-  const expired = membership?.monthly && !membership.active;
   const current = home.access.plan?.active ? home.access.plan : null;
   const offer = renewalOffer(home);
   const until = formatDate(membership?.until ?? null, lang);
+  const active = Boolean(membership?.active);
 
   const act = async (key: string, fn: () => Promise<void>) => {
     setBusy(key);
@@ -991,89 +993,96 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
     }
   };
 
+  const baseCurrent = active && !current;
   return (
     <Section id='plans' title={t('po_plans_title')} lead={t('po_plans_lead_monthly')}>
       <AccessCard home={home} />
 
-      {membership?.monthly && membership.active && (
-        <div className='po-card po-renew'>
-          <div>
-            <strong>{t('po_renew_title')}</strong>
-            <p className='po-note'>{t('po_renew_text', { price: formatOfferPrice(offer, lang, offer.amount), days: membership.period_days })}</p>
-          </div>
-          <div className='po-row'>
-            <button
-              type='button'
-              className='btn btn--secondary'
-              disabled={busy !== null}
-              aria-busy={busy === 'renew'}
-              onClick={() => act('renew', () => goPay(portalApi.renew))}
-            >
-              <Icon name='card' /> {t('po_renew_now')}
-            </button>
-            {membership.reminders ? (
-              <button type='button' className='po-link po-link--muted' onClick={() => setAsk(true)}>
-                {t('po_cancel_sub')}
-              </button>
-            ) : (
+      <h3 className='po-subtitle'>{t('po_formula_title')}</h3>
+      <p className='po-note'>{t('po_formula_text')}</p>
+      <div className='po-plans'>
+        <article className={`po-card po-plan${baseCurrent ? ' is-current' : ''}`}>
+          {baseCurrent && <span className='po-plan__tag'>{t('po_plan_until_short', { date: until })}</span>}
+          <h3>{t('po_formula_base')}</h3>
+          <p className='po-plan__price'>
+            <strong>{formatOfferPrice(offer, lang, offer.amount)}</strong> <span>{t('po_per_month')}</span>
+          </p>
+          <p className='po-plan__desc'>{offerLabel(t, offer.id, null)}</p>
+          <ul className='po-plan__features'>
+            {(['po_formula_base_f1', 'po_formula_base_f2', 'po_formula_base_f3'] as const).map((k) => (
+              <li key={k}>
+                <Icon name='check' /> {t(k)}
+              </li>
+            ))}
+          </ul>
+          <button
+            type='button'
+            className={`btn ${baseCurrent ? 'btn--secondary' : active ? 'btn--secondary' : 'btn--primary'}`}
+            disabled={busy !== null}
+            aria-busy={busy === 'renew'}
+            onClick={() => act('renew', () => goPay(portalApi.renew))}
+          >
+            {baseCurrent ? t('po_plan_extend') : active ? t('po_formula_back_base') : t('po_plan_take')}
+          </button>
+        </article>
+        {home.plans.map((p) => {
+          const mine = current?.level === p.level;
+          return (
+            <article key={p.level} className={`po-card po-plan${mine ? ' is-current' : ''}`}>
+              {mine && <span className='po-plan__tag'>{t('po_plan_until_short', { date: formatDate(current!.ends_at, lang) })}</span>}
+              <h3>{p.name}</h3>
+              <p className='po-plan__price'>
+                <strong>{formatMoney(p.amount, p.currency, lang)}</strong> <span>{t('po_per_month')}</span>
+              </p>
+              {p.description && <p className='po-plan__desc'>{p.description}</p>}
+              <ul className='po-plan__features'>
+                <li>
+                  <Icon name='check' /> {t('po_formula_includes_base')}
+                </li>
+                {p.features.map((f, i) => (
+                  <li key={i}>
+                    <Icon name='check' /> {f}
+                  </li>
+                ))}
+              </ul>
               <button
                 type='button'
-                className='po-link'
+                className={`btn ${mine ? 'btn--secondary' : 'btn--primary'}`}
                 disabled={busy !== null}
-                onClick={() =>
-                  act('resume', async () => {
-                    await portalApi.reminders(true);
-                    await reload();
-                    flash(t('po_reminders_on_done'));
-                  })
-                }
+                aria-busy={busy === `plan-${p.level}`}
+                onClick={() => act(`plan-${p.level}`, () => goPay(() => portalApi.planBuy(p.level)))}
               >
-                {t('po_reminders_on')}
+                {mine ? t('po_plan_extend') : active ? t('po_plan_switch') : t('po_plan_take')}
               </button>
-            )}
-          </div>
-        </div>
-      )}
+            </article>
+          );
+        })}
+      </div>
+      {home.plans.length === 0 && <p className='po-note'>{t('po_plans_soon')}</p>}
 
-      {home.plans.length > 0 && (
-        <>
-          <h3 className='po-subtitle'>{t('po_plans_extra')}</h3>
-          <p className='po-note'>{t('po_plans_extra_text')}</p>
-          <div className='po-plans'>
-            {home.plans.map((p) => {
-              const mine = current?.level === p.level;
-              return (
-                <article key={p.level} className={`po-card po-plan${mine ? ' is-current' : ''}`}>
-                  {mine && <span className='po-plan__tag'>{t('po_plan_until_short', { date: formatDate(current!.ends_at, lang) })}</span>}
-                  <h3>{p.name}</h3>
-                  <p className='po-plan__price'>
-                    <strong>{formatMoney(p.amount, p.currency, lang)}</strong> <span>{t('po_per_month')}</span>
-                  </p>
-                  {p.description && <p className='po-plan__desc'>{p.description}</p>}
-                  {p.features.length > 0 && (
-                    <ul className='po-plan__features'>
-                      {p.features.map((f, i) => (
-                        <li key={i}>
-                          <Icon name='check' /> {f}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <button
-                    type='button'
-                    className={`btn ${mine ? 'btn--secondary' : 'btn--primary'}`}
-                    disabled={busy !== null || expired}
-                    aria-busy={busy === `plan-${p.level}`}
-                    onClick={() => act(`plan-${p.level}`, () => goPay(() => portalApi.planBuy(p.level)))}
-                  >
-                    {mine ? t('po_plan_extend') : t('po_plan_take')}
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-          {expired && <p className='po-note'>{t('po_plans_need_member')}</p>}
-        </>
+      {membership?.monthly && active && (
+        <div className='po-row'>
+          {membership.reminders ? (
+            <button type='button' className='po-link po-link--muted' onClick={() => setAsk(true)}>
+              {t('po_cancel_sub')}
+            </button>
+          ) : (
+            <button
+              type='button'
+              className='po-link'
+              disabled={busy !== null}
+              onClick={() =>
+                act('resume', async () => {
+                  await portalApi.reminders(true);
+                  await reload();
+                  flash(t('po_reminders_on_done'));
+                })
+              }
+            >
+              {t('po_reminders_on')}
+            </button>
+          )}
+        </div>
       )}
       {error && (
         <p className='po-error' role='alert'>

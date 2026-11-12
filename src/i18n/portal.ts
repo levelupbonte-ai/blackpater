@@ -247,7 +247,15 @@ export const fr = {
   po_chat_locked: 'Votre adhésion est terminée : renouvelez pour écrire à Black Pater. Vos anciens messages restent ici.',
   po_chat_locked_cta: 'Renouveler',
   po_plan_label: 'Forfait',
-  po_period_until: 'accès jusqu’au {date}'
+  po_period_until: 'accès jusqu’au {date}',
+  po_formula_title: 'Ma formule du mois',
+  po_formula_text: 'Un seul paiement par mois. Un forfait remplace la formule de base et inclut tout ce qu’elle donne. Si vous changez en cours de mois, les jours de base qui vous restent sont ajoutés à la fin : vous ne perdez rien.',
+  po_formula_base: 'Formule de base',
+  po_formula_base_f1: 'Votre espace membre et votre dossier',
+  po_formula_base_f2: 'La messagerie avec Black Pater',
+  po_formula_base_f3: 'Les informations gratuites',
+  po_formula_includes_base: 'Tout ce que donne la formule de base',
+  po_formula_back_base: 'Revenir à la base'
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -498,5 +506,13 @@ export const en: Record<keyof typeof fr, string> = {
   po_chat_locked: 'Your membership has ended: renew to write to Black Pater. Your past messages stay here.',
   po_chat_locked_cta: 'Renew',
   po_plan_label: 'Plan',
-  po_period_until: 'access until {date}'
+  po_period_until: 'access until {date}',
+  po_formula_title: 'My formula this month',
+  po_formula_text: 'One payment a month. A plan replaces the base formula and includes everything it gives. If you switch during the month, the base days you have left are added at the end: you lose nothing.',
+  po_formula_base: 'Base formula',
+  po_formula_base_f1: 'Your member space and your file',
+  po_formula_base_f2: 'Messages with Black Pater',
+  po_formula_base_f3: 'The free information',
+  po_formula_includes_base: 'Everything the base formula gives',
+  po_formula_back_base: 'Back to base'
 };

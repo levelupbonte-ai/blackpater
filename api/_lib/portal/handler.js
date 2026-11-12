@@ -447,13 +447,11 @@ export function createPortalHandler(deps = {}) {
       return sendJson(res, 200, { url: session.url });
     },
 
-    /** One month of a monthly plan, at the price the owner set. Needs a running membership. */
+    /** One month of a plan, at the price the owner set. It replaces the base membership for that month. */
     async 'plan-buy'(req, res, cfg, ctx) {
       const { level } = pick(await readJsonBody(req, 256), { level: req_.level });
       const stripe = stripeFor();
       if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });
-      const renew = await rpc('portal_renew_start', { p_key: cfg.portalKey, p_session: ctx.session });
-      if (renew?.membership?.monthly && !renew.membership.active) return sendJson(res, 402, { error: 'membership_expired' });
       const start = await rpc('portal_subscribe_start', { p_key: cfg.portalKey, p_session: ctx.session, p_level: level });
       if (!start?.plan?.id || !Number.isInteger(start.plan.amount)) return sendJson(res, 404, { error: 'not_found' });
       const params = buildPlanCheckout({ start, origin: ctx.origin });

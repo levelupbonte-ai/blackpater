@@ -4,7 +4,9 @@ import { Link } from '../../app/router';
 import { useLanguage, type Language } from '../../context/LanguageContext';
 import { Icon } from '../../components/Icon';
 import { PaymentMarks } from '../../components/PaymentMarks';
-import { OFFERS, formatOfferPrice, getOfferByTier } from '../../../shared/offers.js';
+import { OFFERS, formatOfferPrice, getOfferByTier, priceFor } from '../../../shared/offers.js';
+import { useLaunchClock } from '../../lib/launch';
+import { LaunchCountdown } from '../../components/LaunchCountdown';
 import {
   COUNTRY_LANGS,
   DEFAULT_OPTIONS,
@@ -146,7 +148,7 @@ function insights(x: Ctx): string[] {
   const a = x.a;
   const r: string[] = [];
   r.push(
-    'Cette inscription enregistre officiellement votre dossier dans l’écosystème BlackPater : une fois intégré, vous accédez à nos forfaits mensuels d’accompagnement adaptés au rythme de vos démarches.|This registration officially records your file in the BlackPater ecosystem: once integrated, you unlock access to our monthly guidance plans tailored to the pace of your procedures.'
+    'Votre adhésion enregistre votre dossier dans l’écosystème BlackPater et ouvre votre espace membre, mois par mois, sans prélèvement automatique.|Your membership records your file in the BlackPater ecosystem and opens your member space, month by month, with no automatic charge.'
   );
   if (is(x, 'groupTier', 'duo'))
     r.push(
@@ -411,7 +413,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       destinationCountry: country,
       tier: activeTier,
       offerId: activeOffer.id,
-      amountCents: activeOffer.amount,
+      amountCents: priceFor(activeOffer).amount,
       fullName: cName,
       sex: String(answers.sex || ''),
       age: Number(cAge) || null,
@@ -718,29 +720,33 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     setErr('');
   };
 
+  const now = useLaunchClock();
+  const current = priceFor(activeOffer, now);
+  const price = formatOfferPrice(activeOffer, lang, current.amount);
+  const regularPrice = formatOfferPrice(activeOffer, lang, current.regular);
+  const perMonth = t('offers_tier_per_month');
   const tierCards: Array<{ key: TierKey; name: string; desc: string; price: string }> = [
     {
       key: 'solo',
       name: tr('Solo · 1 pers.|Solo · 1 person', lang),
       desc: tr('Dossier individuel|Individual file', lang),
-      price: formatOfferPrice(OFFERS['accompagnement-voyage'], lang)
+      price: `${formatOfferPrice(OFFERS['accompagnement-voyage'], lang, priceFor(OFFERS['accompagnement-voyage'], now).amount)} ${perMonth}`
     },
     {
       key: 'duo',
       name: tr('Duo · 2 pers.|Duo · 2 people', lang),
       desc: tr('Couple ou binôme|Couple or pair', lang),
-      price: formatOfferPrice(OFFERS['accompagnement-voyage-duo'], lang)
+      price: `${formatOfferPrice(OFFERS['accompagnement-voyage-duo'], lang, priceFor(OFFERS['accompagnement-voyage-duo'], now).amount)} ${perMonth}`
     },
     {
       key: 'family',
       name: tr('Famille · 5 pers.|Family · 5 people', lang),
       desc: tr('Jusqu’à 5 membres|Up to 5 members', lang),
-      price: formatOfferPrice(OFFERS['accompagnement-voyage-famille'], lang)
+      price: `${formatOfferPrice(OFFERS['accompagnement-voyage-famille'], lang, priceFor(OFFERS['accompagnement-voyage-famille'], now).amount)} ${perMonth}`
     }
   ];
 
   const activeFlagCode = country || hoverFlag;
-  const price = formatOfferPrice(activeOffer, lang);
   const redirecting = checkoutState.kind === 'redirecting';
   const unavailable = checkoutState.kind === 'unavailable';
 
@@ -934,13 +940,16 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                       <h2 className='pg-checkout-title'>{t('offer_name')}</h2>
                       <p className='pg-checkout-sub'>
                         {tr(
-                          'Règlement unique de votre accompagnement. Vos réponses sont prêtes à être analysées dès validation de votre paiement.|One-time guidance fee. Your answers are ready to be reviewed as soon as your payment is confirmed.',
+                          'Adhésion d’un mois, sans prélèvement automatique. Vos réponses sont prêtes à être analysées dès validation de votre paiement.|One month of membership, no automatic charge. Your answers are ready to be reviewed as soon as your payment is confirmed.',
                           lang
                         )}
                       </p>
                     </div>
                     <div className='pg-checkout-price'>
-                      <span className='pg-checkout-amount'>{price}</span>
+                      {current.launch && <s className='pg-checkout-was'>{regularPrice}</s>}
+                      <span className='pg-checkout-amount' suppressHydrationWarning>
+                        {price} <small>{perMonth}</small>
+                      </span>
                       <span className='pg-checkout-note'>
                         {activeTier === 'duo'
                           ? tr('USD · Duo (2 pers.)|USD · Duo (2 people)', lang)
@@ -951,15 +960,18 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </div>
                   </div>
 
+                  <LaunchCountdown compact />
+                  <p className='pg-checkout-note pg-promo-hint'>{t('launch_promo_code')}</p>
                   <div className='pg-buyer-recap'>
                     <div className='pg-buyer-recap__row'>
                       <span>{tr('Formule choisie|Selected plan', lang)}</span>
                       <strong>
                         {activeTier === 'duo'
-                          ? tr('Duo · 2 personnes (5 $)|Duo · 2 people ($5)', lang)
+                          ? tr('Duo · 2 personnes|Duo · 2 people', lang)
                           : activeTier === 'family'
-                          ? tr('Famille · Jusqu’à 5 pers. (11 $)|Family · Up to 5 people ($11)', lang)
-                          : tr('Solo · 1 personne (2,60 $)|Solo · 1 person ($2.60)', lang)}
+                          ? tr('Famille · Jusqu’à 5 pers.|Family · Up to 5 people', lang)
+                          : tr('Solo · 1 personne|Solo · 1 person', lang)}
+                        {` (${price} ${perMonth})`}
                       </strong>
                     </div>
                     <div className='pg-buyer-recap__row'>

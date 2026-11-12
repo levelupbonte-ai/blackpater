@@ -53,8 +53,8 @@ test('launch week: first month at the launch price, regular price shown on the p
 
 test('the launch price stops at the announced time', () => {
   const offer = getOffer('accompagnement-voyage-duo');
-  assert.deepEqual(priceFor(offer, Date.parse('2026-11-18T06:59:58Z')), { amount: 500, regular: 900, launch: true });
-  assert.deepEqual(priceFor(offer, Date.parse('2026-11-18T07:00:00Z')), { amount: 900, regular: 900, launch: false });
+  assert.deepEqual(priceFor(offer, Date.parse('2026-11-17T06:59:58Z')), { amount: 500, regular: 900, launch: true });
+  assert.deepEqual(priceFor(offer, Date.parse('2026-11-17T07:00:00Z')), { amount: 900, regular: 900, launch: false });
 });
 
 test('repeated taps for one attempt reuse a single Checkout Session', async () => {

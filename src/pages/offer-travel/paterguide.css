@@ -765,3 +765,19 @@
   line-height: 1.5;
 }
 
+.pg-checkout-price {
+  flex-wrap: wrap;
+}
+.pg-checkout-was {
+  color: var(--bone-mute);
+  font-size: 0.9rem;
+}
+.pg-checkout-amount small {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--bone-mute);
+}
+.pg-promo-hint {
+  display: block;
+  margin: 10px 0 14px;
+}

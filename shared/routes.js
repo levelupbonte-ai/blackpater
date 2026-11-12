@@ -26,12 +26,12 @@ export const ROUTES = [
       fr: {
         title: 'Black Pater — Accompagnement voyage, études et visas par Jean-Pierre Lofumbwa',
         description:
-          'Black Pater : accompagnement voyage, études et visas par Jean-Pierre Lofumbwa (« Le Prof »), en français et en anglais, depuis Salt Lake City. Formules Solo, Duo et Famille, paiement unique.'
+          'Black Pater : accompagnement voyage, études et visas par Jean-Pierre Lofumbwa (« Le Prof »), en français et en anglais, depuis Salt Lake City. Formules Solo, Duo et Famille, par mois, sans prélèvement automatique.'
       },
       en: {
         title: 'Black Pater — Travel, study & visa guidance by Jean-Pierre Lofumbwa',
         description:
-          'Black Pater: travel, study and visa guidance by Jean-Pierre Lofumbwa (“Le Prof”), in English and French, from Salt Lake City. Solo, Duo and Family plans, one-time payment.'
+          'Black Pater: travel, study and visa guidance by Jean-Pierre Lofumbwa (“Le Prof”), in English and French, from Salt Lake City. Solo, Duo and Family plans, monthly, no automatic charge.'
       }
     }
   },
@@ -116,12 +116,12 @@ export const ROUTES = [
       fr: {
         title: 'Accompagnement — Offres de Black Pater (Jean-Pierre Lofumbwa)',
         description:
-          "L'accompagnement de Jean-Pierre Lofumbwa (Black Pater) pour préparer vos démarches de voyage, bourses, études et visas. Paiement unique."
+          "L'accompagnement de Jean-Pierre Lofumbwa (Black Pater) pour préparer vos démarches de voyage, bourses, études et visas. Par mois, sans prélèvement automatique."
       },
       en: {
         title: 'Guidance — Offers by Black Pater (Jean-Pierre Lofumbwa)',
         description:
-          'Guidance from Jean-Pierre Lofumbwa (Black Pater) to prepare your travel, scholarship, study and visa procedures. One-time payment.'
+          'Guidance from Jean-Pierre Lofumbwa (Black Pater) to prepare your travel, scholarship, study and visa procedures. Monthly, no automatic charge.'
       }
     }
   },
@@ -134,12 +134,12 @@ export const ROUTES = [
       fr: {
         title: 'Accompagnement & Démarches Voyage — 2,60 $ | Black Pater',
         description:
-          'Informations vérifiées, orientation et accompagnement personnalisé pour vos démarches de voyage, bourses, études et visas. 2,60 $, paiement unique, sans renouvellement.'
+          'Informations vérifiées, orientation et accompagnement personnalisé pour vos démarches de voyage, bourses, études et visas. Dès 5 $ par mois, sans prélèvement automatique.'
       },
       en: {
         title: 'Travel & Visa Guidance — $2.60 | Black Pater',
         description:
-          'Verified information, orientation and personalised guidance for your travel, scholarship, study and visa procedures. $2.60 one-time payment, no renewal.'
+          'Verified information, orientation and personalised guidance for your travel, scholarship, study and visa procedures. From $5 a month, no automatic charge.'
       }
     }
   },

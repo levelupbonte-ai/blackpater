@@ -28,8 +28,8 @@ export const HOME_FAQ: FaqItem[] = [
   {
     q: 'Le paiement est-il sécurisé ?',
     qEn: 'Is the payment secure?',
-    a: 'Oui. Le paiement se fait sur une page de paiement sécurisée (carte, Apple Pay ou Google Pay) ; vos données bancaires ne passent jamais par ce site. C’est un paiement unique, sans renouvellement, et le reçu vous est envoyé par e-mail.',
-    aEn: 'Yes. You pay on a secure checkout page (card, Apple Pay or Google Pay); your card details never go through this site. It is a one-time payment with no renewal, and the receipt is emailed to you.'
+    a: 'Oui. Le paiement se fait sur une page de paiement sécurisée (carte, Apple Pay ou Google Pay) ; vos données bancaires ne passent jamais par ce site. Chaque paiement couvre un mois, sans prélèvement automatique : vous renouvelez vous-même depuis votre espace, et le reçu vous est envoyé par e-mail.',
+    aEn: 'Yes. You pay on a secure checkout page (card, Apple Pay or Google Pay); your card details never go through this site. Each payment covers one month with no automatic charge: you renew yourself from your space, and the receipt is emailed to you.'
   },
   {
     q: 'Qu’est-ce que l’espace client ?',

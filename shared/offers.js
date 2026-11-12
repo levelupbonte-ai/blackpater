@@ -13,8 +13,8 @@
  * which price applies (priceFor), never the browser.
  */
 
-/** End of the launch offer: Monday 17 November 2026, 23:59:59 in Salt Lake City (MST, UTC-7). */
-export const LAUNCH_ENDS_AT = '2026-11-18T06:59:59Z';
+/** End of the launch offer: Sunday 16 November 2026, 23:59:59 in Salt Lake City (MST, UTC-7). */
+export const LAUNCH_ENDS_AT = '2026-11-17T06:59:59Z';
 export const LAUNCH_ENDS_MS = Date.parse(LAUNCH_ENDS_AT);
 
 /** Membership access bought by one payment. */

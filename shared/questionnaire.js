@@ -86,9 +86,9 @@ export const YES_NO_OPTIONS = Object.freeze({
  */
 export const DEFAULT_OPTIONS = {
   groupTier: {
-    solo: 'Solo · 1 personne (2,60 $)|Solo · 1 person ($2.60)',
-    duo: 'Duo · 2 personnes (5 $)|Duo · 2 people ($5)',
-    family: 'Famille · Jusqu’à 5 personnes (11 $)|Family · Up to 5 people ($11)'
+    solo: 'Solo · 1 personne|Solo · 1 person',
+    duo: 'Duo · 2 personnes|Duo · 2 people',
+    family: 'Famille · Jusqu’à 5 personnes|Family · Up to 5 people'
   },
   duoRelation: {
     couple: 'En couple / Conjoints|Couple / Spouses',
@@ -346,7 +346,7 @@ export const DEFAULT_QUESTIONS = [
     question:
       'Pour combien de personnes souhaitez-vous enregistrer ce dossier dans l’écosystème ?|For how many people are you registering this file in the ecosystem?',
     hint:
-      'Ce règlement unique valide votre enregistrement et votre entrée dans l’écosystème BlackPater (accès aux forfaits mensuels ensuite). Le questionnaire s’adapte automatiquement.|This one-time fee validates your registration and entry into the BlackPater ecosystem (unlocking monthly plans afterwards). The form adapts automatically.',
+      'L’adhésion se paie mois par mois, sans prélèvement automatique : elle enregistre votre dossier et ouvre votre espace membre. Le questionnaire s’adapte automatiquement.|Membership is paid month by month, with no automatic charge: it records your file and opens your member space. The form adapts automatically.',
     options: DEFAULT_OPTIONS.groupTier
   },
   {

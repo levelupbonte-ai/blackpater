@@ -55,6 +55,7 @@ export const PurchasePanel: React.FC<{ offer: Offer; onOpenGuide?: () => void }>
         <span className='buy__note'>{current.launch ? t('offers_tier_launch_note', { regular }) : t('offers_tier_once')}</span>
       </p>
       <LaunchCountdown compact />
+      <p className='buy__note buy__promo'>{t('launch_promo_code')}</p>
 
       <button
         type='button'

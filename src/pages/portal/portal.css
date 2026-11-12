@@ -2056,3 +2056,174 @@ html.is-app .po-chat {
     padding-top: 24px;
   }
 }
+
+/* AI input, one clean field (attach, text, send) like a chat app. */
+.po-ai {
+  display: flex;
+  flex-direction: column;
+}
+.po-ai .po-chat__thread {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.po-ai__composer {
+  margin: 0 12px 12px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: var(--surface);
+  box-shadow: var(--shadow-1, 0 2px 10px rgba(0, 0, 0, 0.06));
+}
+.po-ai__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.po-ai__composer textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 180px;
+  padding: 10px 6px;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--bone);
+  font: inherit;
+  line-height: 1.4;
+}
+.po-ai__composer .po-ai__attach {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--bone-mute);
+}
+.po-ai__composer .po-ai__attach:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bone) 8%, transparent);
+  color: var(--bone);
+}
+.po-ai__send {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+  cursor: pointer;
+}
+.po-ai__send:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.po-ai__send svg {
+  width: 18px;
+  height: 18px;
+}
+.po-ai__composer .po-ai-pending {
+  padding: 6px 6px 8px;
+}
+.po-ai__notice {
+  margin: 0 16px 6px;
+  font-size: 0.78rem;
+  color: var(--bone-mute);
+  text-align: center;
+}
+.po-ai__notice.is-error {
+  color: var(--danger, #c0392b);
+}
+.po-ai__small {
+  color: var(--bone-mute);
+  font-size: 0.75rem;
+}
+
+/* Installed app: its top bar is the only header. */
+html.is-app .po-chat__head {
+  display: none;
+}
+html.is-app .po-chat {
+  grid-template-rows: minmax(0, 1fr) auto auto;
+}
+.po-appbar__actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* ------------------------------------------------------------------ account menu */
+
+.po-menu {
+  display: grid;
+  padding: 4px 0;
+  margin-bottom: 8px;
+}
+.po-menu__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--bone);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.po-menu__row:last-child {
+  border-bottom: 0;
+}
+.po-menu__row:hover {
+  background: color-mix(in srgb, var(--bone) 4%, transparent);
+}
+.po-menu__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bone) 7%, transparent);
+}
+.po-menu__icon svg {
+  width: 18px;
+  height: 18px;
+}
+.po-menu__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.po-menu__text strong {
+  font-size: 0.95rem;
+}
+.po-menu__text span {
+  overflow: hidden;
+  color: var(--bone-mute);
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.po-menu__cta {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.po-menu__chev {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  opacity: 0.5;
+}
+.po-menu__row.is-danger strong,
+.po-menu__row.is-danger .po-menu__icon {
+  color: var(--danger, #c0392b);
+}

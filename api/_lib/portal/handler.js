@@ -9,6 +9,7 @@
  * this layer adds same-origin checks, strict input checks, a per-IP limiter,
  * neutral answers and e-mail sending.
  */
+import { createHash } from 'node:crypto';
 import { getStripe } from '../stripe.js';
 import { createRateLimiter } from '../memory.js';
 import { HttpError, getClientIp, methodNotAllowed, readJsonBody, readRawBody, sendJson } from '../http.js';
@@ -18,7 +19,7 @@ import { PortalDbError, createPortalDb } from './db.js';
 import { buildEmail, createMailer } from './email.js';
 import { createAssistantClient } from './assistant.js';
 import { appGuide } from './app-guide.js';
-import { dossierText } from '../../../shared/dossier.js';
+import { dossierText, readableDossier } from '../../../shared/dossier.js';
 import { buildPlanCheckout, buildRenewalCheckout, idempotencyKey } from './plans.js';
 import { createPushSender, getPushConfig, pushFor, welcomePush } from './push.js';
 import { getOffer, getOfferByTier } from '../../../shared/offers.js';
@@ -115,15 +116,19 @@ const req_ = {
         : undefined
 };
 
-/** Stripe calls of the member space: any failure becomes a short, neutral error. */
-async function viaStripe(fn) {
+/** Stripe calls of the member space: any failure becomes a short, neutral error (logged by type and code only). */
+async function viaStripe(fn, log = console, what = 'stripe') {
   try {
     return await fn();
   } catch (err) {
     if (err instanceof PortalDbError) throw err;
+    log.error(JSON.stringify({ evt: 'portal.stripe_failed', what, type: err?.type || 'error', code: err?.code || null, status: err?.statusCode || null }));
     throw new PortalDbError('payments_unavailable', 502);
   }
 }
+
+/** The exact parameters are part of the key: a changed request is never refused as a replay. */
+const paramsHash = (params) => createHash('sha256').update(JSON.stringify(params)).digest('hex').slice(0, 12);
 
 function isSecure(req) {
   const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
@@ -476,10 +481,13 @@ export function createPortalHandler(deps = {}) {
       const start = await rpc('portal_renew_start', { p_key: cfg.portalKey, p_session: ctx.session });
       const offer = getOffer(start?.membership?.offer_id) || getOfferByTier('solo');
       const params = buildRenewalCheckout({ start, offer, origin: ctx.origin });
-      const session = await viaStripe(() =>
-        stripe.checkout.sessions.create(params, {
-          idempotencyKey: idempotencyKey(['renew', start.customer_id, offer.id, offer.amount, start.membership?.until || ''])
-        })
+      const session = await viaStripe(
+        () =>
+          stripe.checkout.sessions.create(params, {
+            idempotencyKey: idempotencyKey(['renew', start.customer_id, offer.id, offer.amount, start.membership?.until || '', paramsHash(params)])
+          }),
+        log,
+        'renew'
       );
       if (!isStripeCheckoutUrl(session?.url)) return sendJson(res, 502, { error: 'payments_unavailable' });
       return sendJson(res, 200, { url: session.url });
@@ -493,10 +501,13 @@ export function createPortalHandler(deps = {}) {
       const start = await rpc('portal_subscribe_start', { p_key: cfg.portalKey, p_session: ctx.session, p_level: level });
       if (!start?.plan?.id || !Number.isInteger(start.plan.amount)) return sendJson(res, 404, { error: 'not_found' });
       const params = buildPlanCheckout({ start, origin: ctx.origin });
-      const session = await viaStripe(() =>
-        stripe.checkout.sessions.create(params, {
-          idempotencyKey: idempotencyKey(['plan', start.customer_id, start.plan.id, start.plan.amount, start.plan.currency])
-        })
+      const session = await viaStripe(
+        () =>
+          stripe.checkout.sessions.create(params, {
+            idempotencyKey: idempotencyKey(['plan', start.customer_id, start.plan.id, start.plan.amount, start.plan.currency, paramsHash(params)])
+          }),
+        log,
+        'plan'
       );
       if (!isStripeCheckoutUrl(session?.url)) return sendJson(res, 502, { error: 'payments_unavailable' });
       return sendJson(res, 200, { url: session.url });
@@ -600,7 +611,12 @@ export function createPortalHandler(deps = {}) {
         dossier: (v) =>
           v && typeof v === 'object' && !Array.isArray(v) && JSON.stringify(v).length <= 12000 ? v : undefined
       });
-      await rpc('portal_profile_draft', { p_key: cfg.portalKey, p_attempt: attemptId, p_profile: dossier, p_client: ctx.client });
+      // The answers in words (questions and labels, in French) so Black Pater
+      // reads them in the dashboard as the member saw them.
+      const readable = readableDossier(dossier, 'fr', { contact: true });
+      const withText = readable ? { ...dossier, readable } : dossier;
+      const profile = JSON.stringify(withText).length <= 15000 ? withText : dossier;
+      await rpc('portal_profile_draft', { p_key: cfg.portalKey, p_attempt: attemptId, p_profile: profile, p_client: ctx.client });
       return sendJson(res, 200, { ok: true });
     },
 

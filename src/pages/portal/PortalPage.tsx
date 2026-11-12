@@ -1254,6 +1254,7 @@ const Assistant: React.FC<{
             <AiStar size={56} />
             <strong>{t('po_ai_intro_title')}</strong>
             <p>{t('po_ai_intro_text')}</p>
+            <small className='po-ai__small'>{t('po_ai_disclaimer')}</small>
             {!thread.has_profile && (
               <button type='button' className='po-link' onClick={onDossier}>
                 {t('po_ai_intro_dossier')}
@@ -1377,88 +1378,82 @@ const Assistant: React.FC<{
           </button>
         </div>
       ) : (
-        <form
-          className='po-chat__compose po-ai__compose'
-          onSubmit={(e) => {
-            e.preventDefault();
-            void ask(body);
-          }}
-        >
-          {images.length > 0 && (
-            <div className='po-ai-pending'>
-              {images.map((src, i) => (
-                <span key={i} className='po-ai-thumb'>
-                  <img src={src} alt='' />
-                  <button type='button' onClick={() => setImages((l) => l.filter((_, j) => j !== i))} aria-label={t('po_ai_image_remove')}>
-                    <Icon name='close' />
-                  </button>
-                </span>
-              ))}
+        <>
+          {(error || (left > 0 && left <= 3) || (images.length > 0 && imagesLeft - images.length <= 0)) && (
+            <p className={`po-ai__notice${error ? ' is-error' : ''}`} role={error ? 'alert' : 'status'}>
+              {error || (left <= 3 ? (left === 1 ? t('po_ai_left_one') : t('po_ai_left', { n: left })) : t('po_ai_images_left', { n: 0 }))}
+            </p>
+          )}
+          {left === 0 && !error && <p className='po-ai__notice'>{t('po_ai_left_none')}</p>}
+          <form
+            className='po-ai__composer'
+            onSubmit={(e) => {
+              e.preventDefault();
+              void ask(body);
+            }}
+          >
+            {images.length > 0 && (
+              <div className='po-ai-pending'>
+                {images.map((src, i) => (
+                  <span key={i} className='po-ai-thumb'>
+                    <img src={src} alt='' />
+                    <button type='button' onClick={() => setImages((l) => l.filter((_, j) => j !== i))} aria-label={t('po_ai_image_remove')}>
+                      <Icon name='close' />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className='po-ai__row'>
+              <input
+                ref={file}
+                type='file'
+                accept='image/*'
+                multiple
+                hidden
+                onChange={(e) => {
+                  void addFiles(e.target.files);
+                  e.target.value = '';
+                }}
+              />
+              {thread.images.daily > 0 && (
+                <button
+                  type='button'
+                  className='po-ai__attach'
+                  disabled={!!asking || imagesLeft - images.length <= 0 || images.length >= MAX_IMAGES}
+                  onClick={() => file.current?.click()}
+                  aria-label={t('po_ai_image_add')}
+                  title={`${t('po_ai_image_add')} · ${t('po_ai_images_left', { n: Math.max(0, imagesLeft - images.length) })}`}
+                >
+                  <Icon name='image' />
+                </button>
+              )}
+              <label className='po-sr' htmlFor='po-ai-input'>
+                {t('po_ai_label')}
+              </label>
+              <textarea
+                id='po-ai-input'
+                ref={input}
+                rows={1}
+                maxLength={MAX_QUESTION}
+                value={body}
+                disabled={!!asking || left === 0}
+                placeholder={images.length ? t('po_ai_placeholder_image') : t('po_ai_placeholder')}
+                onChange={(e) => setBody(e.target.value)}
+                onKeyDown={(e) => {
+                  if (finePointer && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    void ask(body);
+                  }
+                }}
+              />
+              <button className='po-ai__send' type='submit' disabled={!body.trim() || !!asking || left === 0} aria-label={t('po_ai_send')}>
+                <Icon name='send' />
+              </button>
             </div>
-          )}
-          <input
-            ref={file}
-            type='file'
-            accept='image/*'
-            multiple
-            hidden
-            onChange={(e) => {
-              void addFiles(e.target.files);
-              e.target.value = '';
-            }}
-          />
-          {thread.images.daily > 0 && (
-            <button
-              type='button'
-              className='po-ai__attach'
-              disabled={!!asking || imagesLeft - images.length <= 0 || images.length >= MAX_IMAGES}
-              onClick={() => file.current?.click()}
-              aria-label={t('po_ai_image_add')}
-              title={t('po_ai_image_add')}
-            >
-              <Icon name='image' />
-            </button>
-          )}
-          <label className='po-sr' htmlFor='po-ai-input'>
-            {t('po_ai_label')}
-          </label>
-          <textarea
-            id='po-ai-input'
-            ref={input}
-            rows={1}
-            maxLength={MAX_QUESTION}
-            value={body}
-            disabled={!!asking || left === 0}
-            placeholder={images.length ? t('po_ai_placeholder_image') : t('po_ai_placeholder')}
-            onChange={(e) => setBody(e.target.value)}
-            onKeyDown={(e) => {
-              if (finePointer && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault();
-                void ask(body);
-              }
-            }}
-            aria-describedby='po-ai-hint'
-          />
-          <button className='po-chat__send' type='submit' disabled={!body.trim() || !!asking || left === 0} aria-label={t('po_ai_send')}>
-            <Icon name='send' />
-          </button>
-        </form>
+          </form>
+        </>
       )}
-      <p className='po-chat__hint' id='po-ai-hint'>
-        {error ? (
-          <span className='po-error' role='alert'>
-            {error}
-          </span>
-        ) : (
-          !locked && (
-            <>
-              {left === 0 ? t('po_ai_left_none') : left === 1 ? t('po_ai_left_one') : t('po_ai_left', { n: left })}
-              {thread.images.daily > 0 && left > 0 && ` · ${t('po_ai_images_left', { n: imagesLeft })}`}
-            </>
-          )
-        )}
-      </p>
-      <p className='po-ai__disclaimer'>{t('po_ai_disclaimer')}</p>
       {viewer && (
         <div className='po-ai-viewer' role='dialog' aria-modal='true' aria-label={t('po_ai_image_open')} onClick={() => setViewer(null)}>
           <img src={viewer} alt='' />
@@ -1736,6 +1731,44 @@ const Preferences: React.FC = () => {
         )}
       </div>
     </Section>
+  );
+};
+
+/* ------------------------------------------------------------------ account menu */
+
+/** "Mon compte" as a settings screen: one tidy list, each row opens its part. */
+const AccountMenu: React.FC<{ home: PortalHome; onDossier: () => void }> = ({ home, onDossier }) => {
+  const { t, lang } = useLanguage();
+  const plan = home.access.plan?.active ? home.access.plan : null;
+  const m = home.membership;
+  const formula = plan?.plan_name ? `${t('po_plan_label')} ${plan.plan_name}` : t('po_formula_base');
+  const state = m?.active
+    ? t('po_plan_until_short', { date: formatDate(plan?.ends_at ?? m?.until ?? null, lang) })
+    : t('po_menu_formula_ended');
+  const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const rows: { key: string; icon: IconName; title: string; sub: string; onClick: () => void; danger?: boolean; cta?: string }[] = [
+    { key: 'plans', icon: 'star', title: t('po_menu_formula'), sub: `${formula} · ${state}`, onClick: () => go('plans'), cta: m?.active ? t('po_menu_formula_change') : t('po_menu_formula_renew') },
+    { key: 'dossier', icon: 'file', title: t('po_dossier_title'), sub: t('po_home_dossier_text'), onClick: onDossier },
+    { key: 'preferences', icon: 'globe', title: t('po_prefs_title'), sub: t('po_menu_prefs_sub'), onClick: () => go('preferences') },
+    ...(home.bookings.length ? [{ key: 'payments', icon: 'receipt' as IconName, title: t('po_payments_title'), sub: t('po_menu_payments_sub', { n: home.bookings.length }), onClick: () => go('payments') }] : []),
+    { key: 'profile', icon: 'key', title: t('po_menu_profile'), sub: home.customer.email, onClick: () => go('profile') },
+    { key: 'delete', icon: 'trash', title: t('po_delete_title'), sub: t('po_menu_delete_sub'), onClick: () => go('delete'), danger: true }
+  ];
+  return (
+    <nav className='po-card po-menu' aria-label={t('po_nav_account')}>
+      {rows.map((row) => (
+        <button key={row.key} type='button' className={`po-menu__row${row.danger ? ' is-danger' : ''}`} onClick={row.onClick}>
+          <span className='po-menu__icon' aria-hidden='true'>
+            <Icon name={row.icon} />
+          </span>
+          <span className='po-menu__text'>
+            <strong>{row.title}</strong>
+            <span>{row.sub}</span>
+          </span>
+          {row.cta ? <span className='po-menu__cta'>{row.cta}</span> : <Icon name='chevronRight' className='po-menu__chev' />}
+        </button>
+      ))}
+    </nav>
   );
 };
 
@@ -2214,9 +2247,23 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
       </aside>
 
       <div className='po-main'>
-        <header className='po-appbar' aria-hidden='true'>
-          <img src='/logo.svg' alt='' width={30} height={30} />
-          <strong>{t(VIEWS.find((v) => v.id === view)?.label ?? 'po_nav_home')}</strong>
+        <header className='po-appbar'>
+          {view === 'assistant' ? <AiStar size={26} /> : <img src='/logo.svg' alt='' width={28} height={28} />}
+          <strong>{view === 'messages' ? 'Black Pater' : view === 'assistant' ? t('po_ai_title') : t(VIEWS.find((v) => v.id === view)?.label ?? 'po_nav_home')}</strong>
+          {view === 'messages' && (data.contact?.whatsapp || data.contact?.phone) && (
+            <span className='po-appbar__actions'>
+              {data.contact?.whatsapp && (
+                <a className='po-icon-btn' href={whatsappHref(data.contact.whatsapp)} target='_blank' rel='noopener noreferrer' aria-label={t('po_contact_whatsapp')}>
+                  <WhatsAppIcon />
+                </a>
+              )}
+              {data.contact?.phone && (
+                <a className='po-icon-btn' href={telHref(data.contact.phone)} aria-label={t('po_contact_call')}>
+                  <Icon name='phone' />
+                </a>
+              )}
+            </span>
+          )}
         </header>
         {notice && (
           <p className='po-flash' role='status'>
@@ -2302,17 +2349,8 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
 
         {view === 'account' && (
           <>
+            <AccountMenu home={data} onDossier={() => go('dossier')} />
             <Plans home={data} reload={reload} flash={flash} />
-            <button type='button' className='po-card po-shortcut' onClick={() => go('dossier')}>
-              <span className='po-shortcut__icon' aria-hidden='true'>
-                <Icon name='file' />
-              </span>
-              <span className='po-shortcut__text'>
-                <strong>{t('po_dossier_title')}</strong>
-                <span>{t('po_home_dossier_text')}</span>
-              </span>
-              <Icon name='chevronRight' className='po-shortcut__chev' />
-            </button>
             <Preferences />
             <Payments home={data} />
             <Settings

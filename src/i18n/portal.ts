@@ -345,7 +345,15 @@ export const fr = {
   po_prefs_app_text: 'Installez l’espace membre sur votre téléphone : il s’ouvre comme une application.',
   po_prefs_app_installed: 'L’application est installée sur cet appareil.',
   po_prefs_app_ios: 'Sur iPhone : dans Safari, touchez Partager puis « Sur l’écran d’accueil ».',
-  po_prefs_app_browser: 'Ouvrez cette page dans Chrome (Android) ou Safari (iPhone) pour l’installer.'
+  po_prefs_app_browser: 'Ouvrez cette page dans Chrome (Android) ou Safari (iPhone) pour l’installer.',
+  po_menu_formula: 'Ma formule',
+  po_menu_formula_change: 'Changer',
+  po_menu_formula_renew: 'Renouveler',
+  po_menu_formula_ended: 'terminée',
+  po_menu_prefs_sub: 'Langue, apparence, notifications, application',
+  po_menu_payments_sub: '{n} paiement(s) et leurs reçus',
+  po_menu_profile: 'Profil et sécurité',
+  po_menu_delete_sub: 'Effacer mes données'
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -694,5 +702,13 @@ export const en: Record<keyof typeof fr, string> = {
   po_prefs_app_text: 'Install the member space on your phone: it opens like an app.',
   po_prefs_app_installed: 'The app is installed on this device.',
   po_prefs_app_ios: 'On iPhone: in Safari, tap Share then “Add to Home Screen”.',
-  po_prefs_app_browser: 'Open this page in Chrome (Android) or Safari (iPhone) to install it.'
+  po_prefs_app_browser: 'Open this page in Chrome (Android) or Safari (iPhone) to install it.',
+  po_menu_formula: 'My plan',
+  po_menu_formula_change: 'Change',
+  po_menu_formula_renew: 'Renew',
+  po_menu_formula_ended: 'ended',
+  po_menu_prefs_sub: 'Language, appearance, notifications, app',
+  po_menu_payments_sub: '{n} payment(s) and their receipts',
+  po_menu_profile: 'Profile and security',
+  po_menu_delete_sub: 'Erase my data'
 };

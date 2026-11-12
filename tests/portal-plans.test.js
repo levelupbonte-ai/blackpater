@@ -95,7 +95,7 @@ test('renew: extra fields are refused', async () => {
   assert.equal(calls.length, 0);
 });
 
-test('plan: one month at the price set in LevelUp; refused when the membership has ended', async () => {
+test('plan: one month at the price set in LevelUp, replacing the base membership', async () => {
   const ok = setup((name) => (name === 'portal_renew_start' ? renewStart() : { customer_id: CUSTOMER, email: 'jane@example.com', locale: 'en', plan: PLAN }));
   const res = fakeRes();
   await ok.handler(post('plan-buy', { level: 2 }), res);
@@ -108,12 +108,12 @@ test('plan: one month at the price set in LevelUp; refused when the membership h
     { kind: 'portal_plan', plan: PLAN.id, member: CUSTOMER }
   );
 
-  const expired = setup(() => renewStart({ active: false }));
+  // A plan replaces the base membership: an ended member can restart with a plan directly.
+  const expired = setup((name) => (name === 'portal_renew_start' ? renewStart({ active: false }) : { customer_id: CUSTOMER, email: 'jane@example.com', locale: 'en', plan: PLAN }));
   const res2 = fakeRes();
   await expired.handler(post('plan-buy', { level: 2 }), res2);
-  assert.equal(res2.statusCode, 402);
-  assert.equal(res2.body.error, 'membership_expired');
-  assert.equal(expired.stripe.calls.length, 0);
+  assert.equal(res2.statusCode, 200);
+  assert.equal(expired.stripe.calls.length, 1);
 
   const bad = setup(() => renewStart());
   for (const body of [{ level: 4 }, { level: '2' }, { level: 2, amount: 1 }]) {

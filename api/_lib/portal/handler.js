@@ -16,6 +16,7 @@ import { LEVELUP_SUPABASE_URL, getLevelUpConfig } from '../levelup.js';
 import { getPortalConfig, missingConfig } from './config.js';
 import { PortalDbError, createPortalDb } from './db.js';
 import { buildEmail, createMailer } from './email.js';
+import { createAssistantClient } from './assistant.js';
 import { buildPlanCheckout, buildRenewalCheckout, idempotencyKey } from './plans.js';
 import { createPushSender, getPushConfig, pushFor } from './push.js';
 import { getOffer, getOfferByTier } from '../../../shared/offers.js';
@@ -60,11 +61,15 @@ export const PORTAL_ACTIONS = [
   'push-subscribe',
   'push-unsubscribe',
   'delete-code',
-  'delete-account'
+  'delete-account',
+  'dossier',
+  'assistant',
+  'assistant-ask',
+  'assistant-handoff'
 ];
 
-const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key']);
-const NO_SESSION = new Set(['status', 'request-code', 'verify-code', 'password-sign-in', 'outbox']);
+const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key', 'assistant']);
+const NO_SESSION = new Set(['status', 'request-code', 'verify-code', 'password-sign-in', 'outbox', 'dossier']);
 
 function cleanEmail(value) {
   if (typeof value !== 'string') return null;
@@ -180,6 +185,8 @@ export function createPortalHandler(deps = {}) {
   const minCodeMs = deps.minCodeResponseMs ?? 900;
   const limitAuth = deps.authLimiter || createRateLimiter({ windowMs: 10 * 60 * 1000, max: 20 });
   const limitAll = deps.limiter || createRateLimiter({ windowMs: 60 * 1000, max: 120 });
+  const limitAi = deps.aiLimiter || createRateLimiter({ windowMs: 60 * 1000, max: 8 });
+  const callAssistant = deps.callAssistant || createAssistantClient({ fetch: deps.fetch });
 
   async function drain(cfg, origin, limit = 10) {
     let sent = 0;
@@ -564,6 +571,48 @@ export function createPortalHandler(deps = {}) {
       return sendJson(res, 200, { ok: true });
     },
 
+    /**
+     * The questionnaire answers, saved just before the payment page (keyed by
+     * the purchase attempt). The payment links them to the member's dossier.
+     */
+    async dossier(req, res, cfg, ctx) {
+      const { attemptId, dossier } = pick(await readJsonBody(req, 16000), {
+        attemptId: req_.uuid,
+        dossier: (v) =>
+          v && typeof v === 'object' && !Array.isArray(v) && JSON.stringify(v).length <= 12000 ? v : undefined
+      });
+      await rpc('portal_profile_draft', { p_key: cfg.portalKey, p_attempt: attemptId, p_profile: dossier, p_client: ctx.client });
+      return sendJson(res, 200, { ok: true });
+    },
+
+    /** The member's conversation with the AI assistant (and whether it is on). */
+    async assistant(req, res, cfg, ctx) {
+      const out = await rpc('portal_ai_thread', { p_key: cfg.portalKey, p_session: ctx.session });
+      return sendJson(res, 200, {
+        enabled: out?.enabled === true,
+        active: out?.active === true,
+        daily: Number(out?.daily) || 0,
+        used: Number(out?.used) || 0,
+        messages: Array.isArray(out?.messages) ? out.messages : []
+      });
+    },
+
+    /** One question to the assistant (answered by LevelUp, with its sources). */
+    async 'assistant-ask'(req, res, cfg, ctx) {
+      const { question } = pick(await readJsonBody(req, 9000), {
+        question: (v) => (typeof v === 'string' && v.trim().length >= 1 && v.length <= 2000 ? v.trim() : undefined)
+      });
+      const out = await callAssistant(cfg.portalKey, { action: 'ask', session: ctx.session, question });
+      return sendJson(res, 200, { answer: out?.answer ?? null });
+    },
+
+    /** "Ask Black Pater": the question goes to Black Pater's messages. */
+    async 'assistant-handoff'(req, res, cfg, ctx) {
+      const { questionId } = pick(await readJsonBody(req, 256), { questionId: req_.uuid });
+      const out = await callAssistant(cfg.portalKey, { action: 'handoff', session: ctx.session, questionId });
+      return sendJson(res, 200, { ok: true, id: out?.id ?? null });
+    },
+
     /** Sends queued e-mails: signed call from the LevelUp dashboard or the daily Vercel Cron. */
     async outbox(req, res, cfg, ctx) {
       let authorized = bearerMatches(req.headers.authorization, cfg.cronSecret);
@@ -590,6 +639,9 @@ export function createPortalHandler(deps = {}) {
 
     const ip = getClientIp(req);
     if (!limitAll(ip).ok) return sendJson(res, 429, { error: 'rate_limited' });
+    if ((action === 'assistant-ask' || action === 'assistant-handoff') && !limitAi(ip).ok) {
+      return sendJson(res, 429, { error: 'rate_limited' });
+    }
     if (
       ['request-code', 'verify-code', 'password-sign-in', 'password-code', 'email-start', 'renew', 'plan-buy', 'delete-code', 'delete-account'].includes(action) &&
       !limitAuth(ip).ok

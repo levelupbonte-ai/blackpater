@@ -14,6 +14,7 @@ import {
   portalApi,
   telHref,
   whatsappHref,
+  type AssistantThread,
   type PortalHome,
   type PortalItem,
   type PortalLocked,
@@ -262,11 +263,12 @@ const SignIn: React.FC<{ onSignedIn: () => void; notice?: string | null }> = ({ 
 
 /* ------------------------------------------------------------------ dashboard */
 
-type View = 'home' | 'info' | 'messages' | 'account';
+type View = 'home' | 'info' | 'messages' | 'assistant' | 'account';
 const VIEWS: { id: View; icon: IconName; label: Parameters<T>[0] }[] = [
   { id: 'home', icon: 'home', label: 'po_nav_home' },
   { id: 'info', icon: 'bell', label: 'po_nav_info' },
   { id: 'messages', icon: 'chat', label: 'po_nav_messages' },
+  { id: 'assistant', icon: 'sparkles', label: 'po_nav_assistant' },
   { id: 'account', icon: 'user', label: 'po_nav_account' }
 ];
 /** Old links (e-mails, bookmarks) still land in the right place. */
@@ -950,6 +952,16 @@ const Chat: React.FC<{
               )}
               <div className={`po-msg po-msg--${own ? 'me' : 'them'}${m.failed ? ' is-failed' : ''}${m.pending ? ' is-pending' : ''}`}>
                 <div className='po-msg__bubble'>
+                  {m.via === 'assistant' && (
+                    <span className='po-ai__tag'>
+                      <Icon name='sparkles' /> {t('po_chat_via_ai')}
+                    </span>
+                  )}
+                  {m.validated && (
+                    <span className='po-ai__tag po-ai__tag--ok'>
+                      <Icon name='check' /> {t('po_chat_validated')}
+                    </span>
+                  )}
                   <p>{m.body}</p>
                   <span className='po-msg__meta'>
                     <time dateTime={m.created_at}>{timeOf(m.created_at, lang)}</time>
@@ -1019,6 +1031,256 @@ const Chat: React.FC<{
           t('po_chat_hint')
         ) : null}
       </p>
+    </section>
+  );
+};
+
+/* ------------------------------------------------------------------ AI assistant */
+
+const MAX_QUESTION = 2000;
+
+/** A source's label: its title (often the website's name), else its host. */
+function sourceLabel(s: { url: string; title: string }) {
+  if (s.title) return s.title;
+  try {
+    return new URL(s.url).hostname.replace(/^www\./, '');
+  } catch {
+    return s.url;
+  }
+}
+
+/**
+ * The member's AI assistant. The AI runs at LevelUp (keys never on this site);
+ * it is always presented as an AI, shows its sources with the date they were
+ * checked, and hands a question to Black Pater in one tap.
+ */
+const Assistant: React.FC<{
+  thread: AssistantThread;
+  setThread: (fn: (t: AssistantThread) => AssistantThread) => void;
+  onRenew: () => void;
+}> = ({ thread, setThread, onRenew }) => {
+  const { t, lang } = useLanguage();
+  const [body, setBody] = useState('');
+  const [asking, setAsking] = useState<string | null>(null);
+  const [handing, setHanding] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLTextAreaElement>(null);
+  const finePointer = useMemo(() => typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches, []);
+  const left = Math.max(0, thread.daily - thread.used);
+  const locked = !thread.active;
+
+  useEffect(() => {
+    const el = box.current;
+    if (el && (thread.messages.length || asking)) el.scrollTop = el.scrollHeight;
+  }, [thread.messages.length, asking]);
+
+  useEffect(() => {
+    const el = input.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
+  }, [body]);
+
+  const ask = async (text: string) => {
+    const q = text.trim();
+    if (!q || asking || left === 0) return;
+    setError(null);
+    setAsking(q);
+    setBody('');
+    try {
+      await portalApi.assistantAsk(q);
+      const fresh = await portalApi.assistant();
+      setThread(() => fresh);
+    } catch (err) {
+      setBody(q);
+      const code = err instanceof PortalError ? err.code : '';
+      setError(code === 'rate_limited' ? t('po_ai_err_rate') : code === 'membership_expired' ? t('po_ai_locked') : t('po_ai_err_down'));
+    } finally {
+      setAsking(null);
+    }
+  };
+
+  const handoff = async (questionId: string) => {
+    setError(null);
+    setHanding(questionId);
+    try {
+      await portalApi.assistantHandoff(questionId);
+      setThread((th) => ({ ...th, messages: th.messages.map((m) => (m.id === questionId ? { ...m, handed_off: true } : m)) }));
+    } catch (err) {
+      setError(err instanceof PortalError && err.code === 'rate_limited' ? t('po_ai_err_rate') : t('po_ai_err_handoff'));
+    } finally {
+      setHanding(null);
+    }
+  };
+
+  const questions = new Map(thread.messages.filter((m) => m.role === 'user').map((m) => [m.id, m]));
+  let lastDay = '';
+
+  return (
+    <section className='po-chat po-ai' aria-labelledby='po-ai-title'>
+      <header className='po-chat__head'>
+        <span className='po-chat__avatar po-ai__avatar' aria-hidden='true'>
+          <Icon name='sparkles' />
+        </span>
+        <div className='po-chat__who'>
+          <h2 id='po-ai-title'>{t('po_ai_title')}</h2>
+          <p>{t('po_ai_sub')}</p>
+        </div>
+      </header>
+
+      <div className='po-chat__thread' ref={box} role='log' aria-live='polite' aria-busy={!!asking}>
+        {thread.messages.length === 0 && !asking && (
+          <div className='po-chat__start'>
+            <Empty icon='sparkles' title={t('po_ai_intro_title')} text={t('po_ai_intro_text')}>
+              {!locked && (
+                <div className='po-chips po-chips--wrap'>
+                  {(['po_ai_q1', 'po_ai_q2', 'po_ai_q3'] as const).map((k) => (
+                    <button key={k} type='button' className='po-chip' onClick={() => void ask(t(k))}>
+                      {t(k)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </Empty>
+          </div>
+        )}
+        {thread.messages.map((m) => {
+          const key = dayKey(m.created_at);
+          const separator = key !== lastDay ? dayLabel(t, m.created_at, lang) : null;
+          lastDay = key;
+          const question = m.role === 'assistant' && m.question_id ? questions.get(m.question_id) : undefined;
+          return (
+            <React.Fragment key={m.id}>
+              {separator && (
+                <div className='po-chat__day' role='separator'>
+                  <span>{separator}</span>
+                </div>
+              )}
+              <div className={`po-msg po-msg--${m.role === 'user' ? 'me' : 'them'}${m.role === 'owner' ? ' po-msg--validated' : ''}`}>
+                <div className='po-msg__bubble'>
+                  {m.role === 'assistant' && (
+                    <span className='po-ai__tag'>
+                      <Icon name='sparkles' /> {t('po_ai_badge')}
+                    </span>
+                  )}
+                  {m.role === 'owner' && (
+                    <span className='po-ai__tag po-ai__tag--ok'>
+                      <Icon name='check' /> {t('po_ai_validated')}
+                    </span>
+                  )}
+                  <p>{m.body}</p>
+                  {m.role === 'assistant' &&
+                    (m.sources.length ? (
+                      <div className='po-ai__sources'>
+                        <strong>
+                          {t('po_ai_sources')} · {t('po_ai_checked_on', { date: formatDate(m.created_at, lang) })}
+                        </strong>
+                        <ol>
+                          {m.sources.map((src) => (
+                            <li key={src.url}>
+                              <a href={src.url} target='_blank' rel='noopener noreferrer nofollow'>
+                                {sourceLabel(src)}
+                              </a>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    ) : (
+                      <p className='po-ai__nosource'>{t('po_ai_no_sources')}</p>
+                    ))}
+                  <span className='po-msg__meta'>
+                    <time dateTime={m.created_at}>{timeOf(m.created_at, lang)}</time>
+                  </span>
+                </div>
+                {question &&
+                  (question.handed_off ? (
+                    <p className='po-ai__handed'>
+                      <Icon name='check' /> {t('po_ai_handed_off')}
+                    </p>
+                  ) : (
+                    !locked && (
+                      <button type='button' className='po-ai__ask' disabled={handing === question.id} onClick={() => void handoff(question.id)}>
+                        <Icon name='send' /> {handing === question.id ? t('po_ai_asking_bp') : t('po_ai_ask_bp')}
+                      </button>
+                    )
+                  ))}
+              </div>
+            </React.Fragment>
+          );
+        })}
+        {asking && (
+          <>
+            <div className='po-msg po-msg--me is-pending'>
+              <div className='po-msg__bubble'>
+                <p>{asking}</p>
+              </div>
+            </div>
+            <div className='po-msg po-msg--them'>
+              <div className='po-msg__bubble po-ai__thinking'>
+                <span className='po-ai__dots' aria-hidden='true'>
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                <p>{t('po_ai_thinking')}</p>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {locked ? (
+        <div className='po-chat__locked' role='status'>
+          <Icon name='lock' />
+          <span>{t('po_ai_locked')}</span>
+          <button type='button' className='btn btn--primary' onClick={onRenew}>
+            {t('po_chat_locked_cta')}
+          </button>
+        </div>
+      ) : (
+        <form
+          className='po-chat__compose'
+          onSubmit={(e) => {
+            e.preventDefault();
+            void ask(body);
+          }}
+        >
+          <label className='po-sr' htmlFor='po-ai-input'>
+            {t('po_ai_label')}
+          </label>
+          <textarea
+            id='po-ai-input'
+            ref={input}
+            rows={1}
+            maxLength={MAX_QUESTION}
+            value={body}
+            disabled={!!asking || left === 0}
+            placeholder={t('po_ai_placeholder')}
+            onChange={(e) => setBody(e.target.value)}
+            onKeyDown={(e) => {
+              if (finePointer && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                void ask(body);
+              }
+            }}
+            aria-describedby='po-ai-hint'
+          />
+          <button className='po-chat__send' type='submit' disabled={!body.trim() || !!asking || left === 0} aria-label={t('po_ai_send')}>
+            <Icon name='send' />
+          </button>
+        </form>
+      )}
+      <p className='po-chat__hint' id='po-ai-hint'>
+        {error ? (
+          <span className='po-error' role='alert'>
+            {error}
+          </span>
+        ) : (
+          !locked && (left === 0 ? t('po_ai_left_none') : left === 1 ? t('po_ai_left_one') : t('po_ai_left', { n: left }))
+        )}
+      </p>
+      <p className='po-ai__disclaimer'>{t('po_ai_disclaimer')}</p>
     </section>
   );
 };
@@ -1318,7 +1580,25 @@ const POLL_IDLE_MS = 20000;
 const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSignedOut: (notice?: string) => void }> = ({ home, reload, onSignedOut }) => {
   const { t, lang } = useLanguage();
   const { search, navigate } = useRouter();
-  const view = readView(search);
+  const [assistant, setAssistantState] = useState<AssistantThread | null>(null);
+  const requested = readView(search);
+  // The assistant tab exists only when Black Pater turned it on.
+  const view: View = requested === 'assistant' && !assistant?.enabled ? 'home' : requested;
+  const views = VIEWS.filter((v) => v.id !== 'assistant' || assistant?.enabled);
+  const setAssistant = useCallback(
+    (fn: (t: AssistantThread) => AssistantThread) => setAssistantState((a) => (a ? fn(a) : a)),
+    []
+  );
+  useEffect(() => {
+    let alive = true;
+    portalApi
+      .assistant()
+      .then((a) => alive && setAssistantState(a))
+      .catch(() => alive && setAssistantState(null));
+    return () => {
+      alive = false;
+    };
+  }, [home]);
   const [data, setData] = useState(home);
   const [messages, setMessagesState] = useState<ChatMessage[]>(home.messages);
   const [notice, setNotice] = useState<string | null>(null);
@@ -1459,7 +1739,7 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
         </div>
         <nav aria-label={t('po_nav_label')}>
           <ul className='po-nav'>
-            {VIEWS.map((v) => (
+            {views.map((v) => (
               <li key={v.id}>
                 <Link to={viewPath(v.id)} className={`po-nav__link${view === v.id ? ' is-active' : ''}`} aria-current={view === v.id ? 'page' : undefined}>
                   <Icon name={v.icon} />
@@ -1510,6 +1790,18 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
                 {!!unreadMessages && <span className='po-count'>{unreadMessages}</span>}
                 <Icon name='chevronRight' className='po-shortcut__chev' />
               </button>
+              {assistant?.enabled && !ended && (
+                <button type='button' className='po-card po-shortcut' onClick={() => go('assistant')}>
+                  <span className='po-shortcut__icon' aria-hidden='true'>
+                    <Icon name='sparkles' />
+                  </span>
+                  <span className='po-shortcut__text'>
+                    <strong>{t('po_home_ai')}</strong>
+                    <span>{t('po_home_ai_text')}</span>
+                  </span>
+                  <Icon name='chevronRight' className='po-shortcut__chev' />
+                </button>
+              )}
             </div>
             <AppCard />
             {!ended && <ContactCard home={data} onWrite={() => go('messages')} />}
@@ -1525,6 +1817,8 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
             <InfoFeed data={data} setData={setData} markRead={markRead} onPlans={() => go('account')} />
           ))}
 
+        {view === 'assistant' && assistant && <Assistant thread={assistant} setThread={setAssistant} onRenew={() => go('account')} />}
+
         {view === 'messages' && <Chat data={data} messages={messages} setMessages={setMessages} locked={ended} onRenew={() => go('account')} />}
 
         {view === 'account' && (
@@ -1538,7 +1832,7 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
       </div>
 
       <nav className='po-tabbar' aria-label={t('po_nav_label')}>
-        {VIEWS.map((v) => (
+        {views.map((v) => (
           <Link key={v.id} to={viewPath(v.id)} className={`po-tabbar__link${view === v.id ? ' is-active' : ''}`} aria-current={view === v.id ? 'page' : undefined}>
             <span className='po-tabbar__icon'>
               <Icon name={v.icon} />

@@ -6,7 +6,7 @@ import { CONTACT_EMAIL } from '../../lib/contact';
 const fr: LegalDoc = {
   title: 'Politique de confidentialité',
   lead: 'Quelles données sont traitées quand vous visitez blackpater.com ou utilisez notre service d’accompagnement, par qui, et comment exercer vos droits.',
-  updated: 'Dernière mise à jour : 24 octobre 2026',
+  updated: 'Dernière mise à jour : 12 novembre 2026',
   sections: [
     {
       id: 'responsable',
@@ -30,6 +30,9 @@ const fr: LegalDoc = {
           </li>
           <li>
             <strong>Suivi des paiements</strong> : pour chaque paiement, une fiche (nom, e-mail, montant, offre, statut et date) est enregistrée par LevelUp Ecosystem, le prestataire du site, pour alimenter le tableau de bord de BlackPater. Elle ne contient aucune donnée de carte.
+          </li>
+          <li>
+            <strong>Assistant IA de l’espace client</strong> : au moment du paiement, vos réponses au questionnaire PaterGuide sont enregistrées comme votre dossier chez LevelUp Ecosystem. Si vous utilisez l’assistant IA de votre espace client, vos questions, votre dossier (sans votre e-mail ni votre téléphone) et les conseils de BlackPater sont transmis par LevelUp à des fournisseurs d’intelligence artificielle choisis par LevelUp (principalement Google Gemini) pour rédiger la réponse, avec une recherche web en direct. L’assistant est toujours présenté comme une IA ; ses réponses peuvent contenir des erreurs. Votre historique est supprimé avec votre compte.
           </li>
           <li>
             <strong>Échanges</strong> : les messages que vous envoyez sur WhatsApp ou par e-mail, pour vous répondre, vous conseiller et vous accompagner.
@@ -57,6 +60,7 @@ const fr: LegalDoc = {
             Stripe (paiement) — <a href='https://stripe.com/privacy' target='_blank' rel='noopener noreferrer'>stripe.com/privacy</a>
           </li>
           <li>Vercel (hébergement du site)</li>
+          <li>LevelUp Ecosystem (tableau de bord, espace client, assistant IA) et ses fournisseurs d’intelligence artificielle, principalement Google Gemini</li>
           <li>WhatsApp / Meta (messagerie, pour l’accompagnement direct)</li>
           <li>Google Fonts (polices de caractères chargées depuis les serveurs de Google)</li>
           <li>LevelUp Ecosystem (gestion du contenu du site et tableau de bord des paiements)</li>
@@ -87,7 +91,7 @@ const fr: LegalDoc = {
 const en: LegalDoc = {
   title: 'Privacy policy',
   lead: 'What data is processed when you visit blackpater.com or use our guidance service, by whom, and how to exercise your rights.',
-  updated: 'Last updated: October 24, 2026',
+  updated: 'Last updated: November 12, 2026',
   sections: [
     {
       id: 'responsable',
@@ -111,6 +115,9 @@ const en: LegalDoc = {
           </li>
           <li>
             <strong>Payment records</strong>: for each payment, a record (name, email, amount, offer, status and date) is stored by LevelUp Ecosystem, the site’s provider, to run BlackPater’s dashboard. It contains no card details.
+          </li>
+          <li>
+            <strong>Member-space AI assistant</strong>: when you pay, your PaterGuide answers are stored as your dossier at LevelUp Ecosystem. If you use the AI assistant in your member space, your questions, your dossier (without your email or phone) and BlackPater’s advice are sent by LevelUp to artificial-intelligence providers chosen by LevelUp (mainly Google Gemini) to write the answer, with a live web search. The assistant is always presented as an AI; its answers may contain mistakes. Your history is deleted with your account.
           </li>
           <li>
             <strong>Conversations</strong>: the messages you send on WhatsApp or by email, to answer, advise and guide you.
@@ -138,6 +145,7 @@ const en: LegalDoc = {
             Stripe (payments) — <a href='https://stripe.com/privacy' target='_blank' rel='noopener noreferrer'>stripe.com/privacy</a>
           </li>
           <li>Vercel (website hosting)</li>
+          <li>LevelUp Ecosystem (dashboard, member space, AI assistant) and its artificial-intelligence providers, mainly Google Gemini</li>
           <li>WhatsApp / Meta (messaging, for direct guidance)</li>
           <li>Google Fonts (typefaces loaded from Google’s servers)</li>
           <li>LevelUp Ecosystem (website content management and payments dashboard)</li>

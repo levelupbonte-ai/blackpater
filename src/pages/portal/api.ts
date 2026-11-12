@@ -107,6 +107,33 @@ export interface PortalMessage {
   read: boolean;
   /** The member's own message has been read by Black Pater. */
   seen?: boolean;
+  /** Sent with "Ask Black Pater" from the AI assistant. */
+  via?: 'assistant' | null;
+  /** Black Pater's answer to a question from the assistant. */
+  validated?: boolean;
+}
+
+/** One line of the conversation with the AI assistant. */
+export interface AssistantMessage {
+  id: string;
+  /** user: the member; assistant: the AI; owner: Black Pater's validated answer. */
+  role: 'user' | 'assistant' | 'owner';
+  body: string;
+  sources: { url: string; title: string }[];
+  /** On an AI answer: the question it answers. */
+  question_id: string | null;
+  /** On a question: sent to Black Pater. */
+  handed_off: boolean;
+  created_at: string;
+}
+
+export interface AssistantThread {
+  enabled: boolean;
+  /** Membership active (the assistant is for active members). */
+  active: boolean;
+  daily: number;
+  used: number;
+  messages: AssistantMessage[];
 }
 
 export interface PortalHome {
@@ -173,6 +200,9 @@ export const portalApi = {
   pushKey: () => call<{ key: string | null }>('push-key'),
   pushSubscribe: (sub: { endpoint: string; p256dh: string; auth: string }) => call<{ ok: true }>('push-subscribe', sub),
   pushUnsubscribe: (endpoint: string) => call<{ ok: true }>('push-unsubscribe', { endpoint }),
+  assistant: () => call<AssistantThread>('assistant'),
+  assistantAsk: (question: string) => call<{ answer: AssistantMessage | null }>('assistant-ask', { question }),
+  assistantHandoff: (questionId: string) => call<{ ok: true; id: string | null }>('assistant-handoff', { questionId }),
   fileUrl: (itemId: string) => `/api/portal/file?item=${encodeURIComponent(itemId)}`
 };
 

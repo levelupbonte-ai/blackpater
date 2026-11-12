@@ -332,7 +332,8 @@
   inset: auto 0 0;
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
   background: var(--nav-bg-scrolled);
   -webkit-backdrop-filter: saturate(160%) blur(16px);
@@ -349,6 +350,11 @@
   color: var(--bone-mute);
   font-size: 0.7rem;
   font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .po-tabbar__link.is-active {
   color: var(--bone);
@@ -1099,14 +1105,17 @@
     overflow: hidden;
   }
 }
-.po-shell--messages .po-main {
+.po-shell--messages .po-main,
+.po-shell--assistant .po-main {
   gap: 0;
 }
-.po-page:has(.po-shell--messages) {
+.po-page:has(.po-shell--messages),
+.po-page:has(.po-shell--assistant) {
   padding-bottom: calc(76px + env(safe-area-inset-bottom));
 }
 @media (min-width: 960px) {
-  .po-page:has(.po-shell--messages) {
+  .po-page:has(.po-shell--messages),
+  .po-page:has(.po-shell--assistant) {
     padding-bottom: 32px;
   }
 }
@@ -1497,4 +1506,156 @@
 }
 .po-app .po-row {
   flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------------ AI assistant */
+
+.po-ai {
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+}
+.po-ai__avatar {
+  background: linear-gradient(150deg, #6d4bd8, #1b2a4a);
+}
+.po-ai__avatar svg {
+  width: 20px;
+  height: 20px;
+}
+.po-ai__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.po-ai__tag svg {
+  width: 12px;
+  height: 12px;
+}
+.po-ai__tag--ok {
+  color: var(--success, #2f9e6b);
+  opacity: 1;
+}
+.po-msg--validated .po-msg__bubble {
+  border-color: color-mix(in srgb, var(--success, #2f9e6b) 45%, var(--line));
+}
+.po-ai__sources {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 0.78rem;
+  white-space: normal;
+}
+.po-ai__sources strong {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+.po-ai__sources ol {
+  margin: 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: 2px;
+}
+.po-ai__sources a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+.po-ai__nosource {
+  margin-top: 8px !important;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+.po-ai__ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  margin-top: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg, transparent);
+  color: var(--bone);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.po-ai__ask:hover {
+  border-color: var(--bone);
+}
+.po-ai__ask:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.po-ai__ask svg,
+.po-ai__handed svg {
+  width: 14px;
+  height: 14px;
+}
+.po-ai__handed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  opacity: 0.8;
+}
+.po-ai__thinking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.po-ai__thinking p {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+.po-ai__dots {
+  display: inline-flex;
+  gap: 3px;
+}
+.po-ai__dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.4;
+  animation: poAiDot 1.2s infinite ease-in-out;
+}
+.po-ai__dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.po-ai__dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes poAiDot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 0.9;
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .po-ai__dots i {
+    animation: none;
+  }
+}
+.po-ai__disclaimer {
+  margin: 0;
+  padding: 0 16px 12px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  opacity: 0.65;
 }

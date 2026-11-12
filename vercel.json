@@ -4,6 +4,9 @@
   "buildCommand": "vite build",
   "outputDirectory": "dist",
   "trailingSlash": false,
+  "functions": {
+    "api/portal/[action].js": { "maxDuration": 60 }
+  },
   "redirects": [
     {
       "source": "/index.html",

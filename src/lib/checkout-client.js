@@ -89,10 +89,15 @@ export function createCheckoutController(options) {
     safeSet(storage, key, JSON.stringify(attempt));
   }
 
+  let currentPromo = null;
+  let attemptPromo = null;
+
   function currentAttempt() {
     const stored = readCheckoutAttempt(storage, offerId) || memoryAttempt;
-    if (stored) return stored;
+    // Another promo code means another price: a new attempt (and a new Stripe session).
+    if (stored && attemptPromo === currentPromo) return stored;
     const fresh = { attemptId: randomUUID(), sessionId: null };
+    attemptPromo = currentPromo;
     save(fresh);
     return fresh;
   }
@@ -101,6 +106,7 @@ export function createCheckoutController(options) {
     // Same schema as the server: nothing unvalidated leaves the browser.
     const payload = { offerId, attemptId: attempt.attemptId };
     if (attempt.sessionId) payload.sessionId = attempt.sessionId;
+    if (currentPromo) payload.promoCode = currentPromo;
     if (!parseCheckoutRequest(payload).ok) throw Object.assign(new Error('invalid_request'), { name: 'ValidationError' });
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -145,6 +151,11 @@ export function createCheckoutController(options) {
       if (res.ok && data?.status === 'paid' && isConfirmationPath(data.redirect)) {
         return { type: 'paid', redirect: data.redirect };
       }
+      if (res.status === 400 && data?.error === 'promo_invalid') {
+        const reason = ['unknown', 'expired', 'used_up', 'not_applicable'].includes(data.reason) ? data.reason : 'unknown';
+        return { type: 'error', code: 'promo_invalid', reason };
+      }
+      if (res.status === 503 && data?.error === 'promo_unavailable') return { type: 'error', code: 'promo_unavailable' };
       if (res.status === 503) return { type: 'error', code: 'payments_unavailable' };
       if (res.status === 429) return { type: 'error', code: 'rate_limited' };
       return { type: 'error', code: 'checkout_failed' };
@@ -156,7 +167,13 @@ export function createCheckoutController(options) {
 
   return {
     /** Idempotent: returns the in-flight (or completed redirect) promise. */
-    start() {
+    /** @param {string | null} [promoCode] a LevelUp promo code, or nothing */
+    start(promoCode = null) {
+      const promo = typeof promoCode === 'string' && promoCode.trim() ? promoCode.trim().toUpperCase() : null;
+      if (promo !== currentPromo) {
+        currentPromo = promo;
+        inflight = null;
+      }
       if (!inflight) {
         inflight = run().then((result) => {
           // Only a real failure unlocks a retry; a redirect keeps the lock.

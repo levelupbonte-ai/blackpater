@@ -22,7 +22,7 @@ export const STRIPE_CHECKOUT_ORIGINS = Object.freeze(['https://checkout.stripe.c
 /** Path of the confirmation page, the only internal redirect the API returns. */
 export const CONFIRMATION_PATH = '/paiement/confirmation';
 
-const CHECKOUT_KEYS = Object.freeze(['offerId', 'attemptId', 'sessionId']);
+const CHECKOUT_KEYS = Object.freeze(['offerId', 'attemptId', 'sessionId', 'promoCode']);
 
 // C0/C1 controls, zero-width and bidirectional formatting characters.
 const UNSAFE_RANGES = [
@@ -64,11 +64,15 @@ export function isSessionId(value) {
  */
 export function parseCheckoutRequest(body) {
   if (!isPlainObject(body) || !hasOnlyKeys(body, CHECKOUT_KEYS)) return { ok: false };
-  const { offerId, attemptId, sessionId } = body;
+  const { offerId, attemptId, sessionId, promoCode } = body;
   if (typeof offerId !== 'string' || offerId.length > 64 || !getOffer(offerId)) return { ok: false };
   if (!isAttemptId(attemptId)) return { ok: false };
   if (sessionId !== undefined && sessionId !== null && !isSessionId(sessionId)) return { ok: false };
-  return { ok: true, value: { offerId, attemptId: attemptId.toLowerCase(), sessionId: sessionId ?? null } };
+  if (promoCode !== undefined && promoCode !== null && (typeof promoCode !== 'string' || !/^[A-Za-z0-9_-]{3,32}$/.test(promoCode))) return { ok: false };
+  return {
+    ok: true,
+    value: { offerId, attemptId: attemptId.toLowerCase(), sessionId: sessionId ?? null, promoCode: promoCode ? promoCode.toUpperCase() : null }
+  };
 }
 
 /** A URL the browser may be sent to for payment: https on a Stripe Checkout origin. */

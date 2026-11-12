@@ -23,7 +23,8 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   rate_limited: 'err_rate_limited',
   timeout: 'err_timeout',
   network: 'err_network',
-  checkout_failed: 'err_checkout_failed'
+  checkout_failed: 'err_checkout_failed',
+  promo_unavailable: 'promo_err_unavailable'
 };
 
 const CODES =
@@ -711,7 +712,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       setErr(contactErr);
       return;
     }
-    pay();
+    pay(promoCode.trim() || undefined);
   };
 
   const handleSelectTier = (tier: TierKey) => {
@@ -721,6 +722,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   };
 
   const now = useLaunchClock();
+  const [promoCode, setPromoCode] = useState('');
   const current = priceFor(activeOffer, now);
   const price = formatOfferPrice(activeOffer, lang, current.amount);
   const regularPrice = formatOfferPrice(activeOffer, lang, current.regular);
@@ -961,7 +963,21 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                   </div>
 
                   <LaunchCountdown compact />
-                  <p className='pg-checkout-note pg-promo-hint'>{t('launch_promo_code')}</p>
+                  <label className='pg-promo'>
+                    <span className='pg-promo__label'>{t('promo_label')}</span>
+                    <input
+                      type='text'
+                      className='pg-promo__input'
+                      value={promoCode}
+                      maxLength={32}
+                      autoCapitalize='characters'
+                      autoComplete='off'
+                      spellCheck={false}
+                      placeholder={t('promo_placeholder')}
+                      onChange={(e) => setPromoCode(e.target.value.replace(/[^A-Za-z0-9_-]/g, '').toUpperCase())}
+                      aria-invalid={checkoutState.kind === 'error' && checkoutState.code === 'promo_invalid'}
+                    />
+                  </label>
                   <div className='pg-buyer-recap'>
                     <div className='pg-buyer-recap__row'>
                       <span>{tr('Formule choisie|Selected plan', lang)}</span>
@@ -1044,7 +1060,11 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     {checkoutState.kind === 'error' && (
                       <p className='notice notice--error'>
                         <Icon name='alert' />
-                        <span>{t(ERROR_KEYS[checkoutState.code] || 'err_checkout_failed')}</span>
+                        <span>
+                          {checkoutState.code === 'promo_invalid'
+                            ? t(`promo_err_${checkoutState.reason}` as TranslationKey)
+                            : t(ERROR_KEYS[checkoutState.code] || 'err_checkout_failed')}
+                        </span>
                       </p>
                     )}
                     {checkoutState.kind === 'unavailable' && (

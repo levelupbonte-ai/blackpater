@@ -6,7 +6,8 @@ export type CheckoutState =
   | { kind: 'idle' }
   | { kind: 'redirecting' }
   | { kind: 'unavailable' }
-  | { kind: 'error'; code: 'rate_limited' | 'timeout' | 'network' | 'checkout_failed' };
+  | { kind: 'error'; code: 'rate_limited' | 'timeout' | 'network' | 'checkout_failed' | 'promo_unavailable' }
+  | { kind: 'error'; code: 'promo_invalid'; reason: 'unknown' | 'expired' | 'used_up' | 'not_applicable' };
 
 function sessionStorageOrNull(): Storage | null {
   try {
@@ -62,11 +63,11 @@ export function useCheckout(offerId: string) {
   }, []);
 
   const busy = useRef(false);
-  const pay = useCallback(async () => {
+  const pay = useCallback(async (promoCode?: string) => {
     if (busy.current || state.kind === 'redirecting' || state.kind === 'unavailable') return;
     busy.current = true;
     setState({ kind: 'redirecting' });
-    const result = await controller.current!.start();
+    const result = await controller.current!.start(promoCode ?? null);
     if (result.type === 'redirect') {
       window.location.assign(result.url);
       return; // stays locked while the browser leaves the page
@@ -77,7 +78,8 @@ export function useCheckout(offerId: string) {
       return;
     }
     if (result.code === 'payments_unavailable') setState({ kind: 'unavailable' });
-    else setState({ kind: 'error', code: result.code as Exclude<CheckoutState, { kind: 'idle' | 'redirecting' | 'unavailable' }>['code'] });
+    else if (result.code === 'promo_invalid') setState({ kind: 'error', code: 'promo_invalid', reason: result.reason });
+    else setState({ kind: 'error', code: result.code as 'rate_limited' | 'timeout' | 'network' | 'checkout_failed' | 'promo_unavailable' });
   }, [state.kind, navigate]);
 
   // Reset the lock flag when the page is restored from the bfcache.

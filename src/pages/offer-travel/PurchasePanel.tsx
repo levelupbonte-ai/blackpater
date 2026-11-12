@@ -3,7 +3,9 @@ import { Link } from '../../app/router';
 import { useLanguage } from '../../context/LanguageContext';
 import { Icon } from '../../components/Icon';
 import { PaymentMarks } from '../../components/PaymentMarks';
-import { formatOfferPrice, type OFFERS } from '../../../shared/offers.js';
+import { formatOfferPrice, priceFor, type OFFERS } from '../../../shared/offers.js';
+import { useLaunchClock } from '../../lib/launch';
+import { LaunchCountdown } from '../../components/LaunchCountdown';
 import type { TranslationKey } from '../../i18n';
 import { useCheckout } from './useCheckout';
 
@@ -19,7 +21,10 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
 export const PurchasePanel: React.FC<{ offer: Offer; onOpenGuide?: () => void }> = ({ offer, onOpenGuide }) => {
   const { lang, t } = useLanguage();
   const { state, pay } = useCheckout(offer.id);
-  const price = formatOfferPrice(offer, lang);
+  const now = useLaunchClock();
+  const current = priceFor(offer, now);
+  const price = formatOfferPrice(offer, lang, current.amount);
+  const regular = formatOfferPrice(offer, lang, current.regular);
   const redirecting = state.kind === 'redirecting';
   const unavailable = state.kind === 'unavailable';
 
@@ -43,9 +48,13 @@ export const PurchasePanel: React.FC<{ offer: Offer; onOpenGuide?: () => void }>
       </h2>
 
       <p className='buy__price' onClick={onOpenGuide} style={onOpenGuide ? { cursor: 'pointer' } : undefined}>
-        <span className='buy__amount'>{price}</span>
-        <span className='buy__note'>{t('offer_price_note')}</span>
+        {current.launch && <s className='buy__was'>{regular}</s>}
+        <span className='buy__amount' suppressHydrationWarning>
+          {price} <span className='buy__per'>{t('offers_tier_per_month')}</span>
+        </span>
+        <span className='buy__note'>{current.launch ? t('offers_tier_launch_note', { regular }) : t('offers_tier_once')}</span>
       </p>
+      <LaunchCountdown compact />
 
       <button
         type='button'

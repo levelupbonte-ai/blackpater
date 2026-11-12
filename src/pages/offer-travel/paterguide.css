@@ -781,3 +781,33 @@
   display: block;
   margin: 10px 0 14px;
 }
+.pg-promo {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 16px;
+}
+.pg-promo__label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--bone-dim);
+}
+.pg-promo__input {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--bone);
+  font: inherit;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pg-promo__input:focus {
+  outline: none;
+  border-color: var(--copper);
+  box-shadow: 0 0 0 3px var(--copper-soft);
+}
+.pg-promo__input[aria-invalid='true'] {
+  border-color: var(--danger);
+}

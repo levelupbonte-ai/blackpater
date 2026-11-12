@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { MEMBERSHIP_DAYS, formatOfferPrice, getOffer, priceFor } from '../../shared/offers.js';
 import { getStripe } from './stripe.js';
+import { checkPromo } from './promo.js';
 import { createRateLimiter, createTtlMap } from './memory.js';
 import { HttpError, getClientIp, methodNotAllowed, readJsonBody, resolveOrigin, sendJson } from './http.js';
 import { confirmationPath, isStripeCheckoutUrl, parseCheckoutRequest } from '../../shared/validation.js';
@@ -21,8 +22,9 @@ function paramsHash(params) {
   return createHash('sha256').update(JSON.stringify(params)).digest('hex').slice(0, 12);
 }
 
-export function buildSessionParams({ offer, attemptId, origin, bucket, now = Date.now() }) {
+export function buildSessionParams({ offer, attemptId, origin, bucket, now = Date.now(), promo = null }) {
   const price = priceFor(offer, now);
+  const charged = promo ? promo.finalAmount : price.amount;
   const regular = formatOfferPrice(offer, 'fr', price.regular);
   const expiresAt = Math.floor(((bucket + 1) * BUCKET_MS + EXPIRY_MARGIN_MS) / 1000);
   return {
@@ -34,7 +36,7 @@ export function buildSessionParams({ offer, attemptId, origin, bucket, now = Dat
         quantity: 1,
         price_data: {
           currency: offer.currency,
-          unit_amount: price.amount,
+          unit_amount: charged,
           product_data: { name: offer.stripeName, description: offer.stripeDescription }
         }
       }
@@ -48,14 +50,16 @@ export function buildSessionParams({ offer, attemptId, origin, bucket, now = Dat
       attempt_id: attemptId,
       site: 'blackpater.com',
       price: price.launch ? 'launch' : 'regular',
-      months: '1'
+      months: '1',
+      ...(promo ? { promo_code: promo.code, promo_code_id: promo.codeId, amount_off: String(promo.amountOff) } : {})
     },
     payment_intent_data: {
       description: offer.stripeName,
       metadata: { offer_id: offer.id, attempt_id: attemptId, site: 'blackpater.com', price: price.launch ? 'launch' : 'regular' }
     },
-    // Promotion codes created in the Stripe Dashboard (Products → Coupons).
-    allow_promotion_codes: true,
+    // A LevelUp code already applied: no second discount on the Stripe page.
+    // Otherwise Stripe promotion codes (Products → Coupons) still work.
+    ...(promo ? {} : { allow_promotion_codes: true }),
     custom_text: {
       submit: {
         message: `${price.launch ? `Prix de lancement pour le 1er mois, puis ${regular} / mois. ` : ''}Accès de ${MEMBERSHIP_DAYS} jours, sans prélèvement automatique : vous êtes prévenu avant la fin pour renouveler depuis votre espace. / ${MEMBERSHIP_DAYS} days of access, no automatic charge. Conditions de vente / Terms of sale: ${origin}/legal/conditions-de-vente`
@@ -111,13 +115,26 @@ export function createCheckoutHandler(deps = {}) {
     const parsed = parseCheckoutRequest(body);
     if (!parsed.ok) return sendJson(res, 400, { error: 'invalid_request' });
     const offer = getOffer(parsed.value.offerId);
-    const { attemptId, sessionId: clientSessionId } = parsed.value;
+    const { attemptId, sessionId: clientSessionId, promoCode } = parsed.value;
 
     const stripe = stripeFor();
     if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });
 
-    const key = `${offer.id}:${attemptId}`;
+    const key = `${offer.id}:${attemptId}:${promoCode || ''}`;
     const t = now();
+
+    // A promo code from the LevelUp dashboard: LevelUp says what to charge.
+    let promo = null;
+    if (promoCode) {
+      const base = priceFor(offer, t).amount;
+      const result = await (deps.checkPromo || checkPromo)({ code: promoCode, offerId: offer.id, amount: base, currency: offer.currency, ip: getClientIp(req) });
+      if (!result.ok) {
+        if (result.reason === 'rate_limited') return sendJson(res, 429, { error: 'rate_limited' });
+        if (result.reason === 'unavailable') return sendJson(res, 503, { error: 'promo_unavailable' });
+        return sendJson(res, 400, { error: 'promo_invalid', reason: result.reason });
+      }
+      promo = result;
+    }
 
     try {
       // 1. Cheap layer: the same attempt asked again a moment ago.
@@ -135,7 +152,12 @@ export function createCheckoutHandler(deps = {}) {
         } catch (err) {
           if (err?.code !== 'resource_missing') throw err;
         }
-        if (previous && previous.client_reference_id === attemptId && previous.metadata?.offer_id === offer.id) {
+        if (
+          previous &&
+          previous.client_reference_id === attemptId &&
+          previous.metadata?.offer_id === offer.id &&
+          (previous.metadata?.promo_code || null) === (promo ? promo.code : null)
+        ) {
           if (isPaidStatus(previous)) {
             return sendJson(res, 200, { status: 'paid', redirect: confirmationPath(previous.id), sessionId: previous.id });
           }
@@ -148,7 +170,7 @@ export function createCheckoutHandler(deps = {}) {
 
       // 3. Create — idempotent for this attempt within the time window.
       const bucket = Math.floor(t / BUCKET_MS);
-      const params = buildSessionParams({ offer, attemptId, origin: resolveOrigin(req), bucket, now: t });
+      const params = buildSessionParams({ offer, attemptId, origin: resolveOrigin(req), bucket, now: t, promo });
       const idempotencyKey = `bp_checkout_${offer.id}_${attemptId}_${bucket}_${paramsHash(params)}`;
       let session;
       try {

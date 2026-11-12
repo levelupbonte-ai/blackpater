@@ -163,3 +163,30 @@ test('return URLs never point to a foreign host', async () => {
   await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT }, { host: 'evil.example', 'x-forwarded-host': 'evil.example' });
   assert.match(stripe.calls.create[0].params.success_url, /^https:\/\/blackpater\.com\//);
 });
+
+test('promo code from LevelUp: the server charges what LevelUp returns and records the code', async () => {
+  const seen = [];
+  const { stripe, handler } = setup({
+    checkPromo: async (args) => {
+      seen.push(args);
+      return args.code === 'BIENVENUE10'
+        ? { ok: true, codeId: '44444444-4444-4444-8444-444444444444', code: 'BIENVENUE10', finalAmount: 450, amountOff: 50 }
+        : { ok: false, reason: 'expired' };
+    }
+  });
+  const res = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT, promoCode: 'bienvenue10' });
+  assert.equal(res.statusCode, 200);
+  const params = stripe.calls.create[0].params;
+  assert.equal(params.line_items[0].price_data.unit_amount, 450);
+  assert.equal(params.metadata.promo_code_id, '44444444-4444-4444-8444-444444444444');
+  assert.equal(params.metadata.amount_off, '50');
+  assert.equal(params.allow_promotion_codes, undefined, 'no second discount on the Stripe page');
+  assert.equal(seen[0].code, 'BIENVENUE10');
+  assert.equal(seen[0].amount, 500);
+
+  const bad = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT, promoCode: 'OLDCODE' });
+  assert.equal(bad.statusCode, 400);
+  assert.deepEqual(bad.body, { error: 'promo_invalid', reason: 'expired' });
+  const invalid = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT, promoCode: '<x>' });
+  assert.equal(invalid.statusCode, 400);
+});

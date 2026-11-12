@@ -15,7 +15,8 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   rate_limited: 'err_rate_limited',
   timeout: 'err_timeout',
   network: 'err_network',
-  checkout_failed: 'err_checkout_failed'
+  checkout_failed: 'err_checkout_failed',
+  promo_unavailable: 'promo_err_unavailable'
 };
 
 export const PurchasePanel: React.FC<{ offer: Offer; onOpenGuide?: () => void }> = ({ offer, onOpenGuide }) => {
@@ -55,7 +56,6 @@ export const PurchasePanel: React.FC<{ offer: Offer; onOpenGuide?: () => void }>
         <span className='buy__note'>{current.launch ? t('offers_tier_launch_note', { regular }) : t('offers_tier_once')}</span>
       </p>
       <LaunchCountdown compact />
-      <p className='buy__note buy__promo'>{t('launch_promo_code')}</p>
 
       <button
         type='button'
@@ -73,7 +73,7 @@ export const PurchasePanel: React.FC<{ offer: Offer; onOpenGuide?: () => void }>
         {state.kind === 'error' && (
           <p className='notice notice--error'>
             <Icon name='alert' />
-            <span>{t(ERROR_KEYS[state.code] || 'err_checkout_failed')}</span>
+            <span>{state.code === 'promo_invalid' ? t(`promo_err_${state.reason}` as TranslationKey) : t(ERROR_KEYS[state.code] || 'err_checkout_failed')}</span>
           </p>
         )}
         {redirecting && <span className='sr-only'>{t('offer_cta_redirecting')}</span>}

@@ -99,6 +99,11 @@ export function buildPaymentEvent({ eventId, eventCreated, session, status, extr
   if (UUID_RE.test(String(session.metadata?.portal_customer_id || ''))) metadata.portal_customer_id = session.metadata.portal_customer_id;
   if (session.metadata?.kind === 'renewal') metadata.kind = 'renewal';
   if (plan) Object.assign(metadata, { kind: 'portal_plan', plan_id: session.metadata.plan_id });
+  // A LevelUp promo code: LevelUp counts its use when this payment is paid.
+  if (UUID_RE.test(String(session.metadata?.promo_code_id || ''))) {
+    metadata.promo_code_id = session.metadata.promo_code_id;
+    if (/^[0-9]{1,9}$/.test(String(session.metadata.amount_off || ''))) metadata.amount_off = Number(session.metadata.amount_off);
+  }
   if (extraMetadata) Object.assign(metadata, extraMetadata);
   return {
     provider: 'stripe',

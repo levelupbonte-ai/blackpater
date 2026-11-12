@@ -111,7 +111,14 @@ export const fr = {
   launch_minutes: 'min',
   launch_seconds: 's',
   launch_label: 'Temps restant avant la fin de l’offre de lancement',
-  launch_promo_code: 'Un code promo ? Saisissez-le sur la page de paiement sécurisée.'
+  launch_promo_code: 'Un code promo ? Saisissez-le sur la page de paiement sécurisée.',
+  promo_label: 'Code promo (facultatif)',
+  promo_placeholder: 'ex. BIENVENUE10',
+  promo_err_unknown: 'Ce code promo n’existe pas. Vérifiez-le ou payez sans code.',
+  promo_err_expired: 'Ce code promo n’est plus valable.',
+  promo_err_used_up: 'Ce code promo a déjà été utilisé le nombre de fois prévu.',
+  promo_err_not_applicable: 'Ce code promo ne s’applique pas à cette formule.',
+  promo_err_unavailable: 'Les codes promo sont momentanément indisponibles. Réessayez ou payez sans code.'
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -226,6 +233,13 @@ export const en: Record<keyof typeof fr, string> = {
   launch_minutes: 'min',
   launch_seconds: 's',
   launch_label: 'Time left before the launch offer ends',
-  launch_promo_code: 'Have a promo code? Enter it on the secure payment page.'
+  launch_promo_code: 'Have a promo code? Enter it on the secure payment page.',
+  promo_label: 'Promo code (optional)',
+  promo_placeholder: 'e.g. WELCOME10',
+  promo_err_unknown: 'This promo code does not exist. Check it or pay without a code.',
+  promo_err_expired: 'This promo code is no longer valid.',
+  promo_err_used_up: 'This promo code has already been used as many times as allowed.',
+  promo_err_not_applicable: 'This promo code does not apply to this plan.',
+  promo_err_unavailable: 'Promo codes are unavailable for a moment. Try again or pay without a code.'
 };
 

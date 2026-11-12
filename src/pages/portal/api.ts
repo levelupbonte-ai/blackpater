@@ -219,6 +219,8 @@ export const portalApi = {
     call<{ answer: AssistantMessage | null }>('assistant-ask', { question, lang, ...(images.length ? { images } : {}) }),
   profile: () => call<MemberProfile>('profile'),
   profileNote: (note: string) => call<{ ok: true; note: string | null }>('profile-note', { note }),
+  dossierSave: (dossier: Record<string, unknown>) =>
+    call<{ ok: true; profile: Record<string, unknown>; updated_at: string | null }>('dossier-save', { dossier }),
   assistantHandoff: (questionId: string) => call<{ ok: true; id: string | null }>('assistant-handoff', { questionId }),
   fileUrl: (itemId: string) => `/api/portal/file?item=${encodeURIComponent(itemId)}`
 };

@@ -1,3 +1,5 @@
+import { InstallGuide } from '../../components/InstallGuide';
+import { isMobile } from '../../lib/install';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './payment.css';
 import { Link, useRouter } from '../../app/router';
@@ -193,6 +195,13 @@ export const ConfirmationPage: React.FC = () => {
                 {t('pay_start_whatsapp')}
               </a>
             </>
+          )}
+          {isMobile() && (
+            <section className='pay-install' aria-labelledby='pay-install-title'>
+              <h2 id='pay-install-title'>{t('ig_after_pay_title')}</h2>
+              <p>{t('ig_after_pay_text')}</p>
+              <InstallGuide />
+            </section>
           )}
           <aside className='pay-portal' aria-labelledby='pay-portal-title'>
             <span className='pay-portal__icon' aria-hidden='true'>

@@ -174,6 +174,26 @@ const paths: Record<string, React.ReactNode> = {
       <path d='M6.5 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5l1-12.5' />
     </>
   ),
+  share: (
+    <>
+      <path d='M12 3v12' />
+      <path d='m7.5 7.5 4.5-4.5 4.5 4.5' />
+      <path d='M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1' />
+    </>
+  ),
+  plusSquare: (
+    <>
+      <rect x='3.5' y='3.5' width='17' height='17' rx='3' />
+      <path d='M12 8v8M8 12h8' />
+    </>
+  ),
+  dots: (
+    <>
+      <circle cx='12' cy='5.5' r='1.3' />
+      <circle cx='12' cy='12' r='1.3' />
+      <circle cx='12' cy='18.5' r='1.3' />
+    </>
+  ),
   image: (
     <>
       <rect x='3.5' y='4.5' width='17' height='15' rx='2.5' />

@@ -2227,3 +2227,122 @@ html.is-app .po-chat {
 .po-menu__row.is-danger .po-menu__icon {
   color: var(--danger, #c0392b);
 }
+
+/* ------------------------------------------------------------------ tab bar star, bell */
+
+.po-tabbar__star {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  justify-self: center;
+  width: 58px;
+  height: 58px;
+  margin-top: -26px;
+  border: 4px solid var(--nav-bg-scrolled, var(--surface));
+  border-radius: 50%;
+  background: linear-gradient(150deg, #f4efff, #e4d8ff);
+  box-shadow: 0 6px 18px rgba(92, 22, 214, 0.28);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.po-tabbar__star:active {
+  transform: scale(0.94);
+}
+.po-tabbar__star.is-active {
+  background: linear-gradient(150deg, #e9ddff, #cdb5ff);
+}
+.po-bell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--bone);
+}
+.po-bell svg {
+  width: 22px;
+  height: 22px;
+}
+.po-bell .po-count {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 0.68rem;
+}
+.po-hero {
+  position: relative;
+}
+.po-hero__bell {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+html.is-app .po-hero__bell {
+  display: none;
+}
+@media (min-width: 960px) {
+  .po-hero__bell {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ gates */
+
+.po-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--char, #f7f3ec);
+}
+.po-gate__box {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 440px);
+  text-align: center;
+}
+.po-gate__box h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.po-gate__box > p {
+  margin: 0;
+  color: var(--bone-mute);
+  line-height: 1.5;
+}
+.po-gate__logo {
+  justify-self: center;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.po-gate__bell {
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--rust, #c2410c) 14%, var(--surface));
+  color: var(--rust, #c2410c);
+}
+.po-gate__bell svg {
+  width: 34px;
+  height: 34px;
+}
+.po-gate__how {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  font-weight: 600;
+}
+.po-gate .po-link {
+  justify-self: center;
+}

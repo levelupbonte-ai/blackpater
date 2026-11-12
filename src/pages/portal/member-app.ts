@@ -41,7 +41,9 @@ function addManifest() {
 
 export function useMemberApp() {
   const [push, setPush] = useState<PushState>('loading');
-  const [installEvent, setInstallEvent] = useState<InstallPrompt | null>(null);
+  const [installEvent, setInstallEvent] = useState<InstallPrompt | null>(() =>
+    typeof window !== 'undefined' ? ((window as Window & { __bpInstall?: InstallPrompt | null }).__bpInstall ?? null) : null
+  );
   const [installed, setInstalled] = useState(false);
   const [key, setKey] = useState<string | null>(null);
 
@@ -56,8 +58,10 @@ export function useMemberApp() {
       setInstalled(true);
       setInstallEvent(null);
     };
+    const onCaptured = () => setInstallEvent((window as Window & { __bpInstall?: InstallPrompt | null }).__bpInstall ?? null);
     window.addEventListener('beforeinstallprompt', onPrompt);
     window.addEventListener('appinstalled', onInstalled);
+    window.addEventListener('bp:installable', onCaptured);
 
     let cancelled = false;
     (async () => {
@@ -92,6 +96,7 @@ export function useMemberApp() {
       cancelled = true;
       window.removeEventListener('beforeinstallprompt', onPrompt);
       window.removeEventListener('appinstalled', onInstalled);
+      window.removeEventListener('bp:installable', onCaptured);
     };
   }, []);
 

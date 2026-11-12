@@ -1,0 +1,77 @@
+.ig {
+  display: grid;
+  gap: 14px;
+}
+.ig-cta {
+  justify-self: stretch;
+  justify-content: center;
+}
+.ig-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.ig-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: left;
+}
+.ig-step__n {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.ig-step__text {
+  flex: 1;
+  line-height: 1.4;
+}
+.ig-step__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #0a84ff 12%, var(--surface));
+  color: #0a84ff;
+}
+.ig-step__icon svg {
+  width: 22px;
+  height: 22px;
+}
+.ig-note {
+  margin: 0;
+  color: var(--bone-mute);
+  font-size: 0.9rem;
+}
+.ig--done {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--success, #2f9e6b) 12%, var(--surface));
+}
+.ig--done svg {
+  width: 20px;
+  height: 20px;
+  color: var(--success, #2f9e6b);
+}
+.ig--done p {
+  margin: 0;
+}

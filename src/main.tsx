@@ -5,6 +5,10 @@ import './styles/base.css';
 import './styles/components.css';
 import './layout/layout.css';
 import { App } from './app/App';
+import { captureInstallPrompt } from './lib/install';
+
+// The install prompt fires once, early: keep it for the screens that offer it.
+captureInstallPrompt();
 
 /**
  * Public pages are prerendered in English (light theme) at build time. When the

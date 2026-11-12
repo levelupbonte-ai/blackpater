@@ -52,6 +52,8 @@ export function createAssistantClient(deps = {}) {
     }
     if (res.ok && body && typeof body === 'object') return body;
     const status = CODES[res.status] ? res.status : 503;
+    // The daily image allowance has its own code, so the member sees why.
+    if (status === 429 && body?.error === 'image_limit') throw new PortalDbError('image_limit', 429);
     throw new PortalDbError(CODES[status], status);
   };
 }

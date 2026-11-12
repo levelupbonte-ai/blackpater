@@ -17,6 +17,8 @@ import { getPortalConfig, missingConfig } from './config.js';
 import { PortalDbError, createPortalDb } from './db.js';
 import { buildEmail, createMailer } from './email.js';
 import { createAssistantClient } from './assistant.js';
+import { appGuide } from './app-guide.js';
+import { dossierText } from '../../../shared/dossier.js';
 import { buildPlanCheckout, buildRenewalCheckout, idempotencyKey } from './plans.js';
 import { createPushSender, getPushConfig, pushFor } from './push.js';
 import { getOffer, getOfferByTier } from '../../../shared/offers.js';
@@ -35,6 +37,7 @@ import {
 const EMAIL_RE = /^[A-Za-z0-9._%+-]{1,64}@([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const CODE_RE = /^[0-9]{6}$/;
+const IMAGE_RE = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 
 export const PORTAL_ACTIONS = [
   'status',
@@ -65,10 +68,12 @@ export const PORTAL_ACTIONS = [
   'dossier',
   'assistant',
   'assistant-ask',
-  'assistant-handoff'
+  'assistant-handoff',
+  'profile',
+  'profile-note'
 ];
 
-const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key', 'assistant']);
+const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key', 'assistant', 'profile']);
 const NO_SESSION = new Set(['status', 'request-code', 'verify-code', 'password-sign-in', 'outbox', 'dossier']);
 
 function cleanEmail(value) {
@@ -593,16 +598,60 @@ export function createPortalHandler(deps = {}) {
         active: out?.active === true,
         daily: Number(out?.daily) || 0,
         used: Number(out?.used) || 0,
+        images: { daily: Number(out?.images?.daily) || 0, used: Number(out?.images?.used) || 0 },
+        has_profile: out?.has_profile === true,
         messages: Array.isArray(out?.messages) ? out.messages : []
       });
     },
 
+    /** The member's own dossier (questionnaire answers) and note about their project. */
+    async profile(req, res, cfg, ctx) {
+      const out = await rpc('portal_profile_me', { p_key: cfg.portalKey, p_session: ctx.session });
+      return sendJson(res, 200, {
+        profile: out?.profile && typeof out.profile === 'object' ? out.profile : null,
+        updated_at: out?.updated_at ?? null,
+        note: typeof out?.note === 'string' ? out.note : null
+      });
+    },
+
+    async 'profile-note'(req, res, cfg, ctx) {
+      const { note } = pick(await readJsonBody(req, 9000), {
+        note: (v) => (typeof v === 'string' && v.length <= 2000 ? v : undefined)
+      });
+      const out = await rpc('portal_profile_note', { p_key: cfg.portalKey, p_session: ctx.session, p_note: note });
+      return sendJson(res, 200, { ok: true, note: out?.note ?? null });
+    },
+
     /** One question to the assistant (answered by LevelUp, with its sources). */
     async 'assistant-ask'(req, res, cfg, ctx) {
-      const { question } = pick(await readJsonBody(req, 9000), {
-        question: (v) => (typeof v === 'string' && v.trim().length >= 1 && v.length <= 2000 ? v.trim() : undefined)
+      const { question, images, lang } = pick(await readJsonBody(req, 4_300_000), {
+        question: (v) => (typeof v === 'string' && v.trim().length >= 1 && v.length <= 2000 ? v.trim() : undefined),
+        // Read once by the AI at LevelUp, never stored (here or there).
+        images: (v) =>
+          v === undefined || v === null
+            ? []
+            : Array.isArray(v) && v.length <= 3 && v.every((x) => typeof x === 'string' && x.length <= 1_400_000 && IMAGE_RE.test(x))
+              ? v
+              : undefined,
+        lang: req_.lang
       });
-      const out = await callAssistant(cfg.portalKey, { action: 'ask', session: ctx.session, question });
+      const language = lang || 'fr';
+      // What the member wrote before paying, in words, for the AI (no e-mail, no phone).
+      let dossier = '';
+      try {
+        const me = await rpc('portal_profile_me', { p_key: cfg.portalKey, p_session: ctx.session });
+        dossier = dossierText(me?.profile, language);
+      } catch (err) {
+        if (err instanceof PortalDbError && err.status === 401) throw err;
+      }
+      const out = await callAssistant(cfg.portalKey, {
+        action: 'ask',
+        session: ctx.session,
+        question,
+        ...(images.length ? { images } : {}),
+        lang: language,
+        site: { guide: appGuide(language), ...(dossier ? { dossier } : {}) }
+      });
       return sendJson(res, 200, { answer: out?.answer ?? null });
     },
 

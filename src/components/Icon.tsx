@@ -174,6 +174,13 @@ const paths: Record<string, React.ReactNode> = {
       <path d='M6.5 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5l1-12.5' />
     </>
   ),
+  image: (
+    <>
+      <rect x='3.5' y='4.5' width='17' height='15' rx='2.5' />
+      <circle cx='9' cy='10' r='1.6' />
+      <path d='m20.5 15.5-4.5-4.5-9 8.5' />
+    </>
+  ),
   sparkles: (
     <>
       <path d='M12 3.5 13.6 8.4 18.5 10 13.6 11.6 12 16.5 10.4 11.6 5.5 10 10.4 8.4z' />

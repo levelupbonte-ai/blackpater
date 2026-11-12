@@ -22,7 +22,7 @@ function base64ToBytes(value: string) {
   return out;
 }
 
-function standalone() {
+export function standalone() {
   return (
     window.matchMedia?.('(display-mode: standalone)').matches ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true

@@ -145,36 +145,37 @@ test('events for other products on the same Stripe account are ignored', async (
   assert.equal(paid.length, 0);
 });
 
-test('monthly plans: subscription events go to LevelUp, never to the one-time payment flow', async () => {
-  const synced = [];
+test('monthly plans bought from the space are forwarded to LevelUp as payments, linked to the member', async () => {
   const forwarded = [];
   const handler = createWebhookHandler({
     getWebhookSecret: () => SECRET,
     log: silentLog,
     forwardPayment: async (p) => forwarded.push(p),
-    syncPlan: async (sub) => synced.push(sub.id),
+    drainPortal: async () => {},
     hooks: { onCheckoutPaid: async () => {}, onCheckoutPending: async () => {}, onCheckoutPaymentFailed: async () => {} }
   });
-  const meta = { kind: 'portal_plan', site: 'blackpater.com', customer_id: 'x', plan_id: 'y' };
+  const member = '11111111-1111-4111-8111-111111111111';
+  const plan = '22222222-2222-4222-8222-222222222222';
+  const session = {
+    id: 'cs_test_plan000000001',
+    object: 'checkout.session',
+    status: 'complete',
+    payment_status: 'paid',
+    amount_total: 900,
+    currency: 'usd',
+    metadata: { kind: 'portal_plan', site: 'blackpater.com', portal_customer_id: member, plan_id: plan, level: '2', plan_name: 'Pro' }
+  };
   const res = fakeRes();
-  await handler(signedReq(event('evt_sub_1', 'customer.subscription.updated', { id: 'sub_A12345', status: 'past_due', metadata: meta })), res);
+  await handler(signedReq(event('evt_plan_1', 'checkout.session.completed', session)), res);
   assert.equal(res.statusCode, 200);
+  assert.equal(forwarded.length, 1);
+  assert.equal(forwarded[0].offer_id, 'plan-2');
+  assert.equal(forwarded[0].amount, 900);
+  assert.deepEqual(
+    { kind: forwarded[0].metadata.kind, plan: forwarded[0].metadata.plan_id, member: forwarded[0].metadata.portal_customer_id },
+    { kind: 'portal_plan', plan, member }
+  );
   const other = fakeRes();
-  await handler(signedReq(event('evt_sub_2', 'customer.subscription.created', { id: 'sub_B12345', status: 'active', metadata: {} })), other);
-  assert.equal(other.statusCode, 200);
-  assert.deepEqual(synced, ['sub_A12345']);
-  assert.equal(forwarded.length, 0);
-});
-
-test('monthly plans: a failed sync returns 500 so Stripe retries', async () => {
-  const handler = createWebhookHandler({
-    getWebhookSecret: () => SECRET,
-    log: silentLog,
-    syncPlan: async () => {
-      throw new Error('down');
-    }
-  });
-  const res = fakeRes();
-  await handler(signedReq(event('evt_sub_3', 'customer.subscription.deleted', { id: 'sub_C12345', status: 'canceled', metadata: { kind: 'portal_plan', site: 'blackpater.com' } })), res);
-  assert.equal(res.statusCode, 500);
+  await handler(signedReq(event('evt_other_1', 'checkout.session.completed', { ...session, id: 'cs_test_other00000001', metadata: { kind: 'portal_plan', site: 'elsewhere.com' } })), other);
+  assert.equal(forwarded.length, 1, 'sessions of other sites are ignored');
 });

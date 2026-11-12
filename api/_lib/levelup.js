@@ -78,12 +78,27 @@ export function paymentStatusFor(eventType, session) {
  * The `p_event` object of the LevelUp contract, for one Checkout Session of a
  * catalog offer. Returns null for sessions that are not ours.
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/** A monthly plan bought from the member space: { id, name } of a pseudo-offer, or null. */
+function planOffer(session) {
+  const m = session?.metadata || {};
+  if (m.kind !== 'portal_plan' || m.site !== 'blackpater.com' || !UUID_RE.test(String(m.plan_id || ''))) return null;
+  const level = /^[1-3]$/.test(String(m.level)) ? m.level : '1';
+  return { id: `plan-${level}`, stripeName: `Black Pater · ${strOrNull(m.plan_name, 60) || 'Plan'}`, amount: null, currency: 'usd' };
+}
+
 export function buildPaymentEvent({ eventId, eventCreated, session, status, extraMetadata }) {
-  const offer = getOffer(session?.metadata?.offer_id);
+  const plan = planOffer(session);
+  const offer = getOffer(session?.metadata?.offer_id) || plan;
   if (!offer || !PAYMENT_STATUSES.includes(status)) return null;
   const details = session.customer_details || {};
-  const amount = Number.isInteger(session.amount_total) ? session.amount_total : offer.amount;
+  const amount = Number.isInteger(session.amount_total) ? session.amount_total : offer.amount ?? 0;
   const metadata = { attempt_id: strOrNull(session.client_reference_id, 64) || strOrNull(session.metadata?.attempt_id, 64) };
+  // Links the payment to the member (renewals and plans bought from the space).
+  if (UUID_RE.test(String(session.metadata?.portal_customer_id || ''))) metadata.portal_customer_id = session.metadata.portal_customer_id;
+  if (session.metadata?.kind === 'renewal') metadata.kind = 'renewal';
+  if (plan) Object.assign(metadata, { kind: 'portal_plan', plan_id: session.metadata.plan_id });
   if (extraMetadata) Object.assign(metadata, extraMetadata);
   return {
     provider: 'stripe',

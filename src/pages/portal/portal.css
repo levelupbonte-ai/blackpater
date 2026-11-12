@@ -1447,3 +1447,43 @@
     animation: none;
   }
 }
+
+/* Monthly membership */
+.po-access__plan {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--bone-dim);
+  font-size: 0.9rem;
+}
+.po-access__plan svg {
+  width: 15px;
+  height: 15px;
+  color: var(--success);
+}
+.po-renew {
+  display: grid;
+  gap: 12px;
+}
+.po-renew strong {
+  color: var(--bone);
+}
+.po-chat__locked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--rust-soft);
+  color: var(--bone);
+  font-size: 0.9rem;
+}
+.po-chat__locked > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--rust);
+}
+.po-chat__locked span {
+  flex: 1 1 200px;
+}

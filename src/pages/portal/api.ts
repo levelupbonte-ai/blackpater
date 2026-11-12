@@ -15,6 +15,8 @@ export interface PortalBooking {
   amount_refunded: number | null;
   refund: 'full' | 'partial' | null;
   receipt: boolean;
+  kind?: 'membership' | 'plan';
+  period_end?: string | null;
 }
 
 export interface PortalTrip {
@@ -67,12 +69,34 @@ export interface PortalSubscription {
   cancel_at_period_end: boolean;
 }
 
+/** Monthly membership: paid month by month, nothing automatic. */
+export interface PortalMembership {
+  monthly: boolean;
+  until: string | null;
+  active: boolean;
+  reminders: boolean;
+  period_days: number;
+  offer_id: string | null;
+}
+
+/** The member's monthly plan now (or the last one). */
+export interface PortalPlanPeriod {
+  plan_name: string | null;
+  level: number;
+  starts_at: string;
+  ends_at: string;
+  active: boolean;
+  amount: number | null;
+  currency: string | null;
+}
+
 export interface PortalAccess {
   level: number;
   trial_ends_at: string | null;
   trial_active: boolean;
   trial_days: number;
   subscription: PortalSubscription | null;
+  plan: PortalPlanPeriod | null;
 }
 
 export interface PortalMessage {
@@ -93,6 +117,7 @@ export interface PortalHome {
   locked: PortalLocked[];
   messages: PortalMessage[];
   access: PortalAccess;
+  membership: PortalMembership;
   plans: PortalPlan[];
   contact: { phone?: string; whatsapp?: string; note?: string };
 }
@@ -140,11 +165,9 @@ export const portalApi = {
   emailConfirm: (oldCode: string, newCode: string) => call<{ ok: true; email: string }>('email-confirm', { oldCode, newCode }),
   signOut: (all: boolean) => call<{ ok: true }>('sign-out', { all }),
   messagesSince: (after: string | null) => call<{ messages: PortalMessage[]; seen: string[] }>('messages-since', { after }),
-  subscribe: (level: number) => call<{ url?: string; ok?: true; changed?: true }>('subscribe', { level }),
-  planReturn: (sessionId: string) => call<{ ok: true; active: boolean }>('plan-return', { sessionId }),
-  cancelPlan: () => call<{ ok: true }>('cancel-plan', {}),
-  resumePlan: () => call<{ ok: true }>('resume-plan', {}),
-  payPlan: () => call<{ url: string }>('pay-plan', {}),
+  renew: () => call<{ url: string }>('renew', {}),
+  planBuy: (level: number) => call<{ url: string }>('plan-buy', { level }),
+  reminders: (on: boolean) => call<{ ok: true; reminders: boolean }>('reminders', { on }),
   deleteCode: () => call<{ ok: true }>('delete-code', {}),
   deleteAccount: (code: string) => call<{ ok: true }>('delete-account', { code }),
   fileUrl: (itemId: string) => `/api/portal/file?item=${encodeURIComponent(itemId)}`

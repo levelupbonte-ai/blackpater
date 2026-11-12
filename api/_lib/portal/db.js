@@ -17,6 +17,7 @@ export class PortalDbError extends Error {
 const CODE_STATUS = {
   PT401: [401, 'unauthorized'],
   PT403: [503, 'portal_unavailable'],
+  PT402: [402, 'membership_expired'],
   PT404: [404, 'not_found'],
   PT429: [429, 'rate_limited'],
   '22023': [400, 'invalid_request'],

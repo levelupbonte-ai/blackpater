@@ -34,6 +34,17 @@ const TEXT = {
       title: 'E-mail change requested',
       intro: (to) => `Someone signed in to your space asked to change its e-mail address to ${to}. Enter this code to confirm. If it was not you, do nothing and sign out of all devices from your space.`
     },
+    renew: {
+      subject: (stage, what) =>
+        stage === 0 ? (what === 'plan' ? 'Your Black Pater plan has ended' : 'Your Black Pater membership has ended') : stage === 1 ? 'Your Black Pater access ends tomorrow' : `Your Black Pater access ends in ${stage} days`,
+      title: (stage) => (stage === 0 ? 'Renew to keep your access' : 'Time to renew'),
+      intro: (stage, what, date, plan) =>
+        stage === 0
+          ? `Your ${what === 'plan' ? `${plan || 'plan'}` : 'membership'} ended on ${date}. Renew in one click from your space to get your information and messages back.`
+          : `Your ${what === 'plan' ? `${plan || 'plan'}` : 'membership'} runs until ${date}. Nothing is charged automatically: renew from your space to keep receiving Black Pater’s information.`,
+      stop: 'You do not want to continue? Do nothing: your access simply stops on that date.',
+      cta: 'Renew from my space'
+    },
     remove: {
       subject: (c) => `${c} confirms the deletion of your account`,
       title: 'Delete your account',
@@ -87,6 +98,17 @@ const TEXT = {
       subject: (c) => `${c} confirme votre changement d’e-mail`,
       title: 'Changement d’e-mail demandé',
       intro: (to) => `Une personne connectée à votre espace demande à remplacer son adresse par ${to}. Saisissez ce code pour confirmer. Si ce n’est pas vous, ne faites rien et déconnectez tous les appareils depuis votre espace.`
+    },
+    renew: {
+      subject: (stage, what) =>
+        stage === 0 ? (what === 'plan' ? 'Votre forfait Black Pater est terminé' : 'Votre adhésion Black Pater est terminée') : stage === 1 ? 'Votre accès Black Pater se termine demain' : `Votre accès Black Pater se termine dans ${stage} jours`,
+      title: (stage) => (stage === 0 ? 'Renouvelez pour garder votre accès' : 'Pensez à renouveler'),
+      intro: (stage, what, date, plan) =>
+        stage === 0
+          ? `Votre ${what === 'plan' ? `forfait ${plan || ''}`.trim() : 'adhésion'} s’est terminé${what === 'plan' ? '' : 'e'} le ${date}. Renouvelez en un clic depuis votre espace pour retrouver vos informations et vos messages.`
+          : `Votre ${what === 'plan' ? `forfait ${plan || ''}`.trim() : 'adhésion'} est actif${what === 'plan' ? '' : 've'} jusqu’au ${date}. Rien n’est prélevé automatiquement : renouvelez depuis votre espace pour continuer à recevoir les informations de Black Pater.`,
+      stop: 'Vous ne souhaitez pas continuer ? Ne faites rien : votre accès s’arrête simplement à cette date.',
+      cta: 'Renouveler depuis mon espace'
     },
     remove: {
       subject: (c) => `${c} confirme la suppression de votre compte`,
@@ -152,7 +174,7 @@ function textVersion({ title, paragraphs, code, cta }) {
 export const portalUrl = (origin = SITE_ORIGIN) => `${origin}${PORTAL_PATH}`;
 
 /** { subject, html, text } for one portal e-mail. */
-export function buildEmail(kind, { lang = 'en', name, code, title: itemTitle, device, at, newEmail, origin } = {}) {
+export function buildEmail(kind, { lang = 'en', name, code, title: itemTitle, device, at, newEmail, origin, stage, what, until, plan } = {}) {
   const l = lang === 'fr' ? 'fr' : 'en';
   const t = TEXT[l];
   const cta = { href: portalUrl(origin), label: t.open };
@@ -167,6 +189,18 @@ export function buildEmail(kind, { lang = 'en', name, code, title: itemTitle, de
     case 'email_old':
       parts = { subject: t.emailOld.subject(code), title: t.emailOld.title, paragraphs: [t.hello(name), t.emailOld.intro(newEmail)], code };
       break;
+    case 'renew': {
+      const date = until
+        ? new Intl.DateTimeFormat(l === 'fr' ? 'fr-FR' : 'en-US', { dateStyle: 'long', timeZone: 'America/Denver' }).format(new Date(until))
+        : '';
+      parts = {
+        subject: t.renew.subject(stage, what),
+        title: t.renew.title(stage),
+        paragraphs: [t.hello(name), t.renew.intro(stage, what, date, plan), t.renew.stop],
+        cta: { href: `${portalUrl(origin)}?view=account`, label: t.renew.cta }
+      };
+      break;
+    }
     case 'delete':
       parts = { subject: t.remove.subject(code), title: t.remove.title, paragraphs: [t.hello(name), t.remove.intro, t.ignore], code };
       break;

@@ -20,7 +20,7 @@ import {
   type PortalMessage,
   type PortalPlan
 } from './api';
-import { getOffer } from '../../../shared/offers.js';
+import { formatOfferPrice, getOffer, getOfferByTier } from '../../../shared/offers.js';
 import type { TranslationKey } from '../../i18n';
 import './portal.css';
 
@@ -360,108 +360,111 @@ function payErrorText(t: T, err: unknown) {
   if (code === 'payments_unavailable') return t('po_err_payments');
   if (code === 'already_subscribed') return t('po_err_already');
   if (code === 'nothing_due') return t('po_err_nothing_due');
+  if (code === 'membership_expired') return t('po_plans_need_member');
   return errorText(t, err);
 }
 
-/** Free offer, plan, or payment due: what the member has right now, and the next step. */
+/** The membership offer the member renews, from the catalog (regular monthly price). */
+function renewalOffer(home: PortalHome) {
+  return getOffer(home.membership?.offer_id) || getOfferByTier('solo');
+}
+
+/** Opens Stripe's payment page for one more month (or one month of a plan). */
+async function goPay(start: () => Promise<{ url: string }>) {
+  const { url } = await start();
+  window.location.assign(url);
+  await new Promise(() => {}); // keep the button busy while the payment page opens
+}
+
+/**
+ * What the member has right now and the next step: membership running (until
+ * when), ending soon, or ended (renew); the plan of the month; the free offer.
+ */
 const AccessCard: React.FC<{ home: PortalHome; onPlans?: () => void }> = ({ home, onPlans }) => {
   const { t, lang } = useLanguage();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { access, plans } = home;
-  const sub = access.subscription;
+  const { access, plans, membership } = home;
+  const offer = renewalOffer(home);
+  const price = formatOfferPrice(offer, lang, offer.amount);
+  const until = formatDate(membership?.until ?? null, lang);
+  const left = daysLeft(membership?.until ?? null);
+  const plan = access.plan?.active ? access.plan : null;
 
-  const pay = async () => {
+  const renew = async () => {
     setBusy(true);
     setError(null);
     try {
-      const { url } = await portalApi.payPlan();
-      window.location.assign(url);
+      await goPay(portalApi.renew);
     } catch (err) {
       setError(payErrorText(t, err));
       setBusy(false);
     }
   };
+  const renewButton = (primary: boolean) => (
+    <button type='button' className={`btn ${primary ? 'btn--primary' : 'btn--secondary'}`} onClick={renew} disabled={busy} aria-busy={busy}>
+      <Icon name='card' /> {t('po_renew_cta', { price })}
+    </button>
+  );
+  const errorLine = error && (
+    <p className='po-error' role='alert'>
+      {error}
+    </p>
+  );
 
-  const cta =
-    onPlans && plans.length > 0 ? (
-      <button type='button' className='btn btn--primary' onClick={onPlans}>
-        {t('po_choose_plan')} <Icon name='arrowRight' />
-      </button>
-    ) : null;
-
-  if (sub?.status === 'past_due') {
+  if (membership?.monthly && !membership.active) {
     return (
       <div className='po-card po-access po-access--warn' role='status'>
         <span className='po-access__icon' aria-hidden='true'>
-          <Icon name='alert' />
+          <Icon name='lock' />
         </span>
         <div className='po-access__body'>
-          <strong>{t('po_plan_past_due_title')}</strong>
-          <p>{t('po_plan_past_due_text')}</p>
-          <button type='button' className='btn btn--primary' onClick={pay} disabled={busy} aria-busy={busy}>
-            <Icon name='card' /> {t('po_pay_now')}
-          </button>
-          {error && (
-            <p className='po-error' role='alert'>
-              {error}
-            </p>
-          )}
+          <strong>{t('po_member_ended_title')}</strong>
+          <p>{until ? t('po_member_ended_text', { date: until }) : t('po_member_ended_text_nodate')}</p>
+          {renewButton(true)}
+          {errorLine}
         </div>
       </div>
     );
   }
 
-  if (sub?.status === 'active') {
-    const end = formatDate(sub.current_period_end, lang);
-    return (
-      <div className='po-card po-access po-access--plan'>
-        <span className='po-access__icon' aria-hidden='true'>
-          <Icon name='star' />
-        </span>
-        <div className='po-access__body'>
-          <span className='po-kicker'>{t('po_plans_title')}</span>
-          <strong>{t('po_plan_active_title', { name: sub.plan_name })}</strong>
-          <p>
-            {formatMoney(sub.amount, sub.currency, lang)} {t('po_per_month')}
-            {end && ` · ${sub.cancel_at_period_end ? t('po_plan_ends', { date: end }) : t('po_plan_renews', { date: end })}`}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (access.trial_active) {
-    const left = daysLeft(access.trial_ends_at);
-    const total = Math.max(access.trial_days, left, 1);
-    const date = formatDate(access.trial_ends_at, lang);
-    return (
-      <div className='po-card po-access po-access--trial'>
-        <span className='po-access__icon' aria-hidden='true'>
-          <Icon name='clock' />
-        </span>
-        <div className='po-access__body'>
-          <span className='po-kicker'>{t('po_trial_title')}</span>
-          <strong>{left <= 1 ? t('po_trial_last', { date }) : t('po_trial_left', { n: left, date })}</strong>
-          <div className='po-bar' role='progressbar' aria-valuemin={0} aria-valuemax={total} aria-valuenow={left} aria-label={t('po_trial_title')}>
-            <span style={{ transform: `scaleX(${left / total})` }} />
-          </div>
-          <p>{plans.length ? t('po_trial_text') : t('po_plans_soon')}</p>
-          {cta}
-        </div>
-      </div>
-    );
-  }
-
+  const soon = membership?.monthly && left <= 7;
   return (
-    <div className='po-card po-access po-access--ended'>
+    <div className={`po-card po-access ${soon ? 'po-access--trial' : 'po-access--plan'}`}>
       <span className='po-access__icon' aria-hidden='true'>
-        <Icon name='lock' />
+        <Icon name={soon ? 'clock' : 'check'} />
       </span>
       <div className='po-access__body'>
-        <strong>{t('po_trial_over_title')}</strong>
-        <p>{plans.length ? t('po_trial_over_text') : t('po_plans_soon')}</p>
-        {cta}
+        <span className='po-kicker'>{t('po_member_title')}</span>
+        {membership?.monthly ? (
+          <>
+            <strong>{t('po_member_until', { date: until })}</strong>
+            <p>
+              {left <= 1 ? t('po_member_last_day') : t('po_member_days_left', { n: left })}
+              {' · '}
+              {membership.reminders ? t('po_member_no_auto') : t('po_member_reminders_off', { date: until })}
+            </p>
+            {soon && renewButton(true)}
+          </>
+        ) : (
+          <strong>{t('po_member_active')}</strong>
+        )}
+        {plan && (
+          <p className='po-access__plan'>
+            <Icon name='star' /> {t('po_plan_until', { name: plan.plan_name || '', date: formatDate(plan.ends_at, lang) })}
+          </p>
+        )}
+        {!plan && access.trial_active && (
+          <p className='po-access__plan'>
+            <Icon name='star' /> {t('po_trial_until', { date: formatDate(access.trial_ends_at, lang) })}
+          </p>
+        )}
+        {!plan && onPlans && plans.length > 0 && (
+          <button type='button' className='po-link' onClick={onPlans}>
+            {t('po_see_plans')} <Icon name='arrowRight' />
+          </button>
+        )}
+        {errorLine}
       </div>
     </div>
   );
@@ -751,7 +754,9 @@ const Chat: React.FC<{
   data: PortalHome;
   messages: ChatMessage[];
   setMessages: (fn: (m: ChatMessage[]) => ChatMessage[]) => void;
-}> = ({ data, messages, setMessages }) => {
+  locked?: boolean;
+  onRenew?: () => void;
+}> = ({ data, messages, setMessages, locked = false, onRenew }) => {
   const { t, lang } = useLanguage();
   const [body, setBody] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -785,7 +790,13 @@ const Chat: React.FC<{
       });
     } catch (err) {
       setMessages((list) => list.map((m) => (m.id === tempId ? { ...m, pending: false, failed: true } : m)));
-      setError(err instanceof PortalError && err.code === 'rate_limited' ? t('po_err_rate') : t('po_err_message'));
+      setError(
+        err instanceof PortalError && err.code === 'rate_limited'
+          ? t('po_err_rate')
+          : err instanceof PortalError && err.code === 'membership_expired'
+            ? t('po_chat_locked')
+            : t('po_err_message')
+      );
     }
   };
 
@@ -899,6 +910,15 @@ const Chat: React.FC<{
         })}
       </div>
 
+      {locked ? (
+        <div className='po-chat__locked' role='status'>
+          <Icon name='lock' />
+          <span>{t('po_chat_locked')}</span>
+          <button type='button' className='btn btn--primary' onClick={onRenew}>
+            {t('po_chat_locked_cta')}
+          </button>
+        </div>
+      ) : (
       <form
         className='po-chat__compose'
         onSubmit={(e) => {
@@ -929,6 +949,7 @@ const Chat: React.FC<{
           <Icon name='send' />
         </button>
       </form>
+      )}
       <p className='po-chat__hint' id='po-chat-hint'>
         {error ? (
           <span className='po-error' role='alert'>
@@ -950,9 +971,12 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
   const { t, lang } = useLanguage();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [ask, setAsk] = useState<null | { kind: 'cancel' } | { kind: 'switch'; plan: PortalPlan }>(null);
-  const sub = home.access.subscription;
-  const running = sub && (sub.status === 'active' || sub.status === 'past_due') ? sub : null;
+  const [ask, setAsk] = useState(false);
+  const { membership } = home;
+  const expired = membership?.monthly && !membership.active;
+  const current = home.access.plan?.active ? home.access.plan : null;
+  const offer = renewalOffer(home);
+  const until = formatDate(membership?.until ?? null, lang);
 
   const act = async (key: string, fn: () => Promise<void>) => {
     setBusy(key);
@@ -963,89 +987,93 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
       setError(payErrorText(t, err));
     } finally {
       setBusy(null);
-      setAsk(null);
+      setAsk(false);
     }
   };
 
-  const choose = (plan: PortalPlan) =>
-    act(`plan-${plan.level}`, async () => {
-      const res = await portalApi.subscribe(plan.level);
-      if (res.url) {
-        window.location.assign(res.url);
-        await new Promise(() => {}); // keep the button busy while the payment page opens
-      }
-      await reload();
-      flash(t('po_plan_saved'));
-    });
-
   return (
-    <Section id='plans' title={t('po_plans_title')} lead={home.plans.length ? t('po_plans_lead') : undefined}>
+    <Section id='plans' title={t('po_plans_title')} lead={t('po_plans_lead_monthly')}>
       <AccessCard home={home} />
-      {home.plans.length === 0 ? (
-        <p className='po-note'>{t('po_plans_soon')}</p>
-      ) : (
-        <div className='po-plans'>
-          {home.plans.map((p) => {
-            const current = running?.level === p.level;
-            return (
-              <article key={p.level} className={`po-card po-plan${current ? ' is-current' : ''}`}>
-                {current && <span className='po-plan__tag'>{t('po_plan_current')}</span>}
-                <h3>{p.name}</h3>
-                <p className='po-plan__price'>
-                  <strong>{formatMoney(p.amount, p.currency, lang)}</strong> <span>{t('po_per_month')}</span>
-                </p>
-                {p.description && <p className='po-plan__desc'>{p.description}</p>}
-                {p.features.length > 0 && (
-                  <ul className='po-plan__features'>
-                    {p.features.map((f, i) => (
-                      <li key={i}>
-                        <Icon name='check' /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {current ? (
-                  running?.cancel_at_period_end ? (
-                    <button
-                      type='button'
-                      className='btn btn--primary'
-                      disabled={busy !== null}
-                      aria-busy={busy === 'resume'}
-                      onClick={() =>
-                        act('resume', async () => {
-                          await portalApi.resumePlan();
-                          await reload();
-                          flash(t('po_plan_saved'));
-                        })
-                      }
-                    >
-                      {t('po_plan_resume')}
-                    </button>
-                  ) : (
-                    <button type='button' className='btn btn--secondary' disabled>
-                      <Icon name='check' /> {t('po_plan_current')}
-                    </button>
-                  )
-                ) : (
-                  <button
-                    type='button'
-                    className={`btn ${running ? 'btn--secondary' : 'btn--primary'}`}
-                    disabled={busy !== null}
-                    aria-busy={busy === `plan-${p.level}`}
-                    onClick={() => (running ? setAsk({ kind: 'switch', plan: p }) : void choose(p))}
-                  >
-                    {running ? t('po_plan_switch') : t('po_plan_choose')}
-                  </button>
-                )}
-              </article>
-            );
-          })}
+
+      {membership?.monthly && membership.active && (
+        <div className='po-card po-renew'>
+          <div>
+            <strong>{t('po_renew_title')}</strong>
+            <p className='po-note'>{t('po_renew_text', { price: formatOfferPrice(offer, lang, offer.amount), days: membership.period_days })}</p>
+          </div>
+          <div className='po-row'>
+            <button
+              type='button'
+              className='btn btn--secondary'
+              disabled={busy !== null}
+              aria-busy={busy === 'renew'}
+              onClick={() => act('renew', () => goPay(portalApi.renew))}
+            >
+              <Icon name='card' /> {t('po_renew_now')}
+            </button>
+            {membership.reminders ? (
+              <button type='button' className='po-link po-link--muted' onClick={() => setAsk(true)}>
+                {t('po_cancel_sub')}
+              </button>
+            ) : (
+              <button
+                type='button'
+                className='po-link'
+                disabled={busy !== null}
+                onClick={() =>
+                  act('resume', async () => {
+                    await portalApi.reminders(true);
+                    await reload();
+                    flash(t('po_reminders_on_done'));
+                  })
+                }
+              >
+                {t('po_reminders_on')}
+              </button>
+            )}
+          </div>
         </div>
       )}
-      {running && !running.cancel_at_period_end && (
-        <button type='button' className='po-link po-link--muted' onClick={() => setAsk({ kind: 'cancel' })}>
-          {t('po_plan_cancel')}
-        </button>
+
+      {home.plans.length > 0 && (
+        <>
+          <h3 className='po-subtitle'>{t('po_plans_extra')}</h3>
+          <p className='po-note'>{t('po_plans_extra_text')}</p>
+          <div className='po-plans'>
+            {home.plans.map((p) => {
+              const mine = current?.level === p.level;
+              return (
+                <article key={p.level} className={`po-card po-plan${mine ? ' is-current' : ''}`}>
+                  {mine && <span className='po-plan__tag'>{t('po_plan_until_short', { date: formatDate(current!.ends_at, lang) })}</span>}
+                  <h3>{p.name}</h3>
+                  <p className='po-plan__price'>
+                    <strong>{formatMoney(p.amount, p.currency, lang)}</strong> <span>{t('po_per_month')}</span>
+                  </p>
+                  {p.description && <p className='po-plan__desc'>{p.description}</p>}
+                  {p.features.length > 0 && (
+                    <ul className='po-plan__features'>
+                      {p.features.map((f, i) => (
+                        <li key={i}>
+                          <Icon name='check' /> {f}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button
+                    type='button'
+                    className={`btn ${mine ? 'btn--secondary' : 'btn--primary'}`}
+                    disabled={busy !== null || expired}
+                    aria-busy={busy === `plan-${p.level}`}
+                    onClick={() => act(`plan-${p.level}`, () => goPay(() => portalApi.planBuy(p.level)))}
+                  >
+                    {mine ? t('po_plan_extend') : t('po_plan_take')}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+          {expired && <p className='po-note'>{t('po_plans_need_member')}</p>}
+        </>
       )}
       {error && (
         <p className='po-error' role='alert'>
@@ -1053,28 +1081,20 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
         </p>
       )}
       <Confirm
-        open={ask !== null}
+        open={ask}
         busy={busy !== null}
-        danger={ask?.kind === 'cancel'}
-        title={ask?.kind === 'switch' ? t('po_plan_switch_title', { name: ask.plan.name }) : t('po_plan_cancel_title')}
-        text={
-          ask?.kind === 'switch'
-            ? t('po_plan_switch_text', { name: ask.plan.name, price: formatMoney(ask.plan.amount, ask.plan.currency, lang) })
-            : running?.status === 'past_due'
-              ? t('po_plan_cancel_now_text')
-              : t('po_plan_cancel_text', { date: formatDate(running?.current_period_end ?? null, lang) })
+        danger
+        title={t('po_cancel_sub_title')}
+        text={t('po_cancel_sub_text', { date: until })}
+        confirmLabel={t('po_cancel_sub')}
+        onCancel={() => setAsk(false)}
+        onConfirm={() =>
+          void act('cancel', async () => {
+            await portalApi.reminders(false);
+            await reload();
+            flash(t('po_cancel_sub_done', { date: until }));
+          })
         }
-        confirmLabel={ask?.kind === 'switch' ? t('po_plan_switch') : t('po_plan_cancel')}
-        onCancel={() => setAsk(null)}
-        onConfirm={() => {
-          if (ask?.kind === 'switch') void choose(ask.plan);
-          else
-            void act('cancel', async () => {
-              await portalApi.cancelPlan();
-              await reload();
-              flash(t('po_plan_canceled_done'));
-            });
-        }}
       />
     </Section>
   );
@@ -1106,11 +1126,14 @@ const Payments: React.FC<{ home: PortalHome }> = ({ home }) => {
           <li key={b.id} className='po-card po-payment'>
             <div className='po-payment__main'>
               <strong>
-                {t('po_membership')} · {offerLabel(t, b.offer_id, b.offer_name)}
+                {b.kind === 'plan'
+                  ? `${t('po_plan_label')} · ${(b.offer_name || '').replace(/^Black Pater · /, '')}`
+                  : `${t('po_membership')} · ${offerLabel(t, b.offer_id, b.offer_name)}`}
               </strong>
               <span className='po-note'>
                 {formatMoney(b.amount, b.currency, lang)}
-                {b.paid_at && ` · ${formatDate(b.paid_at, lang)}`} · {t('po_membership_note')}
+                {b.paid_at && ` · ${formatDate(b.paid_at, lang)}`}
+                {b.period_end && ` · ${t('po_period_until', { date: formatDate(b.period_end, lang) })}`}
               </span>
               {b.status === 'refunded' && (
                 <span className='po-note'>
@@ -1258,22 +1281,41 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
     return () => window.clearTimeout(id);
   }, [notice]);
 
-  // Back from Stripe: record the plan at once, then tidy the address.
+  // Back from Stripe: the payment reaches LevelUp through the webhook within
+  // seconds; refresh until the new end date shows, then tidy the address.
   useEffect(() => {
     const params = new URLSearchParams(search);
-    const outcome = params.get('plan');
-    if (!outcome) return;
-    const sessionId = params.get('session_id');
+    const outcome = params.get('paid');
+    if (outcome === null) return;
     navigate(viewPath('account'), { replace: true });
-    if (outcome === 'ok' && sessionId) {
-      void portalApi
-        .planReturn(sessionId)
-        .then(async (r) => {
+    if (outcome !== '1') {
+      flash(t('po_paid_aborted'));
+      return;
+    }
+    flash(t('po_paid_pending'));
+    const before = JSON.stringify([home.membership?.until, home.access.plan?.ends_at]);
+    let tries = 0;
+    let stopped = false;
+    const check = async () => {
+      if (stopped) return;
+      tries += 1;
+      try {
+        const fresh = await portalApi.me();
+        if (JSON.stringify([fresh.membership?.until, fresh.access.plan?.ends_at]) !== before) {
           await reload();
-          flash(r.active ? t('po_plan_ok') : t('po_plan_pending'));
-        })
-        .catch(() => flash(t('po_plan_pending')));
-    } else if (outcome === 'cancel') flash(t('po_plan_aborted'));
+          flash(t('po_paid_done'));
+          return;
+        }
+      } catch {
+        /* try again */
+      }
+      if (tries < 8) window.setTimeout(check, 2500);
+      else flash(t('po_paid_slow'));
+    };
+    window.setTimeout(check, 1500);
+    return () => {
+      stopped = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1332,6 +1374,7 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
     }
   }, [view, unreadMessages]);
 
+  const ended = Boolean(data.membership?.monthly && !data.membership.active);
   const unreadInfo = data.items.filter((i) => !i.read).length;
   const badges: Partial<Record<View, number>> = { info: unreadInfo, messages: unreadMessages };
   const name = data.customer.name?.split(' ')[0];
@@ -1403,13 +1446,20 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
                 <Icon name='chevronRight' className='po-shortcut__chev' />
               </button>
             </div>
-            <ContactCard home={data} onWrite={() => go('messages')} />
+            {!ended && <ContactCard home={data} onWrite={() => go('messages')} />}
           </>
         )}
 
-        {view === 'info' && <InfoFeed data={data} setData={setData} markRead={markRead} onPlans={() => go('account')} />}
+        {view === 'info' &&
+          (ended ? (
+            <Section id='info' title={t('po_info_title')}>
+              <AccessCard home={data} />
+            </Section>
+          ) : (
+            <InfoFeed data={data} setData={setData} markRead={markRead} onPlans={() => go('account')} />
+          ))}
 
-        {view === 'messages' && <Chat data={data} messages={messages} setMessages={setMessages} />}
+        {view === 'messages' && <Chat data={data} messages={messages} setMessages={setMessages} locked={ended} onRenew={() => go('account')} />}
 
         {view === 'account' && (
           <>

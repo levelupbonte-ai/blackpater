@@ -5,9 +5,7 @@ import { HttpError, methodNotAllowed, readRawBody, sendJson } from './http.js';
 import * as defaultHooks from './fulfilment.js';
 import { buildPaymentEvent, createLevelUpForwarder, paymentStatusFor } from './levelup.js';
 import { createPortalHandler } from './portal/handler.js';
-import { getPortalConfig, missingConfig } from './portal/config.js';
-import { PortalDbError, createPortalDb } from './portal/db.js';
-import { SUBSCRIPTION_EVENTS, isPlanObject, subscriptionPayload } from './portal/plans.js';
+import { isPlanObject } from './portal/plans.js';
 
 const BODY_LIMIT = 512 * 1024;
 
@@ -18,17 +16,10 @@ export const CHECKOUT_EVENTS = [
   'checkout.session.expired'
 ];
 
-export const HANDLED_EVENTS = [...CHECKOUT_EVENTS, 'charge.refunded', ...SUBSCRIPTION_EVENTS];
+export const HANDLED_EVENTS = [...CHECKOUT_EVENTS, 'charge.refunded'];
 
-/** Reports a member's monthly plan to LevelUp, which decides what the member sees. */
-function createPlanSync() {
-  const rpc = createPortalDb();
-  return async function syncPlan(sub) {
-    const cfg = getPortalConfig();
-    if (missingConfig(cfg).length) throw new Error('portal_not_configured');
-    await rpc('portal_subscription_sync', { p_key: cfg.portalKey, p_sub: subscriptionPayload(sub) });
-  };
-}
+/** A Checkout Session of this site: a catalog offer (joining, renewing) or a monthly plan. */
+const isOurSession = (session) => Boolean(getOffer(session?.metadata?.offer_id) || isPlanObject(session));
 
 /**
  * For `charge.refunded`: finds the Checkout Session of the refunded payment
@@ -40,7 +31,7 @@ async function sessionForCharge(charge, stripe) {
   if (!paymentIntent || !stripe) return null;
   const list = await stripe.checkout.sessions.list({ payment_intent: paymentIntent, limit: 1 });
   const session = list?.data?.[0];
-  return session && getOffer(session.metadata?.offer_id) ? session : null;
+  return session && isOurSession(session) ? session : null;
 }
 
 /**
@@ -66,7 +57,6 @@ export function createWebhookHandler(deps = {}) {
   // After a paid checkout LevelUp creates the customer's portal access and queues
   // the invitation e-mail; send it now (best effort, bounded, never fails the webhook).
   const drainPortal = deps.drainPortal || (() => createPortalHandler({ log }).drainNow(5));
-  const syncPlan = deps.syncPlan || createPlanSync();
 
   /** Sends the record to the LevelUp dashboard; never throws, never fails the webhook. */
   async function forwardRecord(event, record) {
@@ -115,7 +105,7 @@ export function createWebhookHandler(deps = {}) {
     try {
       if (CHECKOUT_EVENTS.includes(event.type)) {
         const session = event.data.object;
-        if (getOffer(session?.metadata?.offer_id)) {
+        if (isOurSession(session)) {
           const status = paymentStatusFor(event.type, session);
           if (status === 'paid') {
             if (!fulfilledSessions.has(session.id)) {
@@ -130,18 +120,6 @@ export function createWebhookHandler(deps = {}) {
             await hooks.onCheckoutExpired?.(session, event, log);
           }
           record = { session, status };
-        }
-      } else if (SUBSCRIPTION_EVENTS.includes(event.type)) {
-        // Monthly plans of the member space (never forwarded as one-time payments).
-        const sub = event.data.object;
-        if (isPlanObject(sub)) {
-          try {
-            await syncPlan(sub);
-          } catch (err) {
-            // An account deleted since, or a plan removed: nothing to retry.
-            if (!(err instanceof PortalDbError && (err.status === 404 || err.status === 400))) throw err;
-            log.warn(JSON.stringify({ evt: 'portal.plan_sync_skipped', eventId: event.id, code: err.code }));
-          }
         }
       } else if (event.type === 'charge.refunded') {
         const charge = event.data.object;

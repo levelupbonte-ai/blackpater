@@ -34,7 +34,6 @@ export function structuredData() {
         logo: `${SITE_URL}/logo.png`,
         image: `${SITE_URL}/og-image.png`,
         email: 'lofumbwapater@gmail.com',
-        telephone: '+1-720-549-0926',
         address: { '@type': 'PostalAddress', addressLocality: 'Salt Lake City', addressRegion: 'UT', addressCountry: 'US' },
         founder: { '@id': `${SITE_URL}/#person` },
         knowsLanguage: ['en', 'fr'],

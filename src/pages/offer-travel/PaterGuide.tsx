@@ -146,7 +146,7 @@ function insights(x: Ctx): string[] {
   const a = x.a;
   const r: string[] = [];
   r.push(
-    'Cette inscription enregistre officiellement votre dossier dans l’écosystème BlackPater : une fois intégré, vous accédez à nos forfaits mensuels d’accompagnement (Pro & Premium) adaptés au rythme de vos démarches.|This registration officially records your file in the BlackPater ecosystem: once integrated, you unlock access to our monthly guidance plans (Pro & Premium) tailored to the pace of your procedures.'
+    'Cette inscription enregistre officiellement votre dossier dans l’écosystème BlackPater : une fois intégré, vous accédez à nos forfaits mensuels d’accompagnement adaptés au rythme de vos démarches.|This registration officially records your file in the BlackPater ecosystem: once integrated, you unlock access to our monthly guidance plans tailored to the pace of your procedures.'
   );
   if (is(x, 'groupTier', 'duo'))
     r.push(

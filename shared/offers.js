@@ -17,7 +17,7 @@ export const OFFERS = Object.freeze({
     // Shown on the Stripe Checkout page and on the customer's receipt.
     stripeName: 'Black Pater — Intégration Écosystème (Solo · 1 personne)',
     stripeDescription:
-      'Enregistrement officiel du dossier (1 personne) et intégration dans l’écosystème Black Pater (accès aux forfaits mensuels Pro & Premium).'
+      'Enregistrement officiel du dossier (1 personne) et intégration dans l’écosystème Black Pater (accès aux forfaits mensuels).'
   }),
   'accompagnement-voyage-duo': Object.freeze({
     id: 'accompagnement-voyage-duo',
@@ -29,7 +29,7 @@ export const OFFERS = Object.freeze({
     // Shown on the Stripe Checkout page and on the customer's receipt.
     stripeName: 'Black Pater — Intégration Écosystème (Duo · 2 personnes)',
     stripeDescription:
-      'Enregistrement officiel du dossier Duo (2 personnes) et intégration dans l’écosystème Black Pater (accès aux forfaits mensuels Pro & Premium).'
+      'Enregistrement officiel du dossier Duo (2 personnes) et intégration dans l’écosystème Black Pater (accès aux forfaits mensuels).'
   }),
   'accompagnement-voyage-famille': Object.freeze({
     id: 'accompagnement-voyage-famille',
@@ -41,7 +41,7 @@ export const OFFERS = Object.freeze({
     // Shown on the Stripe Checkout page and on the customer's receipt.
     stripeName: 'Black Pater — Intégration Écosystème (Famille · jusqu’à 5 personnes)',
     stripeDescription:
-      'Enregistrement officiel du dossier Famille (jusqu’à 5 personnes) et intégration dans l’écosystème Black Pater (accès aux forfaits mensuels Pro & Premium).'
+      'Enregistrement officiel du dossier Famille (jusqu’à 5 personnes) et intégration dans l’écosystème Black Pater (accès aux forfaits mensuels).'
   })
 });
 

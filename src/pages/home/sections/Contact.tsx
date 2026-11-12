@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { Icon } from '../../../components/Icon';
-import { CONTACT_EMAIL, PHONE_DISPLAY } from '../../../lib/contact';
+import { CONTACT_EMAIL } from '../../../lib/contact';
 import { SOCIALS } from '../../../data/socials';
 
 export const Contact: React.FC = () => {
@@ -67,7 +67,7 @@ export const Contact: React.FC = () => {
                 <div>
                   <dt className='k'>{t('contact_phone_label')}</dt>
                   <dd className='v'>
-                    <span>{PHONE_DISPLAY}</span>
+                    <a href='/espace-client'>{t('contact_phone_members')}</a>
                   </dd>
                 </div>
               </div>

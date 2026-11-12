@@ -34,13 +34,13 @@ export const HOME_FAQ: FaqItem[] = [
   {
     q: 'Qu’est-ce que l’espace client ?',
     qEn: 'What is the client space?',
-    a: 'Après votre paiement, vous recevez par e-mail l’accès à votre espace privé sur blackpater.com/espace-client : le détail de votre réservation, les actualités, les détails du voyage, vos documents, une liste de ce qu’il faut prévoir et une messagerie avec Black Pater. La connexion se fait avec un code à usage unique envoyé par e-mail.',
-    aEn: 'After your payment, you receive by email access to your private space at blackpater.com/espace-client: your booking details, updates, trip details, documents, a checklist of what to bring and a message thread with Black Pater. You sign in with a one-time code sent by email.'
+    a: 'Après votre inscription, vous devenez membre et recevez par e-mail l’accès à votre espace sur blackpater.com/espace-client. Vous y trouvez les informations publiées par Black Pater (gratuites pendant votre offre de bienvenue, puis selon votre forfait mensuel), une messagerie directe avec Black Pater, ses numéros de téléphone et WhatsApp, vos paiements et votre forfait, que vous pouvez résilier à tout moment. La connexion se fait avec un code à usage unique envoyé par e-mail.',
+    aEn: 'After you join, you become a member and receive by email access to your space at blackpater.com/espace-client. There you find the information Black Pater publishes (free during your welcome offer, then according to your monthly plan), a direct message thread with Black Pater, his phone and WhatsApp numbers, your payments and your plan, which you can cancel at any time. You sign in with a one-time code sent by email.'
   },
   {
     q: 'Comment inviter Black Pater pour une conférence ou une intervention ?',
     qEn: 'How can I book Black Pater for a talk or an interview?',
-    a: 'Écrivez à lofumbwapater@gmail.com ou sur WhatsApp au +1 720 549 0926. Jean-Pierre Lofumbwa intervient sur l’éducation, l’apprentissage des langues, le leadership de la diaspora et la culture congolaise.',
-    aEn: 'Email lofumbwapater@gmail.com or message +1 720 549 0926 on WhatsApp. Jean-Pierre Lofumbwa speaks about education, language learning, diaspora leadership and Congolese culture.'
+    a: 'Écrivez à lofumbwapater@gmail.com. Jean-Pierre Lofumbwa intervient sur l’éducation, l’apprentissage des langues, le leadership de la diaspora et la culture congolaise.',
+    aEn: 'Email lofumbwapater@gmail.com. Jean-Pierre Lofumbwa speaks about education, language learning, diaspora leadership and Congolese culture.'
   }
 ];

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './paterguide.css';
-import { Link } from '../../app/router';
+import { Link, useRouter } from '../../app/router';
 import { useLanguage, type Language } from '../../context/LanguageContext';
 import { Icon } from '../../components/Icon';
 import { PaymentMarks } from '../../components/PaymentMarks';
@@ -360,6 +360,10 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       : 'solo';
   const activeOffer = getOfferByTier(activeTier);
   const { state: checkoutState, pay } = useCheckout(activeOffer.id);
+  // Opened from the member space (?dossier=member): the questionnaire goes into
+  // the member's dossier, no payment.
+  const { search, navigate } = useRouter();
+  const memberMode = new URLSearchParams(search).get('dossier') === 'member';
 
   const headingRef = useRef<HTMLHeadingElement>(null);
   // Plan just chosen on /abonnements: applied to the next questionnaire opened.
@@ -712,6 +716,11 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       setErr(contactErr);
       return;
     }
+    if (memberMode) {
+      // The review step already saved it in this browser; the member space sends it.
+      navigate('/espace-client?view=dossier&restore=1');
+      return;
+    }
     pay(promoCode.trim() || undefined);
   };
 
@@ -962,8 +971,8 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </div>
                   </div>
 
-                  <LaunchCountdown compact />
-                  <label className='pg-promo'>
+                  {!memberMode && <LaunchCountdown compact />}
+                  <label className='pg-promo' hidden={memberMode}>
                     <span className='pg-promo__label'>{t('promo_label')}</span>
                     <input
                       type='text'
@@ -1035,7 +1044,7 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     type='button'
                     className='btn btn--primary btn--lg btn--block buy__cta'
                     onClick={handleCheckoutPay}
-                    disabled={redirecting || unavailable}
+                    disabled={!memberMode && (redirecting || unavailable)}
                     aria-busy={redirecting || undefined}
                   >
                     {redirecting ? (
@@ -1046,6 +1055,12 @@ export const PaterGuide: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                           <span className='btn__dot' />
                         </span>
                         <span className='sr-only'>{t('offer_cta_redirecting')}</span>
+                      </>
+                    ) : memberMode ? (
+                      <>
+                        <Icon name='check' />
+                        <span>{tr('Enregistrer dans mon dossier|Save to my dossier', lang)}</span>
+                        <Icon name='arrowRight' />
                       </>
                     ) : (
                       <>

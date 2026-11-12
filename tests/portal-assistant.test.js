@@ -68,6 +68,36 @@ test('dossier: saved before payment without a session, only from this site', asy
   assert.equal(calls.length, 1);
 });
 
+test('dossier-save: the member saves their own questionnaire, in words, with a session only', async () => {
+  const { handler, calls } = setup({ rpc: async (_n, args) => ({ ok: true, profile: args.p_profile, updated_at: '2026-11-13T10:00:00Z' }) });
+  const dossier = {
+    destinationCountry: 'CA',
+    tier: 'solo',
+    fullName: 'Test Member',
+    answers: { purpose: 'study' },
+    readable: { header: [{ label: 'forged', value: 'x' }], sections: [] }
+  };
+  const res = fakeRes();
+  await handler(post('dossier-save', { dossier }, withSession), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(calls[0].name, 'portal_profile_save');
+  assert.equal(calls[0].args.p_session, SESSION);
+  assert.equal(calls[0].args.p_profile.destinationCountry, 'CA');
+  // The words are rebuilt by the server, never taken from the browser.
+  assert.ok(!JSON.stringify(calls[0].args.p_profile.readable ?? {}).includes('forged'));
+
+  const anon = fakeRes();
+  await handler(post('dossier-save', { dossier }), anon);
+  assert.equal(anon.statusCode, 401);
+
+  for (const body of [{ dossier: {} }, { dossier: { answers: 'x' } }, { dossier: { answers: {}, a: 'x'.repeat(13000) } }, { dossier, extra: 1 }]) {
+    const bad = fakeRes();
+    await handler(post('dossier-save', body, withSession), bad);
+    assert.ok([400, 413].includes(bad.statusCode), JSON.stringify(Object.keys(body)));
+  }
+  assert.equal(calls.length, 1);
+});
+
 test('assistant thread: GET with the session, shape kept tight', async () => {
   const { handler, calls } = setup({ rpc: async () => ({ enabled: true, active: true, daily: 20, used: 3, messages: [{ id: 'm' }], extra: 'x' }) });
   const res = fakeRes();

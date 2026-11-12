@@ -72,6 +72,7 @@ export const PORTAL_ACTIONS = [
   'assistant-handoff',
   'profile',
   'profile-note',
+  'dossier-save',
   'locale'
 ];
 
@@ -642,6 +643,27 @@ export function createPortalHandler(deps = {}) {
         updated_at: out?.updated_at ?? null,
         note: typeof out?.note === 'string' ? out.note : null
       });
+    },
+
+    /**
+     * The member saves their questionnaire into their own dossier: the copy their
+     * browser kept from before the payment (members who paid before the dossier
+     * was sent to LevelUp), or the questionnaire filled in again from the member
+     * space. The answers in words are added here, as for `dossier`.
+     */
+    async 'dossier-save'(req, res, cfg, ctx) {
+      const { dossier } = pick(await readJsonBody(req, 16000), {
+        dossier: (v) =>
+          v && typeof v === 'object' && !Array.isArray(v) && v.answers && typeof v.answers === 'object' && JSON.stringify(v).length <= 12000
+            ? v
+            : undefined
+      });
+      const { readable: _old, ...answers } = dossier;
+      const readable = readableDossier(answers, 'fr', { contact: true });
+      const withText = readable ? { ...answers, readable } : answers;
+      const profile = JSON.stringify(withText).length <= 15000 ? withText : answers;
+      const out = await rpc('portal_profile_save', { p_key: cfg.portalKey, p_session: ctx.session, p_profile: profile });
+      return sendJson(res, 200, { ok: true, profile: out?.profile ?? profile, updated_at: out?.updated_at ?? null });
     },
 
     async 'profile-note'(req, res, cfg, ctx) {

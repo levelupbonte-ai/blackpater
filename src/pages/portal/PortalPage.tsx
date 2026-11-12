@@ -1479,6 +1479,20 @@ const MAX_NOTE = 2000;
  * about their project, and a PDF to keep. Only they, Black Pater and its AI
  * assistant read it.
  */
+/** The questionnaire, opened from the member space: it comes back here instead of the payment. */
+const QUESTIONNAIRE_URL = '/abonnements/accompagnement-voyage?dossier=member';
+
+/** The questionnaire this browser kept (PaterGuide saves it before the payment page). */
+function localDossier(): Record<string, unknown> | null {
+  try {
+    const raw = window.localStorage.getItem('pg:last_dossier');
+    const d = raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
+    return d && typeof d === 'object' && d.answers && typeof d.answers === 'object' && JSON.stringify(d).length <= 12000 ? d : null;
+  } catch {
+    return null;
+  }
+}
+
 const DossierView: React.FC<{ home: PortalHome; onAssistant?: () => void }> = ({ home, onAssistant }) => {
   const { t, lang } = useLanguage();
   const [data, setData] = useState<MemberProfile | null>(null);
@@ -1486,19 +1500,41 @@ const DossierView: React.FC<{ home: PortalHome; onAssistant?: () => void }> = ({
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState<'idle' | 'busy' | 'saved' | 'error'>('idle');
 
+  const { search, navigate } = useRouter();
+  const [restored, setRestored] = useState(false);
+
   useEffect(() => {
     let alive = true;
+    // ?restore=1: back from the questionnaire filled in again (it replaces the dossier).
+    const refilled = new URLSearchParams(search).get('restore') === '1';
     portalApi
       .profile()
-      .then((p) => {
+      .then(async (p) => {
         if (!alive) return;
         setData(p);
         setNote(p.note || '');
+        // Members who paid before the dossier was sent to LevelUp: the copy
+        // this browser kept is saved into their dossier once (or the one
+        // just filled in again). An older dossier gets its answers in words.
+        const local = refilled || !p.profile ? localDossier() : null;
+        const missingWords = p.profile && !(p.profile as { readable?: unknown }).readable;
+        const toSave = local ?? (missingWords ? p.profile : null);
+        if (!toSave) return;
+        try {
+          const out = await portalApi.dossierSave(toSave);
+          if (!alive) return;
+          setData((d) => (d ? { ...d, profile: out.profile, updated_at: out.updated_at ?? d.updated_at } : d));
+          if (local) setRestored(true);
+        } catch {
+          /* the dossier stays as it was */
+        }
+        if (refilled) navigate('/espace-client?view=dossier', { replace: true });
       })
       .catch(() => alive && setFailed(true));
     return () => {
       alive = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const readable = useMemo(() => (data?.profile ? readableDossier(data.profile, lang, { contact: true }) : null), [data, lang]);
@@ -1559,12 +1595,63 @@ const DossierView: React.FC<{ home: PortalHome; onAssistant?: () => void }> = ({
       )}
       {!data && !failed && <div className='po-skeleton' aria-hidden='true' />}
 
+      {restored && (
+        <p className='po-note' role='status'>
+          <Icon name='check' /> {t('po_dossier_restored')}
+        </p>
+      )}
+
+      {data && !readable && (
+        <Empty icon='file' title={t('po_dossier_empty_title')} text={t('po_dossier_empty_text')}>
+          <Link to={QUESTIONNAIRE_URL} className='btn btn--primary'>
+            {t('po_dossier_fill')} <Icon name='arrowRight' />
+          </Link>
+        </Empty>
+      )}
+
+      {readable && (
+        <>
+          {readable.header.length > 0 && (
+            <div className='po-card po-dossier'>
+              <h3>
+                <Icon name='file' /> {t('po_dossier_answers_title')}
+              </h3>
+              <dl>
+                {readable.header.map((h) => (
+                  <div key={h.label}>
+                    <dt>{h.label}</dt>
+                    <dd>{h.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+          {readable.sections.map((s) => (
+            <div key={s.title} className='po-card po-dossier'>
+              <h3>{s.title}</h3>
+              <dl>
+                {s.rows.map((r, i) => (
+                  <div key={i}>
+                    <dt>{r.q}</dt>
+                    <dd>{r.a}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+          {data?.updated_at && <p className='po-note'>{t('po_dossier_filled', { date: formatDate(data.updated_at, lang) })}</p>}
+          <Link to={QUESTIONNAIRE_URL} className='po-link'>
+            <Icon name='refresh' /> {t('po_dossier_refill')}
+          </Link>
+        </>
+      )}
+
       {data && (
         <div className='po-card po-dossier-note'>
           <h3>
             <Icon name='star' /> {t('po_dossier_note_title')}
           </h3>
-          <p className='po-note'>{t('po_dossier_note_text')}</p>
+          <p className='po-note'>{readable ? t('po_dossier_note_lead') + ' ' : ''}{t('po_dossier_note_text')}</p>
           <label className='po-sr' htmlFor='po-dossier-note'>
             {t('po_dossier_note_title')}
           </label>
@@ -1595,38 +1682,6 @@ const DossierView: React.FC<{ home: PortalHome; onAssistant?: () => void }> = ({
         </div>
       )}
 
-      {data && !readable && <Empty icon='file' title={t('po_dossier_empty_title')} text={t('po_dossier_empty_text')} />}
-
-      {readable && (
-        <>
-          {readable.header.length > 0 && (
-            <div className='po-card po-dossier'>
-              <dl>
-                {readable.header.map((h) => (
-                  <div key={h.label}>
-                    <dt>{h.label}</dt>
-                    <dd>{h.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          )}
-          {readable.sections.map((s) => (
-            <div key={s.title} className='po-card po-dossier'>
-              <h3>{s.title}</h3>
-              <dl>
-                {s.rows.map((r, i) => (
-                  <div key={i}>
-                    <dt>{r.q}</dt>
-                    <dd>{r.a}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          ))}
-          {data?.updated_at && <p className='po-note'>{t('po_dossier_filled', { date: formatDate(data.updated_at, lang) })}</p>}
-        </>
-      )}
     </Section>
   );
 };

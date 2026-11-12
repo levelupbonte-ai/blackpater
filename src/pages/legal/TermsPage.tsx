@@ -2,11 +2,11 @@ import React from 'react';
 import { Link } from '../../app/router';
 import { useLanguage } from '../../context/LanguageContext';
 import { LegalLayout, type LegalDoc } from './LegalLayout';
-import { CONTACT_EMAIL, PHONE_DISPLAY } from '../../lib/contact';
+import { CONTACT_EMAIL } from '../../lib/contact';
 
 const Contact: React.FC = () => (
   <>
-    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> · {PHONE_DISPLAY}
+    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
   </>
 );
 
@@ -66,7 +66,7 @@ const fr: LegalDoc = {
       title: '4. Tarifs d’intégration à l’écosystème',
       body: (
         <p>
-          Le règlement initial correspond à l’enregistrement officiel de votre dossier et à votre intégration dans l’écosystème BlackPater : <strong>2,60 $ US (Solo · 1 personne)</strong>, <strong>5 $ US (Duo · 2 personnes)</strong> ou <strong>11 $ US (Famille · jusqu’à 5 personnes)</strong>. Une fois intégré dans l’écosystème, l’utilisateur a accès aux forfaits mensuels d’accompagnement (Pro & Premium) selon ses besoins. Si votre moyen de paiement n’est pas libellé en dollars américains, votre banque peut appliquer des frais de conversion indépendants de BlackPater. Le prix affiché au moment de l’achat est celui qui s’applique.
+          Le règlement initial correspond à l’enregistrement officiel de votre dossier et à votre intégration dans l’écosystème BlackPater : <strong>2,60 $ US (Solo · 1 personne)</strong>, <strong>5 $ US (Duo · 2 personnes)</strong> ou <strong>11 $ US (Famille · jusqu’à 5 personnes)</strong>. Ce règlement fait de vous un membre : il ouvre votre espace client et votre messagerie avec BlackPater. Les informations elles-mêmes sont fournies par les forfaits mensuels. Chaque nouveau membre profite d’abord d’une offre gratuite (durée indiquée dans son espace) qui donne accès à une partie des informations et prend fin automatiquement, sans paiement. Ensuite, le membre peut choisir un forfait mensuel : le prix et le contenu affichés dans l’espace client au moment du choix s’appliquent, le paiement est prélevé automatiquement chaque mois, et le forfait peut être résilié à tout moment depuis l’espace client ; il reste actif jusqu’à la fin du mois déjà payé, sans autre prélèvement. Le membre peut aussi supprimer son compte depuis son espace : ses données personnelles et ses messages sont effacés et tout forfait en cours s’arrête immédiatement. Si votre moyen de paiement n’est pas libellé en dollars américains, votre banque peut appliquer des frais de conversion indépendants de BlackPater. Le prix affiché au moment de l’achat est celui qui s’applique.
         </p>
       )
     },
@@ -84,7 +84,7 @@ const fr: LegalDoc = {
       title: '6. Démarrage de l’accompagnement',
       body: (
         <p>
-          Après confirmation du paiement, notre équipe prend contact avec vous grâce aux coordonnées transmises dans votre dossier. Vous pouvez également nous joindre au {PHONE_DISPLAY} ou par e-mail à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> avec votre référence de commande.
+          Après confirmation du paiement, notre équipe prend contact avec vous grâce aux coordonnées transmises dans votre dossier. Vous pouvez également nous écrire depuis la messagerie de votre espace client ou par e-mail à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> avec votre référence de commande.
         </p>
       )
     },
@@ -174,7 +174,7 @@ const en: LegalDoc = {
       title: '4. Ecosystem integration pricing',
       body: (
         <p>
-          The initial payment covers the official registration of your file and your entry into the BlackPater ecosystem: <strong>US$2.60 (Solo · 1 person)</strong>, <strong>US$5 (Duo · 2 people)</strong> or <strong>US$11 (Family · up to 5 people)</strong>. Once integrated into the ecosystem, members unlock access to monthly guidance plans (Pro & Premium) tailored to their needs. If your payment method is not in US dollars, your bank may apply a conversion fee outside BlackPater’s control. The price displayed at the time of purchase applies.
+          The initial payment covers the official registration of your file and your entry into the BlackPater ecosystem: <strong>US$2.60 (Solo · 1 person)</strong>, <strong>US$5 (Duo · 2 people)</strong> or <strong>US$11 (Family · up to 5 people)</strong>. This payment makes you a member: it opens your client space and your message thread with BlackPater. The information itself comes with the monthly plans. Each new member first enjoys a free offer (its length is shown in the space) that gives access to part of the information and ends automatically, with no payment. Members can then choose a monthly plan: the price and content shown in the client space when choosing apply, payment is taken automatically every month, and the plan can be cancelled at any time from the client space; it stays active until the end of the month already paid, with no further charge. Members can also delete their account from their space: their personal data and messages are erased and any running plan stops immediately. If your payment method is not in US dollars, your bank may apply a conversion fee outside BlackPater’s control. The price displayed at the time of purchase applies.
         </p>
       )
     },
@@ -192,7 +192,7 @@ const en: LegalDoc = {
       title: '6. Starting the guidance',
       body: (
         <p>
-          After payment confirmation, our team reaches out to you using the contact details provided in your file. You can also reach us at {PHONE_DISPLAY} or by email at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> with your order reference.
+          After payment confirmation, our team reaches out to you using the contact details provided in your file. You can also write to us from the messages of your client space or by email at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> with your order reference.
         </p>
       )
     },

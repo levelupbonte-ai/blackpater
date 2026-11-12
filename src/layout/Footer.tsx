@@ -3,7 +3,7 @@ import { Link } from '../app/router';
 import { useLanguage } from '../context/LanguageContext';
 import { Icon } from '../components/Icon';
 import type { TranslationKey } from '../i18n';
-import { CONTACT_EMAIL, PHONE_DISPLAY } from '../lib/contact';
+import { CONTACT_EMAIL } from '../lib/contact';
 import { LevelUpCredit } from './LevelUpCredit';
 
 const NAV: Array<{ to: string; key: TranslationKey }> = [
@@ -69,9 +69,6 @@ export const Footer: React.FC = () => {
             <ul className='foot__contact'>
               <li>
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
-              </li>
-              <li>
-                <span>{PHONE_DISPLAY}</span>
               </li>
             </ul>
           </div>

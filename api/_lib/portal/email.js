@@ -34,15 +34,20 @@ const TEXT = {
       title: 'E-mail change requested',
       intro: (to) => `Someone signed in to your space asked to change its e-mail address to ${to}. Enter this code to confirm. If it was not you, do nothing and sign out of all devices from your space.`
     },
+    remove: {
+      subject: (c) => `${c} confirms the deletion of your account`,
+      title: 'Delete your account',
+      intro: 'Enter this code in your space to delete your Black Pater account for good. Your monthly plan stops at once and your messages and personal details are erased. It works once and expires in 10 minutes.'
+    },
     emailNew: {
       subject: (c) => `${c} confirms your new e-mail`,
       title: 'Confirm your new address',
       intro: 'Enter this code in your Black Pater space to use this address from now on.'
     },
     access: {
-      subject: 'Your Black Pater private space is ready',
-      title: 'Your private space is ready',
-      intro: 'Thank you for your trust. Your booking details, updates, documents and messages from Black Pater are now in one secure place.',
+      subject: 'Welcome to Black Pater: your member space is ready',
+      title: 'You are now a member',
+      intro: 'Thank you for joining. Your member space is open: a free offer lets you see the first information right away, then you choose the monthly plan that suits you. Your messages with Black Pater are there too.',
       how: 'Sign in with this e-mail address: we send you a one-time code, no password needed.'
     },
     update: {
@@ -83,15 +88,20 @@ const TEXT = {
       title: 'Changement d’e-mail demandé',
       intro: (to) => `Une personne connectée à votre espace demande à remplacer son adresse par ${to}. Saisissez ce code pour confirmer. Si ce n’est pas vous, ne faites rien et déconnectez tous les appareils depuis votre espace.`
     },
+    remove: {
+      subject: (c) => `${c} confirme la suppression de votre compte`,
+      title: 'Supprimer votre compte',
+      intro: 'Saisissez ce code dans votre espace pour supprimer définitivement votre compte Black Pater. Votre forfait mensuel s’arrête aussitôt, vos messages et données personnelles sont effacés. Il ne sert qu’une fois et expire dans 10 minutes.'
+    },
     emailNew: {
       subject: (c) => `${c} confirme votre nouvelle adresse`,
       title: 'Confirmez votre nouvelle adresse',
       intro: 'Saisissez ce code dans votre espace Black Pater pour utiliser désormais cette adresse.'
     },
     access: {
-      subject: 'Votre espace privé Black Pater est prêt',
-      title: 'Votre espace privé est prêt',
-      intro: 'Merci de votre confiance. Le détail de votre réservation, les actualités, documents et messages de Black Pater sont désormais réunis dans un espace sécurisé.',
+      subject: 'Bienvenue chez Black Pater : votre espace membre est prêt',
+      title: 'Vous êtes membre',
+      intro: 'Merci de nous avoir rejoints. Votre espace membre est ouvert : une offre gratuite vous donne accès aux premières informations tout de suite, puis vous choisissez le forfait mensuel qui vous convient. Vos échanges avec Black Pater s’y trouvent aussi.',
       how: 'Connectez-vous avec cette adresse e-mail : nous vous envoyons un code à usage unique, sans mot de passe.'
     },
     update: {
@@ -156,6 +166,9 @@ export function buildEmail(kind, { lang = 'en', name, code, title: itemTitle, de
       break;
     case 'email_old':
       parts = { subject: t.emailOld.subject(code), title: t.emailOld.title, paragraphs: [t.hello(name), t.emailOld.intro(newEmail)], code };
+      break;
+    case 'delete':
+      parts = { subject: t.remove.subject(code), title: t.remove.title, paragraphs: [t.hello(name), t.remove.intro, t.ignore], code };
       break;
     case 'email_new':
       parts = { subject: t.emailNew.subject(code), title: t.emailNew.title, paragraphs: [t.hello(name), t.emailNew.intro, t.ignore], code };

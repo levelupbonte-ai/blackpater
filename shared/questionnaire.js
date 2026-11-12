@@ -346,7 +346,7 @@ export const DEFAULT_QUESTIONS = [
     question:
       'Pour combien de personnes souhaitez-vous enregistrer ce dossier dans l’écosystème ?|For how many people are you registering this file in the ecosystem?',
     hint:
-      'Ce règlement unique valide votre enregistrement et votre entrée dans l’écosystème BlackPater (accès aux forfaits mensuels Pro & Premium ensuite). Le questionnaire s’adapte automatiquement.|This one-time fee validates your registration and entry into the BlackPater ecosystem (unlocking monthly Pro & Premium plans afterwards). The form adapts automatically.',
+      'Ce règlement unique valide votre enregistrement et votre entrée dans l’écosystème BlackPater (accès aux forfaits mensuels ensuite). Le questionnaire s’adapte automatiquement.|This one-time fee validates your registration and entry into the BlackPater ecosystem (unlocking monthly plans afterwards). The form adapts automatically.',
     options: DEFAULT_OPTIONS.groupTier
   },
   {

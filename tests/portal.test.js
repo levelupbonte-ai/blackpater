@@ -298,7 +298,7 @@ test('e-mails: escaped, branded, in the customer language, never the published c
   assert.match(code.text, /123456/);
   assert.match(code.subject, /^123456 is your Black Pater code$/);
   assert.equal(emailForOutbox({ kind: 'nope' }), null);
-  assert.match(emailForOutbox({ kind: 'access', locale: 'en' }).subject, /private space is ready/);
+  assert.match(emailForOutbox({ kind: 'access', locale: 'en' }).subject, /member space is ready/);
 });
 
 test('mailer uses Black Pater\'s key and sender, with reply-to, and nothing without them', async () => {

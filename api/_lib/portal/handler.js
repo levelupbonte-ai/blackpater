@@ -16,6 +16,8 @@ import { LEVELUP_SUPABASE_URL, getLevelUpConfig } from '../levelup.js';
 import { getPortalConfig, missingConfig } from './config.js';
 import { PortalDbError, createPortalDb } from './db.js';
 import { buildEmail, createMailer } from './email.js';
+import { buildPlanCheckout, idempotencyKey, isPlanObject, subscriptionPayload, switchPlan } from './plans.js';
+import { isStripeCheckoutUrl } from '../../../shared/validation.js';
 import {
   bearerMatches,
   clientHash,
@@ -47,7 +49,15 @@ export const PORTAL_ACTIONS = [
   'email-start',
   'email-confirm',
   'sign-out',
-  'outbox'
+  'outbox',
+  'messages-since',
+  'subscribe',
+  'plan-return',
+  'cancel-plan',
+  'resume-plan',
+  'pay-plan',
+  'delete-code',
+  'delete-account'
 ];
 
 const GET_ACTIONS = new Set(['status', 'me', 'file']);
@@ -81,8 +91,26 @@ const req_ = {
   password: (v) => (typeof v === 'string' && v.length >= 1 && v.length <= 200 ? v : undefined),
   index: (v) => (Number.isInteger(v) && v >= 0 && v < 50 ? v : undefined),
   optUuid: (v) => (v === undefined || v === null ? null : typeof v === 'string' && UUID_RE.test(v) ? v : undefined),
-  body: (v) => (typeof v === 'string' && v.trim().length >= 1 && v.length <= 4000 ? v : undefined)
+  body: (v) => (typeof v === 'string' && v.trim().length >= 1 && v.length <= 4000 ? v : undefined),
+  level: (v) => (Number.isInteger(v) && v >= 1 && v <= 3 ? v : undefined),
+  after: (v) =>
+    v === undefined || v === null
+      ? null
+      : typeof v === 'string' && v.length <= 40 && /^\d{4}-\d{2}-\d{2}T/.test(v) && !Number.isNaN(Date.parse(v))
+        ? v
+        : undefined,
+  checkoutSession: (v) => (typeof v === 'string' && /^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(v) ? v : undefined)
 };
+
+/** Stripe calls of the member space: any failure becomes a short, neutral error. */
+async function viaStripe(fn) {
+  try {
+    return await fn();
+  } catch (err) {
+    if (err instanceof PortalDbError) throw err;
+    throw new PortalDbError('payments_unavailable', 502);
+  }
+}
 
 function isSecure(req) {
   const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
@@ -170,6 +198,11 @@ export function createPortalHandler(deps = {}) {
     const result = await send(cfg, { to, ...mail });
     if (!result.ok) log.warn(JSON.stringify({ evt: 'portal.code_email_failed', kind, status: result.status || 0 }));
     return result.ok;
+  }
+
+  async function syncSubscription(cfg, sub) {
+    if (!sub?.id) return;
+    await rpc('portal_subscription_sync', { p_key: cfg.portalKey, p_sub: subscriptionPayload(sub) });
   }
 
   /** Opens a session: cookie + background-free alert e-mail (bounded). */
@@ -383,6 +416,146 @@ export function createPortalHandler(deps = {}) {
       return sendJson(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(null, { secure: isSecure(req) }) });
     },
 
+    /** New messages since the last one the page has (the conversation refreshes itself). */
+    async 'messages-since'(req, res, cfg, ctx) {
+      const { after } = pick(await readJsonBody(req, 256), { after: req_.after });
+      const out = await rpc('portal_messages_since', { p_key: cfg.portalKey, p_session: ctx.session, p_after: after });
+      return sendJson(res, 200, { messages: out?.messages ?? [], seen: out?.seen ?? [] });
+    },
+
+    /**
+     * Choose a monthly plan. No plan yet: a Stripe payment page (monthly,
+     * automatic). A plan already: the same subscription moves to the new plan,
+     * or a plan set to stop is kept going.
+     */
+    async subscribe(req, res, cfg, ctx) {
+      const { level } = pick(await readJsonBody(req, 256), { level: req_.level });
+      const stripe = stripeFor();
+      if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });
+      const start = await rpc('portal_subscribe_start', { p_key: cfg.portalKey, p_session: ctx.session, p_level: level });
+      if (!start?.plan?.id || !Number.isInteger(start.plan.amount)) return sendJson(res, 404, { error: 'not_found' });
+      const current = start.current;
+      if (current?.provider_subscription_id) {
+        const id = current.provider_subscription_id;
+        let sub;
+        if (current.level === level) {
+          if (!current.cancel_at_period_end) return sendJson(res, 409, { error: 'already_subscribed' });
+          sub = await viaStripe(() => stripe.subscriptions.update(id, { cancel_at_period_end: false }));
+        } else {
+          sub = await viaStripe(() => switchPlan(stripe, id, start));
+          if (!sub) return sendJson(res, 409, { error: 'already_subscribed' });
+        }
+        await syncSubscription(cfg, sub);
+        return sendJson(res, 200, { ok: true, changed: true });
+      }
+      const params = buildPlanCheckout({ start, origin: ctx.origin });
+      const session = await viaStripe(() =>
+        stripe.checkout.sessions.create(params, {
+          idempotencyKey: idempotencyKey(['checkout', start.customer_id, start.plan.id, start.plan.amount, start.plan.currency])
+        })
+      );
+      if (!isStripeCheckoutUrl(session?.url)) return sendJson(res, 502, { error: 'payments_unavailable' });
+      return sendJson(res, 200, { url: session.url });
+    },
+
+    /** Back from the payment page: record the plan at once (the webhook does it too). */
+    async 'plan-return'(req, res, cfg, ctx) {
+      const { sessionId } = pick(await readJsonBody(req, 512), { sessionId: req_.checkoutSession });
+      const stripe = stripeFor();
+      if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });
+      const session = await viaStripe(() => stripe.checkout.sessions.retrieve(sessionId, { expand: ['subscription'] }));
+      if (!isPlanObject(session)) return sendJson(res, 404, { error: 'not_found' });
+      const sub = session.subscription && typeof session.subscription === 'object' ? session.subscription : null;
+      if (session.status !== 'complete' || !sub) return sendJson(res, 200, { ok: true, active: false });
+      await syncSubscription(cfg, sub);
+      return sendJson(res, 200, { ok: true, active: sub.status === 'active' || sub.status === 'trialing' });
+    },
+
+    /** Stop the monthly plan: it runs until the end of the paid month, nothing more is charged. */
+    async 'cancel-plan'(req, res, cfg, ctx) {
+      pick(await readJsonBody(req, 256), {});
+      const stripe = stripeFor();
+      if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });
+      const refs = await rpc('portal_subscription_refs', { p_key: cfg.portalKey, p_session: ctx.session });
+      for (const ref of Array.isArray(refs) ? refs : []) {
+        const id = ref.provider_subscription_id;
+        let sub = null;
+        if (ref.status === 'active' && !ref.cancel_at_period_end) {
+          sub = await viaStripe(() => stripe.subscriptions.update(id, { cancel_at_period_end: true }));
+        } else if (ref.status === 'past_due' || ref.status === 'incomplete') {
+          // Nothing paid for this month: stop now.
+          sub = await viaStripe(() => stripe.subscriptions.cancel(id));
+        }
+        if (sub) await syncSubscription(cfg, sub);
+      }
+      return sendJson(res, 200, { ok: true });
+    },
+
+    /** Keep a plan that was set to stop. */
+    async 'resume-plan'(req, res, cfg, ctx) {
+      pick(await readJsonBody(req, 256), {});
+      const stripe = stripeFor();
+      if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });
+      const refs = await rpc('portal_subscription_refs', { p_key: cfg.portalKey, p_session: ctx.session });
+      const ref = (Array.isArray(refs) ? refs : []).find((r) => r.status === 'active' && r.cancel_at_period_end);
+      if (!ref) return sendJson(res, 404, { error: 'not_found' });
+      const sub = await viaStripe(() => stripe.subscriptions.update(ref.provider_subscription_id, { cancel_at_period_end: false }));
+      await syncSubscription(cfg, sub);
+      return sendJson(res, 200, { ok: true });
+    },
+
+    /** A monthly payment failed: Stripe's own page to pay it (card can be changed there). */
+    async 'pay-plan'(req, res, cfg, ctx) {
+      pick(await readJsonBody(req, 256), {});
+      const stripe = stripeFor();
+      if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });
+      const refs = await rpc('portal_subscription_refs', { p_key: cfg.portalKey, p_session: ctx.session });
+      const ref = (Array.isArray(refs) ? refs : []).find((r) => r.status === 'past_due' || r.status === 'incomplete');
+      if (!ref) return sendJson(res, 404, { error: 'nothing_due' });
+      const sub = await viaStripe(() => stripe.subscriptions.retrieve(ref.provider_subscription_id, { expand: ['latest_invoice'] }));
+      const url = sub?.latest_invoice?.hosted_invoice_url;
+      if (typeof url !== 'string' || !/^https:\/\/invoice\.stripe\.com\//.test(url)) return sendJson(res, 404, { error: 'nothing_due' });
+      return sendJson(res, 200, { url });
+    },
+
+    async 'delete-code'(req, res, cfg, ctx) {
+      pick(await readJsonBody(req, 256), {});
+      const result = await rpc('portal_request_code', {
+        p_key: cfg.portalKey,
+        p_email: null,
+        p_client: ctx.client,
+        p_lang: null,
+        p_purpose: 'delete',
+        p_session: ctx.session
+      });
+      if (result?.send && result.code) await sendCode(cfg, 'delete', result.email, result, ctx.origin);
+      return sendJson(res, 200, { ok: true });
+    },
+
+    /** Deletes the account: plans stopped at Stripe first, then personal data erased. */
+    async 'delete-account'(req, res, cfg, ctx) {
+      const { code } = pick(await readJsonBody(req, 256), { code: req_.code });
+      const begin = await rpc('portal_delete_account_begin', { p_key: cfg.portalKey, p_session: ctx.session, p_code: code });
+      if (!begin?.ok) return sendJson(res, 400, { error: 'invalid_code' });
+      const ids = (Array.isArray(begin.subscriptions) ? begin.subscriptions : []).filter((id) => /^sub_[A-Za-z0-9]+$/.test(String(id)));
+      if (ids.length) {
+        const stripe = stripeFor();
+        if (!stripe) return sendJson(res, 503, { error: 'payments_unavailable' });
+        for (const id of ids) {
+          await viaStripe(async () => {
+            try {
+              await stripe.subscriptions.cancel(id);
+            } catch (err) {
+              if (err?.code !== 'resource_missing') throw err;
+            }
+          });
+        }
+      }
+      await rpc('portal_delete_account_finish', { p_key: cfg.portalKey, p_session: ctx.session });
+      log.info?.(JSON.stringify({ evt: 'portal.account_deleted' }));
+      return sendJson(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(null, { secure: isSecure(req) }) });
+    },
+
     /** Sends queued e-mails: signed call from the LevelUp dashboard or the daily Vercel Cron. */
     async outbox(req, res, cfg, ctx) {
       let authorized = bearerMatches(req.headers.authorization, cfg.cronSecret);
@@ -409,7 +582,10 @@ export function createPortalHandler(deps = {}) {
 
     const ip = getClientIp(req);
     if (!limitAll(ip).ok) return sendJson(res, 429, { error: 'rate_limited' });
-    if (['request-code', 'verify-code', 'password-sign-in', 'password-code', 'email-start'].includes(action) && !limitAuth(ip).ok) {
+    if (
+      ['request-code', 'verify-code', 'password-sign-in', 'password-code', 'email-start', 'subscribe', 'delete-code', 'delete-account'].includes(action) &&
+      !limitAuth(ip).ok
+    ) {
       return sendJson(res, 429, { error: 'rate_limited' });
     }
 

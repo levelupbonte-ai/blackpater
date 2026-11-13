@@ -161,6 +161,34 @@ export interface PortalHome {
   contact: { phone?: string; whatsapp?: string; note?: string };
 }
 
+export interface NewsItem {
+  id: string;
+  url: string;
+  title: string;
+  source: string;
+  topics: string[];
+  important: boolean;
+  at: string;
+  summary: string | null;
+}
+
+export interface GuideLink {
+  name: string;
+  url: string;
+  kind: string;
+}
+
+export interface NewsFeed {
+  country: string | null;
+  dossier_country: string | null;
+  access: 'full' | 'preview';
+  covered: string[];
+  items: NewsItem[];
+  total: number;
+  sources: { name: string; url: string }[];
+  guide: GuideLink[] | null;
+}
+
 export class PortalError extends Error {
   code: string;
   status: number;
@@ -222,6 +250,8 @@ export const portalApi = {
   dossierSave: (dossier: Record<string, unknown>) =>
     call<{ ok: true; profile: Record<string, unknown>; updated_at: string | null }>('dossier-save', { dossier }),
   assistantHandoff: (questionId: string) => call<{ ok: true; id: string | null }>('assistant-handoff', { questionId }),
+  news: (country: string | null, lang: string) => call<NewsFeed>('news', { country, lang }),
+  newsGuide: (country: string, lang: string) => call<{ country: string; links: GuideLink[] }>('news-guide', { country, lang }),
   fileUrl: (itemId: string) => `/api/portal/file?item=${encodeURIComponent(itemId)}`
 };
 

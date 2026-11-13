@@ -76,7 +76,9 @@ export const PORTAL_ACTIONS = [
   'dossier-save',
   'locale',
   'news',
-  'news-guide'
+  'news-guide',
+  'news-react',
+  'news-read'
 ];
 
 const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key', 'assistant', 'profile']);
@@ -732,6 +734,23 @@ export function createPortalHandler(deps = {}) {
       });
       const out = await callNews(cfg.portalKey, { action: 'guide', session: ctx.session, country, lang: lang || 'fr' });
       return sendJson(res, 200, { country: out?.country ?? country, links: Array.isArray(out?.links) ? out.links : [] });
+    },
+
+    /** "Useful" (true), "not useful" (false) or withdrawn (null) on one article. */
+    async 'news-react'(req, res, cfg, ctx) {
+      const { item, helpful } = pick(await readJsonBody(req, 256), {
+        item: req_.uuid,
+        helpful: (v) => (v === true || v === false || v === null ? v : undefined)
+      });
+      const out = await callNews(cfg.portalKey, { action: 'react', session: ctx.session, item, helpful });
+      return sendJson(res, 200, { mine: out?.mine ?? helpful, helpful: Number(out?.helpful) || 0 });
+    },
+
+    /** The member opened the official article (counted once). */
+    async 'news-read'(req, res, cfg, ctx) {
+      const { item } = pick(await readJsonBody(req, 256), { item: req_.uuid });
+      await callNews(cfg.portalKey, { action: 'read', session: ctx.session, item });
+      return sendJson(res, 200, { ok: true });
     },
 
     /** "Ask Black Pater": the question goes to Black Pater's messages. */

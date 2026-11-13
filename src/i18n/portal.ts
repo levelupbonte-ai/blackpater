@@ -426,6 +426,16 @@ export const fr = {
   po_news_kind_immigration: 'Immigration',
   po_news_kind_study: 'Études',
   po_news_kind_travel: 'Voyage',
+  po_news_updated: "Mis à jour {when}",
+  po_news_useful_q: "Utile ?",
+  po_news_yes: "Oui",
+  po_news_no: "Non",
+  po_news_helpful_1: "Utile pour 1 membre",
+  po_news_helpful_n: "Utile pour {n} membres",
+  po_news_helpful_only_you: "Vous l’avez trouvé utile",
+  po_news_helpful_you: "Utile pour vous et {n} autres",
+  po_news_reads_1: "Lu par 1 membre",
+  po_news_reads_n: "Lu par {n} membres",
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -855,4 +865,14 @@ export const en: Record<keyof typeof fr, string> = {
   po_news_kind_immigration: 'Immigration',
   po_news_kind_study: 'Studies',
   po_news_kind_travel: 'Travel',
+  po_news_updated: "Updated {when}",
+  po_news_useful_q: "Useful?",
+  po_news_yes: "Yes",
+  po_news_no: "No",
+  po_news_helpful_1: "Useful to 1 member",
+  po_news_helpful_n: "Useful to {n} members",
+  po_news_helpful_only_you: "You found it useful",
+  po_news_helpful_you: "Useful to you and {n} others",
+  po_news_reads_1: "Read by 1 member",
+  po_news_reads_n: "Read by {n} members",
 };

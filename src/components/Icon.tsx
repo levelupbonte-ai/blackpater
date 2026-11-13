@@ -232,6 +232,24 @@ const paths: Record<string, React.ReactNode> = {
       <path d='M4 9.5h3.5L12 5.5v13l-4.5-4H4z' />
       <path d='m16 10 4 4M20 10l-4 4' />
     </>
+  ),
+  thumbUp: (
+    <>
+      <path d='M7 10v11H4V10z' />
+      <path d='M7 10l4-7a2 2 0 0 1 3 2l-1 4h5.5a2 2 0 0 1 2 2.4l-1.4 7A2 2 0 0 1 17.1 20H7' />
+    </>
+  ),
+  thumbDown: (
+    <>
+      <path d='M17 14V3h3v11z' />
+      <path d='M17 14l-4 7a2 2 0 0 1-3-2l1-4H5.5a2 2 0 0 1-2-2.4l1.4-7A2 2 0 0 1 6.9 4H17' />
+    </>
+  ),
+  eye: (
+    <>
+      <path d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z' />
+      <circle cx='12' cy='12' r='3' />
+    </>
   )
 };
 

@@ -110,3 +110,29 @@ test('news client: LevelUp address, bearer key, short error codes', async () => 
   const down = createNewsClient({ fetch: async () => { throw new Error('down'); } });
   await assert.rejects(() => down(KEY, {}), (e) => e.code === 'news_unavailable');
 });
+
+test('news-react and news-read: strict ids and values, forwarded to LevelUp', async () => {
+  const ITEM = '11111111-2222-4333-8444-555555555555';
+  const { handler, sent } = setup(async (_k, p) => (p.action === 'react' ? { mine: p.helpful, helpful: 3 } : {}));
+  const r = fakeRes();
+  await handler(post('news-react', { item: ITEM, helpful: true }, withSession), r);
+  assert.equal(r.statusCode, 200);
+  assert.deepEqual(r.body, { mine: true, helpful: 3 });
+  assert.deepEqual(sent[0].payload, { action: 'react', session: SESSION, item: ITEM, helpful: true });
+
+  const withdraw = fakeRes();
+  await handler(post('news-react', { item: ITEM, helpful: null }, withSession), withdraw);
+  assert.equal(sent[1].payload.helpful, null);
+
+  const bad = fakeRes();
+  await handler(post('news-react', { item: ITEM, helpful: 'yes' }, withSession), bad);
+  assert.equal(bad.statusCode, 400);
+  const badId = fakeRes();
+  await handler(post('news-read', { item: 'x' }, withSession), badId);
+  assert.equal(badId.statusCode, 400);
+
+  const read = fakeRes();
+  await handler(post('news-read', { item: ITEM }, withSession), read);
+  assert.equal(read.statusCode, 200);
+  assert.deepEqual(sent[2].payload, { action: 'read', session: SESSION, item: ITEM });
+});

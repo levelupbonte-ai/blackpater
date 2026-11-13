@@ -170,6 +170,12 @@ export interface NewsItem {
   important: boolean;
   at: string;
   summary: string | null;
+  image_url: string | null;
+  /** Members of this site who found it useful / opened the article. */
+  helpful: number;
+  reads: number;
+  /** This member's vote: true useful, false not useful, null none. */
+  mine: boolean | null;
 }
 
 export interface GuideLink {
@@ -187,6 +193,7 @@ export interface NewsFeed {
   total: number;
   sources: { name: string; url: string }[];
   guide: GuideLink[] | null;
+  updated_at: string | null;
 }
 
 export class PortalError extends Error {
@@ -251,6 +258,9 @@ export const portalApi = {
     call<{ ok: true; profile: Record<string, unknown>; updated_at: string | null }>('dossier-save', { dossier }),
   assistantHandoff: (questionId: string) => call<{ ok: true; id: string | null }>('assistant-handoff', { questionId }),
   news: (country: string | null, lang: string) => call<NewsFeed>('news', { country, lang }),
+  newsReact: (item: string, helpful: boolean | null) =>
+    call<{ mine: boolean | null; helpful: number }>('news-react', { item, helpful }),
+  newsRead: (item: string) => call<{ ok: true }>('news-read', { item }),
   newsGuide: (country: string, lang: string) => call<{ country: string; links: GuideLink[] }>('news-guide', { country, lang }),
   fileUrl: (itemId: string) => `/api/portal/file?item=${encodeURIComponent(itemId)}`
 };

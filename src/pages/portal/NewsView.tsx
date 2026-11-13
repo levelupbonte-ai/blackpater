@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Icon } from '../../components/Icon';
 import { CODES, regionName } from '../../lib/countries';
-import { formatDate, portalApi, PortalError, type GuideLink, type NewsFeed } from './api';
+import { formatDate, portalApi, PortalError, type GuideLink, type NewsFeed, type NewsItem } from './api';
 
 const TOPIC_KEYS = {
   visa: 'po_news_topic_visa',
@@ -27,6 +27,28 @@ const External: React.FC<{ href: string; children: React.ReactNode; className?: 
     {children}
   </a>
 );
+
+/** "3 h ago" / "il y a 3 h" for the last update of the news. */
+function since(iso: string | null, lang: string): string | null {
+  if (!iso) return null;
+  const minutes = Math.max(1, Math.round((Date.now() - Date.parse(iso)) / 60000));
+  const rtf = new Intl.RelativeTimeFormat(lang === 'en' ? 'en' : 'fr', { numeric: 'auto' });
+  if (minutes < 60) return rtf.format(-minutes, 'minute');
+  if (minutes < 48 * 60) return rtf.format(-Math.round(minutes / 60), 'hour');
+  return rtf.format(-Math.round(minutes / 1440), 'day');
+}
+
+/** The article's own image (from the official site); hidden if it does not load. */
+const NewsImage: React.FC<{ src: string; source: string; href: string }> = ({ src, source, href }) => {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+  return (
+    <a href={href} target='_blank' rel='noopener noreferrer' className='po-news__media' tabIndex={-1} aria-hidden='true'>
+      <img src={src} alt='' loading='lazy' decoding='async' referrerPolicy='no-referrer' onError={() => setFailed(true)} />
+      <span className='po-news__credit'>{source}</span>
+    </a>
+  );
+};
 
 /**
  * Official news for the member's destination: government sources only, a
@@ -78,6 +100,27 @@ export const NewsView: React.FC<{ onPlans: () => void }> = ({ onPlans }) => {
   );
 
   const isCovered = !!country && covered.includes(country);
+  const updated = since(feed?.updated_at ?? null, lang);
+
+  const patchItem = (id: string, patch: Partial<NewsItem>) =>
+    setFeed((f) => (f ? { ...f, items: f.items.map((n) => (n.id === id ? { ...n, ...patch } : n)) } : f));
+
+  const vote = async (n: NewsItem, helpful: boolean) => {
+    const next = n.mine === helpful ? null : helpful;
+    const before = { mine: n.mine, helpful: n.helpful };
+    // Instant feedback, then the server's count.
+    patchItem(n.id, { mine: next, helpful: n.helpful + (next === true ? 1 : 0) - (n.mine === true ? 1 : 0) });
+    try {
+      const out = await portalApi.newsReact(n.id, next);
+      patchItem(n.id, { mine: out.mine, helpful: out.helpful });
+    } catch {
+      patchItem(n.id, before);
+    }
+  };
+
+  const opened = (n: NewsItem) => {
+    void portalApi.newsRead(n.id).catch(() => undefined);
+  };
   const name = country ? regionName(country, lang) : '';
 
   const findLinks = async () => {
@@ -99,6 +142,12 @@ export const NewsView: React.FC<{ onPlans: () => void }> = ({ onPlans }) => {
         <div>
           <h2 id='po-h-news'>{t('po_news_title')}</h2>
           <p className='po-section__lead'>{t('po_news_lead')}</p>
+          {updated && (
+            <p className='po-news__updated'>
+              <Icon name='refresh' />
+              {t('po_news_updated', { when: updated })}
+            </p>
+          )}
         </div>
       </div>
 
@@ -152,7 +201,8 @@ export const NewsView: React.FC<{ onPlans: () => void }> = ({ onPlans }) => {
           {feed.items.length > 0 ? (
             <ol className='po-news__list'>
               {feed.items.map((n) => (
-                <li key={n.id} className={`po-card po-news__item${n.important ? ' is-important' : ''}`}>
+                <li key={n.id} className={`po-card po-news__item${n.important ? ' is-important' : ''}${n.image_url ? ' has-media' : ''}`}>
+                  {n.image_url && <NewsImage src={n.image_url} source={n.source} href={n.url} />}
                   <p className='po-news__meta'>
                     <span>{n.source}</span>
                     <span aria-hidden='true'>·</span>
@@ -160,7 +210,9 @@ export const NewsView: React.FC<{ onPlans: () => void }> = ({ onPlans }) => {
                     {n.important && <span className='po-news__badge'>{t('po_news_important')}</span>}
                   </p>
                   <h3>
-                    <External href={n.url}>{n.title}</External>
+                    <a href={n.url} target='_blank' rel='noopener noreferrer' onClick={() => opened(n)}>
+                      {n.title}
+                    </a>
                   </h3>
                   {n.summary && <p className='po-news__summary'>{n.summary}</p>}
                   <div className='po-news__foot'>
@@ -171,10 +223,42 @@ export const NewsView: React.FC<{ onPlans: () => void }> = ({ onPlans }) => {
                           <span key={x}>{t(TOPIC_KEYS[x])}</span>
                         ))}
                     </span>
-                    <External href={n.url} className='po-news__read'>
+                    <a href={n.url} target='_blank' rel='noopener noreferrer' className='po-news__read' onClick={() => opened(n)}>
                       {t('po_news_read')}
                       <Icon name='arrowUpRight' />
-                    </External>
+                    </a>
+                  </div>
+                  <div className='po-news__react'>
+                    <span className='po-news__ask'>{t('po_news_useful_q')}</span>
+                    <button
+                      type='button'
+                      className={`po-news__vote${n.mine === true ? ' is-on' : ''}`}
+                      aria-pressed={n.mine === true}
+                      onClick={() => void vote(n, true)}
+                    >
+                      <Icon name='thumbUp' />
+                      {t('po_news_yes')}
+                    </button>
+                    <button
+                      type='button'
+                      className={`po-news__vote${n.mine === false ? ' is-on' : ''}`}
+                      aria-pressed={n.mine === false}
+                      onClick={() => void vote(n, false)}
+                    >
+                      <Icon name='thumbDown' />
+                      {t('po_news_no')}
+                    </button>
+                    <span className='po-news__stats'>
+                      {n.helpful > 0 && (
+                        <span>{n.mine === true ? t(n.helpful > 1 ? 'po_news_helpful_you' : 'po_news_helpful_only_you', { n: n.helpful - 1 }) : t(n.helpful > 1 ? 'po_news_helpful_n' : 'po_news_helpful_1', { n: n.helpful })}</span>
+                      )}
+                      {n.reads > 0 && (
+                        <span>
+                          <Icon name='eye' />
+                          {t(n.reads > 1 ? 'po_news_reads_n' : 'po_news_reads_1', { n: n.reads })}
+                        </span>
+                      )}
+                    </span>
                   </div>
                 </li>
               ))}

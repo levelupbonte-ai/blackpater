@@ -174,8 +174,8 @@ function textVersion({ title, paragraphs, code, cta }) {
 export const portalUrl = (origin = SITE_ORIGIN) => `${origin}${PORTAL_PATH}`;
 
 /** { subject, html, text } for one portal e-mail. */
-export function buildEmail(kind, { lang = 'en', name, code, title: itemTitle, device, at, newEmail, origin, stage, what, until, plan } = {}) {
-  const l = lang === 'fr' ? 'fr' : 'en';
+export function buildEmail(kind, { lang = 'fr', name, code, title: itemTitle, device, at, newEmail, origin, stage, what, until, plan } = {}) {
+  const l = lang === 'en' ? 'en' : 'fr';
   const t = TEXT[l];
   const cta = { href: portalUrl(origin), label: t.open };
   let parts;

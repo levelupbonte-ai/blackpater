@@ -66,7 +66,7 @@ export function structuredData() {
         '@id': `${SITE_URL}/#website`,
         name: 'Black Pater',
         url: `${SITE_URL}/`,
-        inLanguage: ['en', 'fr'],
+        inLanguage: ['fr', 'en'],
         publisher: { '@id': `${SITE_URL}/#business` }
       }
     ]

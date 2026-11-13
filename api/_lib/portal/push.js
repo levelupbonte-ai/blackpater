@@ -44,14 +44,14 @@ const WELCOME = {
 
 /** Sent once to a device right after its notifications are turned on. */
 export function welcomePush(lang, name) {
-  const t = WELCOME[lang === 'fr' ? 'fr' : 'en'];
+  const t = WELCOME[lang === 'en' ? 'en' : 'fr'];
   const first = typeof name === 'string' ? name.trim().split(/\s+/)[0].slice(0, 30) : '';
   return { title: t.title, body: t.body(first), url: '/espace-client', tag: 'bp-welcome' };
 }
 
 /** The notification for one outbox row, or null when that kind is never pushed. */
 export function pushFor(row) {
-  const t = TEXT[row.locale === 'fr' ? 'fr' : 'en'];
+  const t = TEXT[row.locale === 'en' ? 'en' : 'fr'];
   if (row.kind === 'message') return { ...t.message, url: '/espace-client?view=messages', tag: 'bp-message' };
   if (row.kind === 'update') return { ...t.update, url: '/espace-client?view=info', tag: 'bp-update' };
   if (row.kind === 'renew') {

@@ -19,20 +19,20 @@ test('JSON-LD prices come from the offer catalog, and the business type is true'
   assert.ok(!structuredDataTag().slice(35, -9).includes('<'));
 });
 
-test('index.html: English head, canonical, no French-only hreflang, JSON-LD placeholder', () => {
-  assert.match(template, /<html lang="en"/);
+test('index.html: French head, canonical, no English-only hreflang, JSON-LD placeholder', () => {
+  assert.match(template, /<html lang="fr"/);
   assert.match(template, /<link rel="canonical" href="https:\/\/blackpater\.com\/">/);
-  assert.ok(!/hreflang="fr"/.test(template));
+  assert.ok(!/hreflang="en"/.test(template));
   assert.ok(template.includes('<!--structured-data-->'));
   assert.ok(!/noindex/.test(template));
 });
 
-test('prerendered pages carry real content, an English title and their own canonical', () => {
+test('prerendered pages carry real content, a French title and their own canonical', () => {
   const route = ROUTES.find((r) => r.id === 'offers');
   const html = renderRouteHtml(template, route, '<main><h1>Plans</h1></main>');
   assert.match(html, /<div id="root" data-ssr><main><h1>Plans<\/h1><\/main><\/div>/);
   assert.match(html, /<link rel="canonical" href="https:\/\/blackpater\.com\/abonnements">/);
-  assert.ok(html.includes(`<title>${route.meta.en.title.replace(/&/g, '&amp;')}</title>`));
+  assert.ok(html.includes(`<title>${route.meta.fr.title.replace(/&/g, '&amp;')}</title>`));
   const portal = renderRouteHtml(template, ROUTES.find((r) => r.id === 'portal'));
   assert.match(portal, /<meta name="robots" content="noindex, follow">/);
   assert.ok(!portal.includes('data-ssr'));
@@ -59,6 +59,6 @@ test('prices with "$" survive the HTML rewrite (no regex group references)', () 
   const route = ROUTES.find((r) => r.id === 'offer-travel');
   const html = renderRouteHtml(template, route, '<p>$2.60 / $5 / $11</p>');
   assert.ok(html.includes('<p>$2.60 / $5 / $11</p>'));
-  assert.ok(html.includes(`<meta property="og:title" content="${route.meta.en.title.replace(/&/g, '&amp;')}">`));
+  assert.ok(html.includes(`<meta property="og:title" content="${route.meta.fr.title.replace(/&/g, '&amp;')}">`));
   assert.ok(!html.includes('<script1'));
 });

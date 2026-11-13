@@ -294,9 +294,11 @@ test('e-mails: escaped, branded, in the customer language, never the published c
   assert.match(mail.subject, /^Nouveau dans votre espace Black Pater/);
   assert.match(mail.html, /https:\/\/blackpater\.com\/espace-client/);
   assert.equal(escapeHtml('"&\''), '&quot;&amp;&#39;');
+  // No language known: French, the site's first language.
   const code = buildEmail('code', { code: '123456' });
   assert.match(code.text, /123456/);
-  assert.match(code.subject, /^123456 is your Black Pater code$/);
+  assert.match(code.subject, /^123456 est votre code Black Pater$/);
+  assert.match(buildEmail('code', { code: '123456', lang: 'en' }).subject, /^123456 is your Black Pater code$/);
   assert.equal(emailForOutbox({ kind: 'nope' }), null);
   assert.match(emailForOutbox({ kind: 'access', locale: 'en' }).subject, /member space is ready/);
 });

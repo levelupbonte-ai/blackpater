@@ -11,9 +11,9 @@ import { captureInstallPrompt } from './lib/install';
 captureInstallPrompt();
 
 /**
- * Public pages are prerendered in English (light theme) at build time. When the
+ * Public pages are prerendered in French (light theme) at build time. When the
  * visitor will see exactly that, React hydrates the existing HTML (no flash);
- * otherwise (French chosen, dark theme, a page without prerender) it renders
+ * otherwise (English chosen, dark theme, a page without prerender) it renders
  * from scratch.
  */
 function canHydrate(root: HTMLElement): boolean {
@@ -22,7 +22,7 @@ function canHydrate(root: HTMLElement): boolean {
     const params = new URLSearchParams(window.location.search);
     const lang = params.get('lang') || window.localStorage.getItem('bp_lang_v4');
     const theme = window.localStorage.getItem('bp_theme_pref');
-    return (!lang || lang === 'en') && theme !== 'dark' && !window.location.hash;
+    return (!lang || lang === 'fr') && theme !== 'dark' && !window.location.hash;
   } catch {
     return true;
   }

@@ -1,5 +1,5 @@
 // Build-time prerender (scripts/vite-plugins.js): the HTML of each public page
-// in the default language (English), so search engines and slow phones get
+// in the default language (French), so search engines and slow phones get
 // real content before JavaScript runs. The browser then hydrates it.
 import React from 'react';
 import { renderToString } from 'react-dom/server';

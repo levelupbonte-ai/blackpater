@@ -43,7 +43,7 @@ function base({ email, locale, origin, metadata, name, description, amount, curr
     ],
     // The member's own address, so the payment is attached to their account.
     customer_email: email,
-    locale: locale === 'fr' ? 'fr' : 'en',
+    locale: locale === 'en' ? 'en' : 'fr',
     submit_type: 'pay',
     allow_promotion_codes: true,
     metadata,

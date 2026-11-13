@@ -29,11 +29,12 @@ function initialLang(): Language {
   } catch {
     /* storage blocked */
   }
-  return 'en';
+  // French is the site's first language; English is one tap away.
+  return 'fr';
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
-  lang: 'en',
+  lang: 'fr',
   setLang: () => {},
   t: (k) => k
 });

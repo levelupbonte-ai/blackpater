@@ -44,8 +44,8 @@ function setMeta(html, attr, key, value) {
 /** Rewrites the head of index.html for one route: title, description, canonical, social cards. */
 export function renderRouteHtml(template, { path: routePath, meta, indexable }, body = null) {
   const url = routePath ? `${SITE_URL}${routePath === '/' ? '/' : routePath}` : null;
-  // English is the default language of the site (and of the prerendered HTML).
-  const { title, description } = meta.en;
+  // French is the default language of the site (and of the prerendered HTML).
+  const { title, description } = meta.fr;
   let html = template.replace(/<title>[^<]*<\/title>/, () => `<title>${escapeHtml(title)}</title>`);
   html = setMeta(html, 'name', 'description', description);
   html = setMeta(html, 'property', 'og:title', title);

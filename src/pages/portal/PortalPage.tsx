@@ -32,6 +32,7 @@ import { readableDossier } from '../../../shared/dossier.js';
 import { buildPdf, downloadPdf, type PdfBlock } from '../../lib/simple-pdf';
 import { useTheme } from '../../context/ThemeContext';
 import { compressImage, loadLocalImages, saveLocalImages, clearLocalImages } from './local-images';
+import { NewsView } from './NewsView';
 import './portal.css';
 
 /** "Duo · 2 people" from the catalog, in the visitor's language; the stored name otherwise. */
@@ -271,10 +272,11 @@ const SignIn: React.FC<{ onSignedIn: () => void; notice?: string | null }> = ({ 
 
 /* ------------------------------------------------------------------ dashboard */
 
-type View = 'home' | 'info' | 'messages' | 'assistant' | 'dossier' | 'account';
+type View = 'home' | 'info' | 'news' | 'messages' | 'assistant' | 'dossier' | 'account';
 const VIEWS: { id: View; icon: IconName; label: Parameters<T>[0] }[] = [
   { id: 'home', icon: 'home', label: 'po_nav_home' },
   { id: 'info', icon: 'bell', label: 'po_nav_info' },
+  { id: 'news', icon: 'globe', label: 'po_nav_news' },
   { id: 'messages', icon: 'chat', label: 'po_nav_messages' },
   { id: 'assistant', icon: 'sparkles', label: 'po_nav_assistant' },
   { id: 'dossier', icon: 'file', label: 'po_nav_dossier' },
@@ -2476,6 +2478,16 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
                 {!!unreadInfo && <span className='po-count'>{unreadInfo}</span>}
                 <Icon name='chevronRight' className='po-shortcut__chev' />
               </button>
+              <button type='button' className='po-card po-shortcut' onClick={() => go('news')}>
+                <span className='po-shortcut__icon' aria-hidden='true'>
+                  <Icon name='globe' />
+                </span>
+                <span className='po-shortcut__text'>
+                  <strong>{t('po_home_news')}</strong>
+                  <span>{t('po_home_news_text')}</span>
+                </span>
+                <Icon name='chevronRight' className='po-shortcut__chev' />
+              </button>
               <button type='button' className='po-card po-shortcut' onClick={() => go('messages')}>
                 <span className='po-shortcut__icon' aria-hidden='true'>
                   <Icon name='chat' />
@@ -2523,6 +2535,8 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
           ) : (
             <InfoFeed data={data} setData={setData} markRead={markRead} onPlans={() => go('account')} />
           ))}
+
+        {view === 'news' && <NewsView onPlans={() => go('account')} />}
 
         {view === 'assistant' && assistant && (
           <Assistant thread={assistant} setThread={setAssistant} onRenew={() => go('account')} onDossier={() => go('dossier')} />

@@ -18,6 +18,7 @@ import { getPortalConfig, missingConfig } from './config.js';
 import { PortalDbError, createPortalDb } from './db.js';
 import { buildEmail, createMailer } from './email.js';
 import { createAssistantClient } from './assistant.js';
+import { createNewsClient } from './news.js';
 import { appGuide } from './app-guide.js';
 import { dossierText, readableDossier } from '../../../shared/dossier.js';
 import { buildPlanCheckout, buildRenewalCheckout, idempotencyKey } from './plans.js';
@@ -73,7 +74,9 @@ export const PORTAL_ACTIONS = [
   'profile',
   'profile-note',
   'dossier-save',
-  'locale'
+  'locale',
+  'news',
+  'news-guide'
 ];
 
 const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key', 'assistant', 'profile']);
@@ -108,6 +111,7 @@ const req_ = {
   index: (v) => (Number.isInteger(v) && v >= 0 && v < 50 ? v : undefined),
   optUuid: (v) => (v === undefined || v === null ? null : typeof v === 'string' && UUID_RE.test(v) ? v : undefined),
   body: (v) => (typeof v === 'string' && v.trim().length >= 1 && v.length <= 4000 ? v : undefined),
+  country: (v) => (v === undefined || v === null || v === '' ? null : typeof v === 'string' && /^[A-Za-z]{2}$/.test(v) ? v.toUpperCase() : undefined),
   level: (v) => (Number.isInteger(v) && v >= 1 && v <= 3 ? v : undefined),
   after: (v) =>
     v === undefined || v === null
@@ -199,6 +203,7 @@ export function createPortalHandler(deps = {}) {
   const limitAll = deps.limiter || createRateLimiter({ windowMs: 60 * 1000, max: 120 });
   const limitAi = deps.aiLimiter || createRateLimiter({ windowMs: 60 * 1000, max: 8 });
   const callAssistant = deps.callAssistant || createAssistantClient({ fetch: deps.fetch });
+  const callNews = deps.callNews || createNewsClient({ fetch: deps.fetch });
 
   async function drain(cfg, origin, limit = 10) {
     let sent = 0;
@@ -707,6 +712,28 @@ export function createPortalHandler(deps = {}) {
       return sendJson(res, 200, { answer: out?.answer ?? null });
     },
 
+    /** Official news for the member's destination (or another covered country). */
+    async news(req, res, cfg, ctx) {
+      const { country, lang } = pick(await readJsonBody(req, 256), { country: req_.country, lang: req_.lang });
+      const out = await callNews(cfg.portalKey, {
+        action: 'list',
+        session: ctx.session,
+        ...(country ? { country } : {}),
+        lang: lang || 'fr'
+      });
+      return sendJson(res, 200, out);
+    },
+
+    /** Official websites of a country without a news feed (looked up once, then shared). */
+    async 'news-guide'(req, res, cfg, ctx) {
+      const { country, lang } = pick(await readJsonBody(req, 256), {
+        country: (v) => req_.country(v) || undefined,
+        lang: req_.lang
+      });
+      const out = await callNews(cfg.portalKey, { action: 'guide', session: ctx.session, country, lang: lang || 'fr' });
+      return sendJson(res, 200, { country: out?.country ?? country, links: Array.isArray(out?.links) ? out.links : [] });
+    },
+
     /** "Ask Black Pater": the question goes to Black Pater's messages. */
     async 'assistant-handoff'(req, res, cfg, ctx) {
       const { questionId } = pick(await readJsonBody(req, 256), { questionId: req_.uuid });
@@ -747,7 +774,7 @@ export function createPortalHandler(deps = {}) {
 
     const ip = getClientIp(req);
     if (!limitAll(ip).ok) return sendJson(res, 429, { error: 'rate_limited' });
-    if ((action === 'assistant-ask' || action === 'assistant-handoff') && !limitAi(ip).ok) {
+    if ((action === 'assistant-ask' || action === 'assistant-handoff' || action === 'news-guide') && !limitAi(ip).ok) {
       return sendJson(res, 429, { error: 'rate_limited' });
     }
     if (

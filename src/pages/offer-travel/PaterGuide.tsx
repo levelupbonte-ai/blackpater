@@ -17,6 +17,7 @@ import {
 } from '../../../shared/questionnaire.js';
 import type { TranslationKey } from '../../i18n';
 import { useCheckout } from './useCheckout';
+import { CODES, regionName } from '../../lib/countries';
 import { takeFreshTier, type TierKey } from './tier-preselection';
 
 const ERROR_KEYS: Record<string, TranslationKey> = {
@@ -27,10 +28,6 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   promo_unavailable: 'promo_err_unavailable'
 };
 
-const CODES =
-  'AF AL DZ AD AO AG AR AM AU AT AZ BS BH BD BB BY BE BZ BJ BT BO BA BW BR BN BG BF BI CV KH CM CA CF TD CL CN CO KM CG CD CR CI HR CU CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FJ FI FR GA GM GE DE GH GR GD GT GN GW GY HT HN HU IS IN ID IR IQ IE IL IT JM JP JO KZ KE KI KW KG LA LV LB LS LR LY LI LT LU MG MW MY MV ML MT MH MR MU MX FM MD MC MN ME MA MZ MM NA NR NP NL NZ NI NE NG MK NO OM PK PW PA PG PY PE PH PL PT QA RO RU RW KN LC VC WS SM ST SA SN RS SC SL SG SK SI SB SO ZA KR SS ES LK SD SR SE CH SY TJ TZ TH TL TG TO TT TN TR TM TV UG UA AE GB US UY UZ VU VA VE VN YE ZM ZW HK MO TW PS XK PR'.split(
-    ' '
-  );
 
 const FEAT = ['US', 'FR', 'CA', 'GB', 'BE', 'DE', 'IT', 'NL'] as const;
 
@@ -76,13 +73,6 @@ function tr(s: string, l: Language): string {
   return l === 'en' && p.length > 1 ? p[1] : p[0];
 }
 
-function regionName(code: string, l: Language): string {
-  try {
-    return new Intl.DisplayNames([l], { type: 'region' }).of(code) || code;
-  } catch {
-    return code;
-  }
-}
 
 function normalizeStr(s: string): string {
   return s

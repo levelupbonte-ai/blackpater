@@ -13,6 +13,7 @@ export const LaunchCountdown: React.FC<{ compact?: boolean }> = ({ compact = fal
   if (!isLaunch(now)) return null;
   const left = timeLeft(now);
   const [solo, duo, family] = ECOSYSTEM_TIERS.map((o) => formatOfferPrice(o, lang, o.amount));
+  const [soloPublic, duoPublic, familyPublic] = ECOSYSTEM_TIERS.map((o) => formatOfferPrice(o, lang, o.publicAmount));
   const units = [
     { value: left.days, unit: t('launch_days') },
     { value: left.hours, unit: t('launch_hours') },
@@ -27,7 +28,7 @@ export const LaunchCountdown: React.FC<{ compact?: boolean }> = ({ compact = fal
             <Icon name='clock' /> {t('launch_kicker')}
           </p>
           <p className='launch__title'>{t('launch_title')}</p>
-          <p className='launch__sub'>{t('launch_text', { solo, duo, family })}</p>
+          <p className='launch__sub'>{t('launch_text', { solo, duo, family, soloPublic, duoPublic, familyPublic })}</p>
         </div>
       )}
       <div className='launch__clock'>

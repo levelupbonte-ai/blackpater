@@ -99,12 +99,12 @@ export const fr = {
   offer_bottom_title: 'Prêt à préparer votre projet ?',
   offer_bottom_cta: 'S’abonner',
   offers_tier_launch: 'Prix de lancement',
-  offers_tier_launch_note: '1er mois au prix de lancement, puis {regular} / mois · USD',
+  offers_tier_launch_note: '1er mois au prix de lancement, puis {regular} / mois à vie (membre fondateur) · USD',
   offers_tier_per_month: '/ mois',
   offers_tier_was: 'Prix normal : {regular} / mois',
   launch_kicker: 'Offre de lancement',
-  launch_title: 'Le 1er mois au prix de lancement',
-  launch_text: 'Inscrivez-vous avant la fin de l’offre : votre 1er mois est au prix de lancement. Ensuite : Solo {solo}, Duo {duo}, Famille {family} par mois.',
+  launch_title: 'Devenez membre fondateur',
+  launch_text: 'Inscrivez-vous avant la fin du compte à rebours : 1er mois au prix de lancement, puis Solo {solo}, Duo {duo}, Famille {family} par mois à vie, au lieu de {soloPublic}, {duoPublic} et {familyPublic}. Badge membre fondateur et fonctionnalités Plus, Pro ou Premium incluses.',
   launch_ends_in: 'Se termine dans',
   launch_days: 'j',
   launch_hours: 'h',
@@ -118,7 +118,8 @@ export const fr = {
   promo_err_expired: 'Ce code promo n’est plus valable.',
   promo_err_used_up: 'Ce code promo a déjà été utilisé le nombre de fois prévu.',
   promo_err_not_applicable: 'Ce code promo ne s’applique pas à cette formule.',
-  promo_err_unavailable: 'Les codes promo sont momentanément indisponibles. Réessayez ou payez sans code.'
+  promo_err_unavailable: 'Les codes promo sont momentanément indisponibles. Réessayez ou payez sans code.',
+  offers_tier_founder: 'Avant la fin du compte à rebours : badge membre fondateur et fonctionnalités {plan} incluses',
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -221,12 +222,12 @@ export const en: Record<keyof typeof fr, string> = {
   offer_bottom_title: 'Ready to prepare your project?',
   offer_bottom_cta: 'Subscribe',
   offers_tier_launch: 'Launch price',
-  offers_tier_launch_note: '1st month at the launch price, then {regular} / month · USD',
+  offers_tier_launch_note: '1st month at the launch price, then {regular} / month for life (founding member) · USD',
   offers_tier_per_month: '/ month',
   offers_tier_was: 'Regular price: {regular} / month',
   launch_kicker: 'Launch offer',
-  launch_title: 'Your 1st month at the launch price',
-  launch_text: 'Join before the offer ends: your 1st month is at the launch price. Afterwards: Solo {solo}, Duo {duo}, Family {family} per month.',
+  launch_title: 'Become a founding member',
+  launch_text: 'Join before the countdown ends: 1st month at the launch price, then Solo {solo}, Duo {duo}, Family {family} per month for life, instead of {soloPublic}, {duoPublic} and {familyPublic}. Founding member badge and Plus, Pro or Premium features included.',
   launch_ends_in: 'Ends in',
   launch_days: 'd',
   launch_hours: 'h',
@@ -240,6 +241,7 @@ export const en: Record<keyof typeof fr, string> = {
   promo_err_expired: 'This promo code is no longer valid.',
   promo_err_used_up: 'This promo code has already been used as many times as allowed.',
   promo_err_not_applicable: 'This promo code does not apply to this plan.',
-  promo_err_unavailable: 'Promo codes are unavailable for a moment. Try again or pay without a code.'
+  promo_err_unavailable: 'Promo codes are unavailable for a moment. Try again or pay without a code.',
+  offers_tier_founder: 'Before the countdown ends: founding member badge and {plan} features included',
 };
 

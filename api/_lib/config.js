@@ -13,7 +13,7 @@ export function createConfigHandler(deps = {}) {
     const offers = Object.fromEntries(
       Object.values(OFFERS).map((o) => {
         const p = priceFor(o);
-        return [o.id, { amount: p.amount, regular: p.regular, launch: p.launch, currency: o.currency }];
+        return [o.id, { amount: p.amount, regular: p.regular, founder: p.founder, launch: p.launch, currency: o.currency }];
       })
     );
     sendJson(res, 200, { available: Boolean(stripeFor()), offers, launchEndsAt: LAUNCH_ENDS_AT });

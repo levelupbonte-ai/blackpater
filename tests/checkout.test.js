@@ -28,8 +28,8 @@ test('price comes from the server catalog, never from the request', async () => 
   const res = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT });
   assert.equal(res.statusCode, 200);
   const params = stripe.calls.create[0].params;
-  // After the launch week: the regular monthly price.
-  assert.equal(params.line_items[0].price_data.unit_amount, 500);
+  // After the launch week: the public monthly price (new members).
+  assert.equal(params.line_items[0].price_data.unit_amount, 1100);
   assert.equal(params.metadata.price, 'regular');
   assert.equal(params.allow_promotion_codes, true);
   assert.equal(params.line_items[0].price_data.currency, 'usd');
@@ -53,8 +53,9 @@ test('launch week: first month at the launch price, regular price shown on the p
 
 test('the launch price stops at the announced time', () => {
   const offer = getOffer('accompagnement-voyage-duo');
-  assert.deepEqual(priceFor(offer, Date.parse('2026-11-17T06:59:58Z')), { amount: 500, regular: 900, launch: true });
-  assert.deepEqual(priceFor(offer, Date.parse('2026-11-17T07:00:00Z')), { amount: 900, regular: 900, launch: false });
+  // Launch: the first month at the launch price, then the founder price; after: the public price.
+  assert.deepEqual(priceFor(offer, Date.parse('2026-11-17T06:59:58Z')), { amount: 500, regular: 1600, founder: 900, launch: true });
+  assert.deepEqual(priceFor(offer, Date.parse('2026-11-17T07:00:00Z')), { amount: 1600, regular: 1600, founder: 900, launch: false });
 });
 
 test('repeated taps for one attempt reuse a single Checkout Session', async () => {
@@ -182,7 +183,7 @@ test('promo code from LevelUp: the server charges what LevelUp returns and recor
   assert.equal(params.metadata.amount_off, '50');
   assert.equal(params.allow_promotion_codes, undefined, 'no second discount on the Stripe page');
   assert.equal(seen[0].code, 'BIENVENUE10');
-  assert.equal(seen[0].amount, 500);
+  assert.equal(seen[0].amount, 1100);
 
   const bad = await call(handler, { offerId: 'accompagnement-voyage', attemptId: ATTEMPT, promoCode: 'OLDCODE' });
   assert.equal(bad.statusCode, 400);

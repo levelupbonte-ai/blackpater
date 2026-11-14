@@ -79,6 +79,9 @@ export interface PortalMembership {
   offer_id: string | null;
   /** Paid launch membership not used yet (cents), taken off the first month of a plan. */
   credit?: number;
+  /** Founding member (joined before the countdown ended): 1 Plus, 2 Pro, 3 Premium features. */
+  founder_level?: 1 | 2 | 3 | null;
+  founder_since?: string | null;
 }
 
 /** The member's monthly plan now (or the last one). */

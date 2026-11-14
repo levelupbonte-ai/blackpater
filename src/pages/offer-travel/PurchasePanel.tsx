@@ -26,6 +26,7 @@ export const PurchasePanel: React.FC<{ offer: Offer; onOpenGuide?: () => void }>
   const current = priceFor(offer, now);
   const price = formatOfferPrice(offer, lang, current.amount);
   const regular = formatOfferPrice(offer, lang, current.regular);
+  const founder = formatOfferPrice(offer, lang, current.founder);
   const redirecting = state.kind === 'redirecting';
   const unavailable = state.kind === 'unavailable';
 
@@ -53,7 +54,7 @@ export const PurchasePanel: React.FC<{ offer: Offer; onOpenGuide?: () => void }>
         <span className='buy__amount' suppressHydrationWarning>
           {price} <span className='buy__per'>{t('offers_tier_per_month')}</span>
         </span>
-        <span className='buy__note'>{current.launch ? t('offers_tier_launch_note', { regular }) : t('offers_tier_once')}</span>
+        <span className='buy__note'>{current.launch ? t('offers_tier_launch_note', { regular: founder }) : t('offers_tier_once')}</span>
       </p>
       <LaunchCountdown compact />
 

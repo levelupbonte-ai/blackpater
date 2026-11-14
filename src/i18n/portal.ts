@@ -460,7 +460,16 @@ export const fr = {
   po_transition_title: 'Black Pater passe à 3 plans clairs : Plus, Pro et Premium',
   po_transition_text: 'Votre accès actuel reste valable jusqu’au {date}. Le prix de lancement que vous avez payé servait à découvrir l’espace ; choisissez maintenant le plan qui vous convient, avec des appels inclus.',
   po_transition_text_ended: 'Choisissez le plan qui vous convient pour retrouver vos informations, avec des appels inclus.',
-  po_transition_credit: 'Ce que vous avez payé et pas encore utilisé ({amount}) est déduit de votre premier mois.',
+  po_transition_credit: 'Si vous changez, ce que vous avez déjà payé et pas encore utilisé ({amount}) est déduit de votre premier mois.',
+  po_founder_kicker: 'Membre fondateur',
+  po_founder_title: 'Votre formule {formula} est garantie',
+  po_founder_text: 'Vous faites partie des premiers membres de Black Pater : votre formule reste à {price} par mois, au même prix, tant que vous restez membre. Rien ne change sans votre accord.',
+  po_founder_until: 'Votre accès est actif jusqu’au {date}.',
+  po_founder_ended: 'Renouvelez quand vous voulez pour retrouver vos informations.',
+  po_founder_renew: 'Renouveler ma formule ({price})',
+  po_newplans_title: 'Envie d’être accompagné de plus près ?',
+  po_newplans_text: 'Nos plans ajoutent des appels avec l’équipe chaque mois. C’est un choix, pas une obligation : votre formule actuelle reste valable.',
+  po_plans_lead_founder: 'Votre formule de membre fondateur reste la vôtre. Nos plans d’accompagnement sont là si vous voulez plus.',
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -924,5 +933,14 @@ export const en: Record<keyof typeof fr, string> = {
   po_transition_title: 'Black Pater now has 3 clear plans: Plus, Pro and Premium',
   po_transition_text: 'Your current access stays valid until {date}. The launch price you paid was to discover the space; now choose the plan that suits you, with calls included.',
   po_transition_text_ended: 'Choose the plan that suits you to get your information back, with calls included.',
-  po_transition_credit: 'What you paid and have not used yet ({amount}) is taken off your first month.',
+  po_transition_credit: 'If you switch, what you already paid and have not used yet ({amount}) is taken off your first month.',
+  po_founder_kicker: 'Founding member',
+  po_founder_title: 'Your {formula} formula is guaranteed',
+  po_founder_text: 'You are one of Black Pater’s first members: your formula stays at {price} per month, the same price, as long as you remain a member. Nothing changes without your consent.',
+  po_founder_until: 'Your access is active until {date}.',
+  po_founder_ended: 'Renew whenever you want to get your information back.',
+  po_founder_renew: 'Renew my formula ({price})',
+  po_newplans_title: 'Want closer support?',
+  po_newplans_text: 'Our plans add calls with the team every month. It is a choice, not an obligation: your current formula stays valid.',
+  po_plans_lead_founder: 'Your founding member formula stays yours. Our support plans are here if you want more.',
 };

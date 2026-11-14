@@ -410,11 +410,6 @@ const AccessCard: React.FC<{ home: PortalHome; onPlans?: () => void }> = ({ home
   const renewPlan = plan ? plans.find((p) => p.level === plan.level) : null;
   const renewPrice = renewPlan ? formatMoney(renewPlan.amount, renewPlan.currency, lang) : price;
   const renew = async () => {
-    // The monthly plans (Plus, Pro, Premium) replace the one-month renewal.
-    if (onPlans && plans.length > 0) {
-      onPlans();
-      return;
-    }
     setBusy(true);
     setError(null);
     try {
@@ -426,7 +421,7 @@ const AccessCard: React.FC<{ home: PortalHome; onPlans?: () => void }> = ({ home
   };
   const renewButton = (primary: boolean) => (
     <button type='button' className={`btn ${primary ? 'btn--primary' : 'btn--secondary'}`} onClick={renew} disabled={busy} aria-busy={busy}>
-      <Icon name='card' /> {onPlans && plans.length > 0 ? t('po_plan_choose_mine') : t('po_renew_cta', { price: renewPrice })}
+      <Icon name='card' /> {t('po_renew_cta', { price: renewPrice })}
     </button>
   );
   const errorLine = error && (
@@ -1989,6 +1984,8 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
   const sub = home.access.subscription;
   const running = sub && (sub.status === 'active' || sub.status === 'past_due') ? sub : null;
   const credit = !running ? home.membership?.credit ?? 0 : 0;
+  // Members who joined at launch keep their formula (Solo, Duo or Famille) at its price.
+  const founderOffer = renewalOffer(home);
   const until = formatDate(home.membership?.until ?? null, lang);
   const periodEnd = formatDate(running?.current_period_end ?? null, lang);
 
@@ -2017,7 +2014,7 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
     });
 
   return (
-    <Section id='plans' title={t('po_plans_title_v2')} lead={t('po_plans_lead_v2')}>
+    <Section id='plans' title={t('po_plans_title_v2')} lead={running ? t('po_plans_lead_v2') : t('po_plans_lead_founder')}>
       {running ? (
         <div className={`po-card po-access ${running.status === 'past_due' ? 'po-access--warn' : 'po-access--plan'}`} role='status'>
           <span className='po-access__icon' aria-hidden='true'>
@@ -2072,24 +2069,47 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
           </div>
         </div>
       ) : (
-        <div className='po-card po-access po-access--trial' role='status'>
+        <div className='po-card po-access po-access--plan' role='status'>
           <span className='po-access__icon' aria-hidden='true'>
             <Icon name='star' />
           </span>
           <div className='po-access__body'>
-            <span className='po-kicker'>{t('po_transition_kicker')}</span>
-            <strong>{t('po_transition_title')}</strong>
+            <span className='po-kicker'>{t('po_founder_kicker')}</span>
+            <strong>{t('po_founder_title', { formula: offerLabel(t, founderOffer.id, null) })}</strong>
             <p>
-              {home.membership?.active && until ? t('po_transition_text', { date: until }) : t('po_transition_text_ended')}
+              {t('po_founder_text', { price: formatOfferPrice(founderOffer, lang, founderOffer.amount) })}{' '}
+              {home.membership?.active && until ? t('po_founder_until', { date: until }) : t('po_founder_ended')}
+            </p>
+            <div className='po-row'>
+              <button
+                type='button'
+                className={`btn ${home.membership?.active ? 'btn--secondary' : 'btn--primary'}`}
+                disabled={busy !== null}
+                aria-busy={busy === 'renew'}
+                onClick={() => act('renew', () => goPay(portalApi.renew))}
+              >
+                <Icon name='card' /> {t('po_founder_renew', { price: formatOfferPrice(founderOffer, lang, founderOffer.amount) })}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!running && home.plans.length > 0 && (
+        <>
+          <h3 className='po-subtitle'>{t('po_newplans_title')}</h3>
+          <p className='po-note'>
+            <span>
+              {t('po_newplans_text')}
               {credit > 0 && (
                 <>
                   {' '}
                   <b>{t('po_transition_credit', { amount: formatMoney(credit, 'usd', lang) })}</b>
                 </>
               )}
-            </p>
-          </div>
-        </div>
+            </span>
+          </p>
+        </>
       )}
 
       <div className='po-plans'>

@@ -1355,15 +1355,30 @@
 }
 .po-plan {
   position: relative;
-  display: grid;
-  grid-template-rows: auto auto auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+}
+.po-plan > .btn {
+  margin-top: auto;
+}
+.po-plan__features {
+  flex: 1;
+}
+.po-plan.is-popular {
+  border-color: color-mix(in srgb, var(--btn-primary-bg) 55%, var(--line));
+  box-shadow: 0 10px 30px -18px color-mix(in srgb, var(--btn-primary-bg) 70%, transparent);
+}
+.po-plan.is-popular .po-plan__tag {
+  background: color-mix(in srgb, var(--btn-primary-bg) 16%, transparent);
+  color: var(--btn-primary-bg);
 }
 .po-plan.is-current {
   border-color: color-mix(in srgb, var(--success) 50%, var(--line));
 }
 .po-plan__tag {
   justify-self: start;
+  align-self: flex-start;
   padding: 3px 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--success) 14%, transparent);

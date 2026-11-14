@@ -77,6 +77,8 @@ export interface PortalMembership {
   reminders: boolean;
   period_days: number;
   offer_id: string | null;
+  /** Paid launch membership not used yet (cents), taken off the first month of a plan. */
+  credit?: number;
 }
 
 /** The member's monthly plan now (or the last one). */
@@ -241,6 +243,12 @@ export const portalApi = {
   messagesSince: (after: string | null) => call<{ messages: PortalMessage[]; seen: string[] }>('messages-since', { after }),
   renew: () => call<{ url: string }>('renew', {}),
   planBuy: (level: number) => call<{ url: string }>('plan-buy', { level }),
+  /** Monthly plan charged automatically: a payment page, or the plan changed at once. */
+  subscribe: (level: number) => call<{ url: string } | { ok: true; changed: true }>('subscribe', { level }),
+  planReturn: (sessionId: string) => call<{ ok: true; active: boolean }>('plan-return', { sessionId }),
+  cancelPlan: () => call<{ ok: true }>('cancel-plan', {}),
+  resumePlan: () => call<{ ok: true }>('resume-plan', {}),
+  payPlan: () => call<{ url: string }>('pay-plan', {}),
   reminders: (on: boolean) => call<{ ok: true; reminders: boolean }>('reminders', { on }),
   deleteCode: () => call<{ ok: true }>('delete-code', {}),
   deleteAccount: (code: string) => call<{ ok: true }>('delete-account', { code }),

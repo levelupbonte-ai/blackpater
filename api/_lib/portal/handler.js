@@ -130,8 +130,32 @@ async function viaStripe(fn, log = console, what = 'stripe') {
     return await fn();
   } catch (err) {
     if (err instanceof PortalDbError) throw err;
-    log.error(JSON.stringify({ evt: 'portal.stripe_failed', what, type: err?.type || 'error', code: err?.code || null, status: err?.statusCode || null }));
+    log.error(JSON.stringify({ evt: 'portal.stripe_failed', what, type: err?.type || 'error', code: err?.code || null, param: err?.param || null, status: err?.statusCode || null, message: String(err?.message || '').slice(0, 300) }));
     throw new PortalDbError('payments_unavailable', 502);
+  }
+}
+
+/**
+ * Creates a Checkout Session for the member space with the same settings as the
+ * signup checkout (api/_lib/checkout.js), which works on this Stripe account:
+ * managed payments off, and if Stripe refuses that setting or the custom
+ * submit text, the same session without them. Stripe's refusal (type, code,
+ * param, message: never a key or card data) is logged so a failure can be read
+ * in the logs instead of only "payments unavailable".
+ */
+export async function createMemberCheckout(stripe, params, idempotencyKey, log = console, what = 'stripe') {
+  const first = { ...params, managed_payments: { enabled: false } };
+  try {
+    return await stripe.checkout.sessions.create(first, { idempotencyKey });
+  } catch (err) {
+    const msg = String(err?.message || '');
+    log.error(JSON.stringify({ evt: 'portal.stripe_refused', what, type: err?.type || 'error', code: err?.code || null, param: err?.param || null, status: err?.statusCode || null, message: msg.slice(0, 300) }));
+    const retriable = err?.type === 'StripeInvalidRequestError' && (/managed_payments|custom_text/.test(String(err?.param || '')) || /managed_payments|custom_text/i.test(msg));
+    if (!retriable) throw err;
+    const fallback = { ...params };
+    delete fallback.managed_payments;
+    delete fallback.custom_text;
+    return stripe.checkout.sessions.create(fallback, { idempotencyKey: `${idempotencyKey}-std` });
   }
 }
 
@@ -498,9 +522,13 @@ export function createPortalHandler(deps = {}) {
       const params = buildRenewalCheckout({ start, offer, origin: ctx.origin });
       const session = await viaStripe(
         () =>
-          stripe.checkout.sessions.create(params, {
-            idempotencyKey: idempotencyKey(['renew', start.customer_id, offer.id, offer.amount, start.membership?.until || '', paramsHash(params)])
-          }),
+          createMemberCheckout(
+            stripe,
+            params,
+            idempotencyKey(['renew', start.customer_id, offer.id, offer.amount, start.membership?.until || '', paramsHash(params)]),
+            log,
+            'renew'
+          ),
         log,
         'renew'
       );
@@ -518,9 +546,13 @@ export function createPortalHandler(deps = {}) {
       const params = buildPlanCheckout({ start, origin: ctx.origin });
       const session = await viaStripe(
         () =>
-          stripe.checkout.sessions.create(params, {
-            idempotencyKey: idempotencyKey(['plan', start.customer_id, start.plan.id, start.plan.amount, start.plan.currency, paramsHash(params)])
-          }),
+          createMemberCheckout(
+            stripe,
+            params,
+            idempotencyKey(['plan', start.customer_id, start.plan.id, start.plan.amount, start.plan.currency, paramsHash(params)]),
+            log,
+            'plan'
+          ),
         log,
         'plan'
       );

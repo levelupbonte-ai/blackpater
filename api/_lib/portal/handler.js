@@ -25,6 +25,7 @@ import { buildPlanCheckout, buildRenewalCheckout, idempotencyKey } from './plans
 import { createPushSender, getPushConfig, pushFor, welcomePush } from './push.js';
 import { getOffer, getOfferByTier } from '../../../shared/offers.js';
 import { isStripeCheckoutUrl } from '../../../shared/validation.js';
+import { createStaffPinger } from './staff-push.js';
 import {
   bearerMatches,
   clientHash,
@@ -206,8 +207,11 @@ export function createPortalHandler(deps = {}) {
   const limitAi = deps.aiLimiter || createRateLimiter({ windowMs: 60 * 1000, max: 8 });
   const callAssistant = deps.callAssistant || createAssistantClient({ fetch: deps.fetch });
   const callNews = deps.callNews || createNewsClient({ fetch: deps.fetch });
+  const pingStaff = deps.pingStaff || createStaffPinger({ fetch: deps.fetch });
 
   async function drain(cfg, origin, limit = 10) {
+    // New members (after a payment) and messages reach the team's phones too.
+    await pingStaff();
     let sent = 0;
     let failed = 0;
     let rows;
@@ -307,6 +311,8 @@ export function createPortalHandler(deps = {}) {
         p_client: ctx.client,
         p_device: ctx.device
       });
+      // A first sign-in is often a new member: the team is told right away.
+      await pingStaff();
       return openSession(req, res, cfg, result, ctx.origin);
     },
 
@@ -352,6 +358,7 @@ export function createPortalHandler(deps = {}) {
     async message(req, res, cfg, ctx) {
       const { body } = pick(await readJsonBody(req, 20000), { body: req_.body });
       const out = await rpc('portal_send_message', { p_key: cfg.portalKey, p_session: ctx.session, p_body: body });
+      await pingStaff();
       return sendJson(res, 200, { ok: true, id: out?.id, created_at: out?.created_at });
     },
 
@@ -757,6 +764,7 @@ export function createPortalHandler(deps = {}) {
     async 'assistant-handoff'(req, res, cfg, ctx) {
       const { questionId } = pick(await readJsonBody(req, 256), { questionId: req_.uuid });
       const out = await callAssistant(cfg.portalKey, { action: 'handoff', session: ctx.session, questionId });
+      await pingStaff();
       return sendJson(res, 200, { ok: true, id: out?.id ?? null });
     },
 

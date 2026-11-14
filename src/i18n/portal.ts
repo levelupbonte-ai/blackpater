@@ -468,8 +468,15 @@ export const fr = {
   po_founder_ended: 'Renouvelez quand vous voulez pour retrouver vos informations.',
   po_founder_renew: 'Renouveler ma formule ({price})',
   po_newplans_title: 'Envie d’être accompagné de plus près ?',
-  po_newplans_text: 'Nos plans ajoutent des appels avec l’équipe chaque mois. C’est un choix, pas une obligation : votre formule actuelle reste valable.',
+  po_newplans_text: 'Vos fonctionnalités de membre fondateur sont déjà incluses. Si vous voulez encore plus d’accompagnement, vous pouvez passer à un plan supérieur : c’est un choix, pas une obligation.',
   po_plans_lead_founder: 'Votre formule de membre fondateur reste la vôtre. Nos plans d’accompagnement sont là si vous voulez plus.',
+  po_founder_title_level: 'Membre fondateur {formula} · fonctionnalités {plan} incluses',
+  po_founder_badge: 'Membre fondateur · {plan}',
+  po_formula_kicker: 'Votre formule',
+  po_formula_title_mine: 'Votre formule {formula}',
+  po_formula_text_mine: 'Votre formule est à {price} par mois, renouvelée par vous, sans prélèvement automatique.',
+  po_plan_included_founder: 'Inclus dans votre formule fondateur',
+  po_plan_included_short: 'Déjà inclus',
 };
 
 export const en: Record<keyof typeof fr, string> = {
@@ -941,6 +948,13 @@ export const en: Record<keyof typeof fr, string> = {
   po_founder_ended: 'Renew whenever you want to get your information back.',
   po_founder_renew: 'Renew my formula ({price})',
   po_newplans_title: 'Want closer support?',
-  po_newplans_text: 'Our plans add calls with the team every month. It is a choice, not an obligation: your current formula stays valid.',
+  po_newplans_text: 'Your founding member features are already included. If you want even more support, you can move up to a higher plan: it is a choice, not an obligation.',
   po_plans_lead_founder: 'Your founding member formula stays yours. Our support plans are here if you want more.',
+  po_founder_title_level: 'Founding member {formula} · {plan} features included',
+  po_founder_badge: 'Founding member · {plan}',
+  po_formula_kicker: 'Your formula',
+  po_formula_title_mine: 'Your {formula} formula',
+  po_formula_text_mine: 'Your formula is {price} per month, renewed by you, no automatic charge.',
+  po_plan_included_founder: 'Included in your founder formula',
+  po_plan_included_short: 'Already included',
 };

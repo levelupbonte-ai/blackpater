@@ -10,7 +10,7 @@
  * (portal_subscribe_start), where the owner sets it.
  */
 import { createHash } from 'node:crypto';
-import { MEMBERSHIP_DAYS, formatOfferPrice } from '../../../shared/offers.js';
+import { MEMBERSHIP_DAYS, formatOfferPrice, renewalAmount } from '../../../shared/offers.js';
 
 export const PLAN_KIND = 'portal_plan';
 export const RENEWAL_KIND = 'renewal';
@@ -60,12 +60,14 @@ const NO_AUTO = (days) =>
 /** One more month of membership for a signed-in member, at the regular price. */
 export function buildRenewalCheckout({ start, offer, origin }) {
   if (!UUID_RE.test(String(start?.customer_id || ''))) throw new Error('invalid_customer');
+  const founder = Boolean(start?.membership?.founder_level);
+  const amount = renewalAmount(offer, founder);
   const metadata = {
     offer_id: offer.id,
     site: SITE,
     kind: RENEWAL_KIND,
     portal_customer_id: start.customer_id,
-    price: 'regular',
+    price: founder ? 'founder' : 'regular',
     months: '1'
   };
   return base({
@@ -75,9 +77,9 @@ export function buildRenewalCheckout({ start, offer, origin }) {
     metadata,
     name: offer.stripeName,
     description: offer.stripeDescription,
-    amount: offer.amount,
+    amount,
     currency: offer.currency,
-    submit: `${NO_AUTO(MEMBERSHIP_DAYS)} ${formatOfferPrice(offer, 'fr', offer.amount)} / mois.`
+    submit: `${NO_AUTO(MEMBERSHIP_DAYS)} ${formatOfferPrice(offer, 'fr', amount)} / mois.`
   });
 }
 

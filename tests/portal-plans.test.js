@@ -68,7 +68,17 @@ const renewStart = (membership = {}) => ({
   membership: { monthly: true, active: true, until: '2026-12-12T07:00:00Z', offer_id: 'accompagnement-voyage-duo', ...membership }
 });
 
-test('renew: one Stripe payment for one month at the regular price of the member\'s formula, nothing automatic', async () => {
+test('renew: a founding member renews at the founder price of their formula', async () => {
+  const { handler, stripe } = setup(() => renewStart({ founder_level: 2 }));
+  const res = fakeRes();
+  await handler(post('renew', {}), res);
+  assert.equal(res.statusCode, 200);
+  const [params] = stripe.calls[0];
+  assert.equal(params.line_items[0].price_data.unit_amount, 900);
+  assert.equal(params.metadata.price, 'founder');
+});
+
+test('renew: one Stripe payment for one month at the public price of the member\'s formula, nothing automatic', async () => {
   const { handler, stripe } = setup(() => renewStart());
   const res = fakeRes();
   await handler(post('renew', {}), res);
@@ -76,7 +86,7 @@ test('renew: one Stripe payment for one month at the regular price of the member
   assert.match(res.body.url, /^https:\/\/checkout\.stripe\.com\//);
   const [params, opts] = stripe.calls[0];
   assert.equal(params.mode, 'payment');
-  assert.equal(params.line_items[0].price_data.unit_amount, 900);
+  assert.equal(params.line_items[0].price_data.unit_amount, 1600);
   assert.equal(params.line_items[0].price_data.recurring, undefined);
   assert.equal(params.customer_email, 'jane@example.com');
   assert.equal(params.metadata.portal_customer_id, CUSTOMER);

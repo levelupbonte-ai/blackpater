@@ -22,7 +22,7 @@ import {
   type PortalMessage,
   type PortalPlan
 } from './api';
-import { formatOfferPrice, getOffer, getOfferByTier } from '../../../shared/offers.js';
+import { FOUNDER_PLAN_NAMES, formatOfferPrice, getOffer, getOfferByTier, renewalAmount } from '../../../shared/offers.js';
 import type { TranslationKey } from '../../i18n';
 import { useMemberApp } from './member-app';
 import { InstallGuide } from '../../components/InstallGuide';
@@ -401,7 +401,7 @@ const AccessCard: React.FC<{ home: PortalHome; onPlans?: () => void }> = ({ home
   const [error, setError] = useState<string | null>(null);
   const { access, plans, membership } = home;
   const offer = renewalOffer(home);
-  const price = formatOfferPrice(offer, lang, offer.amount);
+  const price = formatOfferPrice(offer, lang, renewalAmount(offer, Boolean(membership?.founder_level)));
   const until = formatDate(membership?.until ?? null, lang);
   const left = daysLeft(membership?.until ?? null);
   const plan = access.plan?.active ? access.plan : null;
@@ -1986,6 +1986,8 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
   const credit = !running ? home.membership?.credit ?? 0 : 0;
   // Members who joined at launch keep their formula (Solo, Duo or Famille) at its price.
   const founderOffer = renewalOffer(home);
+  const founderLevel = home.membership?.founder_level ?? null;
+  const formulaAmount = renewalAmount(founderOffer, Boolean(founderLevel));
   const until = formatDate(home.membership?.until ?? null, lang);
   const periodEnd = formatDate(running?.current_period_end ?? null, lang);
 
@@ -2074,10 +2076,16 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
             <Icon name='star' />
           </span>
           <div className='po-access__body'>
-            <span className='po-kicker'>{t('po_founder_kicker')}</span>
-            <strong>{t('po_founder_title', { formula: offerLabel(t, founderOffer.id, null) })}</strong>
+            <span className='po-kicker'>{founderLevel ? t('po_founder_kicker') : t('po_formula_kicker')}</span>
+            <strong>
+              {founderLevel
+                ? t('po_founder_title_level', { formula: offerLabel(t, founderOffer.id, null), plan: FOUNDER_PLAN_NAMES[founderLevel] })
+                : t('po_formula_title_mine', { formula: offerLabel(t, founderOffer.id, null) })}
+            </strong>
             <p>
-              {t('po_founder_text', { price: formatOfferPrice(founderOffer, lang, founderOffer.amount) })}{' '}
+              {founderLevel
+                ? t('po_founder_text', { price: formatOfferPrice(founderOffer, lang, formulaAmount) })
+                : t('po_formula_text_mine', { price: formatOfferPrice(founderOffer, lang, formulaAmount) })}{' '}
               {home.membership?.active && until ? t('po_founder_until', { date: until }) : t('po_founder_ended')}
             </p>
             <div className='po-row'>
@@ -2088,7 +2096,7 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
                 aria-busy={busy === 'renew'}
                 onClick={() => act('renew', () => goPay(portalApi.renew))}
               >
-                <Icon name='card' /> {t('po_founder_renew', { price: formatOfferPrice(founderOffer, lang, founderOffer.amount) })}
+                <Icon name='card' /> {t('po_founder_renew', { price: formatOfferPrice(founderOffer, lang, formulaAmount) })}
               </button>
             </div>
           </div>
@@ -2115,11 +2123,14 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
       <div className='po-plans'>
         {home.plans.map((p) => {
           const mine = running?.level === p.level;
+          const included = !running && founderLevel !== null && p.level <= founderLevel;
           const popular = p.level === 2;
           return (
-            <article key={p.level} className={`po-card po-plan${mine ? ' is-current' : ''}${popular && !mine ? ' is-popular' : ''}`}>
+            <article key={p.level} className={`po-card po-plan${mine || included ? ' is-current' : ''}${popular && !mine && !included ? ' is-popular' : ''}`}>
               {mine ? (
                 <span className='po-plan__tag'>{t('po_plan_yours')}</span>
+              ) : included ? (
+                <span className='po-plan__tag'>{t('po_plan_included_founder')}</span>
               ) : popular ? (
                 <span className='po-plan__tag'>{t('po_plan_popular')}</span>
               ) : null}
@@ -2128,7 +2139,7 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
                 <strong>{formatMoney(p.amount, p.currency, lang)}</strong> <span>{t('po_per_month')}</span>
               </p>
               {p.description && <p className='po-plan__desc'>{p.description}</p>}
-              {!running && credit > 0 && (
+              {!running && !included && credit > 0 && (
                 <p className='po-plan__desc'>
                   {t('po_plan_first_month', { amount: formatMoney(Math.max(0, p.amount - credit), p.currency, lang) })}
                 </p>
@@ -2146,11 +2157,13 @@ const Plans: React.FC<{ home: PortalHome; reload: () => Promise<void>; flash: (t
               <button
                 type='button'
                 className={`btn ${mine ? 'btn--secondary' : 'btn--primary'}`}
-                disabled={busy !== null || (mine && !running?.cancel_at_period_end)}
+                disabled={busy !== null || included || (mine && !running?.cancel_at_period_end)}
                 aria-busy={busy === `plan-${p.level}`}
                 onClick={() => void choose(p.level)}
               >
-                {mine
+                {included
+                  ? t('po_plan_included_short')
+                  : mine
                   ? running?.cancel_at_period_end
                     ? t('po_plan_resume')
                     : t('po_plan_yours')
@@ -2586,6 +2599,11 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
               <p className='po-kicker'>{t('po_kicker')}</p>
               <h1>{name ? t('po_welcome', { name }) : t('po_welcome_anon')}</h1>
               <p>{t('po_member_since', { date: formatDate(data.customer.since, lang) })}</p>
+              {data.membership?.founder_level ? (
+                <p className='po-founder-badge'>
+                  <Icon name='star' /> {t('po_founder_badge', { plan: FOUNDER_PLAN_NAMES[data.membership.founder_level] })}
+                </p>
+              ) : null}
             </header>
             <AccessCard home={data} onPlans={() => go('account')} />
             <div className='po-shortcuts'>

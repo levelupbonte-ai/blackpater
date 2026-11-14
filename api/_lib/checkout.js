@@ -25,7 +25,7 @@ function paramsHash(params) {
 export function buildSessionParams({ offer, attemptId, origin, bucket, now = Date.now(), promo = null }) {
   const price = priceFor(offer, now);
   const charged = promo ? promo.finalAmount : price.amount;
-  const regular = formatOfferPrice(offer, 'fr', price.regular);
+  const founder = formatOfferPrice(offer, 'fr', price.founder);
   const expiresAt = Math.floor(((bucket + 1) * BUCKET_MS + EXPIRY_MARGIN_MS) / 1000);
   return {
     mode: 'payment',
@@ -62,7 +62,7 @@ export function buildSessionParams({ offer, attemptId, origin, bucket, now = Dat
     ...(promo ? {} : { allow_promotion_codes: true }),
     custom_text: {
       submit: {
-        message: `${price.launch ? `Prix de lancement pour le 1er mois, puis ${regular} / mois. ` : ''}Accès de ${MEMBERSHIP_DAYS} jours, sans prélèvement automatique : vous êtes prévenu avant la fin pour renouveler depuis votre espace. / ${MEMBERSHIP_DAYS} days of access, no automatic charge. Conditions de vente / Terms of sale: ${origin}/legal/conditions-de-vente`
+        message: `${price.launch ? `Prix de lancement pour le 1er mois, puis ${founder} / mois à vie (membre fondateur). ` : ''}Accès de ${MEMBERSHIP_DAYS} jours, sans prélèvement automatique : vous êtes prévenu avant la fin pour renouveler depuis votre espace. / ${MEMBERSHIP_DAYS} days of access, no automatic charge. Conditions de vente / Terms of sale: ${origin}/legal/conditions-de-vente`
       }
     },
     managed_payments: {

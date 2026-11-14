@@ -8,9 +8,14 @@
  *
  * Membership is paid month by month, with no automatic charge: each payment
  * gives one month of access and the member renews from the client space.
- * Until LAUNCH_ENDS_AT the first month is at the launch price (launchAmount);
- * afterwards every month is at the regular price (amount). The server decides
- * which price applies (priceFor), never the browser.
+ *
+ * Founding members: whoever joins before LAUNCH_ENDS_AT pays the launch price
+ * (launchAmount) for the first month, then the founder price (amount) for as
+ * long as they stay, and gets the features of a plan (founderLevel: Solo ->
+ * Plus, Duo -> Pro, Famille -> Premium) with a founding member badge. After
+ * the countdown, new members pay the public price (publicAmount). LevelUp
+ * records who is a founder; the server decides which price applies, never
+ * the browser.
  */
 
 /** End of the launch offer: Sunday 16 November 2026, 23:59:59 in Salt Lake City (MST, UTC-7). */
@@ -26,6 +31,8 @@ export const OFFERS = Object.freeze({
     persons: 1,
     amount: 500,
     launchAmount: 260,
+    publicAmount: 1100,
+    founderLevel: 1,
     currency: 'usd',
     path: '/abonnements/accompagnement-voyage',
     // Shown on the Stripe Checkout page and on the customer's receipt.
@@ -39,6 +46,8 @@ export const OFFERS = Object.freeze({
     persons: 2,
     amount: 900,
     launchAmount: 500,
+    publicAmount: 1600,
+    founderLevel: 2,
     currency: 'usd',
     path: '/abonnements/accompagnement-voyage',
     // Shown on the Stripe Checkout page and on the customer's receipt.
@@ -52,6 +61,8 @@ export const OFFERS = Object.freeze({
     persons: 5,
     amount: 1600,
     launchAmount: 1100,
+    publicAmount: 2300,
+    founderLevel: 3,
     currency: 'usd',
     path: '/abonnements/accompagnement-voyage',
     // Shown on the Stripe Checkout page and on the customer's receipt.
@@ -84,11 +95,23 @@ export function isLaunch(now = Date.now()) {
   return now < LAUNCH_ENDS_MS;
 }
 
-/** The price that applies to a first month bought now: { amount, regular, launch }. */
+/**
+ * The price that applies to a first month bought now:
+ * { amount, regular (public price), founder (founder monthly price), launch }.
+ */
 export function priceFor(offer, now = Date.now()) {
   const launch = isLaunch(now) && Number.isInteger(offer.launchAmount);
-  return { amount: launch ? offer.launchAmount : offer.amount, regular: offer.amount, launch };
+  const regular = Number.isInteger(offer.publicAmount) ? offer.publicAmount : offer.amount;
+  return { amount: launch ? offer.launchAmount : regular, regular, founder: offer.amount, launch };
 }
+
+/** Monthly price of a renewal: the founder price for founding members, else the public price. */
+export function renewalAmount(offer, isFounder) {
+  return isFounder || !Number.isInteger(offer.publicAmount) ? offer.amount : offer.publicAmount;
+}
+
+/** Plan whose features a founding member of this formula gets (1 Plus, 2 Pro, 3 Premium). */
+export const FOUNDER_PLAN_NAMES = Object.freeze({ 1: 'Plus', 2: 'Pro', 3: 'Premium' });
 
 /** "$2.60" / "2,60 $" style display price; the price that applies now unless an amount is given. */
 export function formatOfferPrice(offer, lang = 'fr', amount = priceFor(offer).amount) {

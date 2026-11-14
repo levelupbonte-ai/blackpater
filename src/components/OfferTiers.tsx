@@ -3,7 +3,7 @@ import './offer-tiers.css';
 import { Link, useRouter } from '../app/router';
 import { useLanguage } from '../context/LanguageContext';
 import { Icon } from './Icon';
-import { ECOSYSTEM_TIERS, formatOfferPrice, priceFor } from '../../shared/offers.js';
+import { ECOSYSTEM_TIERS, FOUNDER_PLAN_NAMES, formatOfferPrice, priceFor } from '../../shared/offers.js';
 import { useLaunchClock } from '../lib/launch';
 import { LaunchCountdown } from './LaunchCountdown';
 import type { TranslationKey } from '../i18n';
@@ -49,6 +49,7 @@ export const OfferTiers: React.FC = () => {
               const tierName = lang === 'en' ? keys.name.split('|').pop() : keys.name.split('|')[0];
               const price = priceFor(offer, now);
               const regular = formatOfferPrice(offer, lang, price.regular);
+              const founder = formatOfferPrice(offer, lang, price.founder);
               return (
                 <li key={offer.id} className={`tier${recommended ? ' tier--featured' : ''}`}>
                   <div className='tier__head'>
@@ -69,9 +70,14 @@ export const OfferTiers: React.FC = () => {
                       <span className='tier__per'>{t('offers_tier_per_month')}</span>
                     </span>
                     <span className='tier__once'>
-                      {price.launch ? t('offers_tier_launch_note', { regular }) : t('offers_tier_once')}
+                      {price.launch ? t('offers_tier_launch_note', { regular: founder }) : t('offers_tier_once')}
                     </span>
                   </p>
+                  {price.launch && (
+                    <p className='tier__founder'>
+                      <Icon name='star' /> {t('offers_tier_founder', { plan: FOUNDER_PLAN_NAMES[offer.founderLevel as 1 | 2 | 3] })}
+                    </p>
+                  )}
 
                   <ul className='tier__list'>
                     {[keys.scope, 'offers_tier_incl_questionnaire', 'offers_card_point_2', 'offers_card_point_3'].map((key) => (

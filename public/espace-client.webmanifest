@@ -33,5 +33,59 @@
   "display_override": [
     "standalone",
     "minimal-ui"
+  ],
+  "shortcuts": [
+    {
+      "name": "Messages",
+      "short_name": "Messages",
+      "description": "Écrire à Black Pater",
+      "url": "/espace-client?view=messages&app=1",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Assistant IA",
+      "short_name": "Assistant",
+      "description": "Poser une question à l’assistant",
+      "url": "/espace-client?view=assistant&app=1",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Actualités",
+      "short_name": "Actualités",
+      "description": "Les nouvelles officielles de votre pays",
+      "url": "/espace-client?view=news&app=1",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Mon dossier",
+      "short_name": "Dossier",
+      "description": "Compléter ou mettre à jour votre dossier",
+      "url": "/espace-client?view=dossier&app=1",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }

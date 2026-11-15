@@ -1,8 +1,9 @@
 /**
  * Portal e-mails, sent with Black Pater's own Resend key (never LevelUp's).
  * Plain, branded HTML + a text version, in the customer's language (English by
- * default). The e-mails never carry published content: they point to the
- * private space, where the customer signs in.
+ * default). The e-mails point to the private space, where the customer signs
+ * in. The only content they carry is the first lines of an announcement made
+ * to every member (never a personal item, a selection or a plan-only item).
  */
 import { CONTACT_EMAIL, PORTAL_PATH, SITE_ORIGIN } from './config.js';
 
@@ -64,7 +65,9 @@ const TEXT = {
     update: {
       subject: (title) => `New in your Black Pater space: ${title}`,
       title: 'Something new for you',
-      intro: (title) => `Black Pater published “${title}” in your private space.`
+      intro: (title) => `Black Pater published “${title}” in your private space.`,
+      more: 'Read the full message in your space.',
+      app: 'Get the next news straight on your phone: open your space, install the Black Pater app (the “Install” button, or on iPhone Share › Add to Home Screen) and turn on notifications.'
     },
     message: {
       subject: 'New message from Black Pater',
@@ -129,7 +132,9 @@ const TEXT = {
     update: {
       subject: (title) => `Nouveau dans votre espace Black Pater : ${title}`,
       title: 'Du nouveau pour vous',
-      intro: (title) => `Black Pater a publié « ${title} » dans votre espace privé.`
+      intro: (title) => `Black Pater a publié « ${title} » dans votre espace privé.`,
+      more: 'Lisez le message complet dans votre espace.',
+      app: 'Recevez les prochaines nouvelles directement sur votre téléphone : ouvrez votre espace, installez l’application Black Pater (bouton « Installer », ou sur iPhone Partager › Sur l’écran d’accueil) et activez les notifications.'
     },
     message: {
       subject: 'Nouveau message de Black Pater',
@@ -173,8 +178,17 @@ function textVersion({ title, paragraphs, code, cta }) {
 
 export const portalUrl = (origin = SITE_ORIGIN) => `${origin}${PORTAL_PATH}`;
 
+/** At most 6 paragraphs of an announcement (700 characters), plain text. */
+export function excerptParagraphs(excerpt) {
+  if (typeof excerpt !== 'string' || !excerpt.trim()) return Object.assign([], { cut: false });
+  const text = excerpt.replace(/\r/g, '').slice(0, 700);
+  const parts = text.split(/\n\s*\n|\n/).map((x) => x.trim()).filter(Boolean);
+  const out = parts.slice(0, 6);
+  return Object.assign(out, { cut: excerpt.length >= 700 || parts.length > 6 });
+}
+
 /** { subject, html, text } for one portal e-mail. */
-export function buildEmail(kind, { lang = 'fr', name, code, title: itemTitle, device, at, newEmail, origin, stage, what, until, plan } = {}) {
+export function buildEmail(kind, { lang = 'fr', name, code, title: itemTitle, device, at, newEmail, origin, stage, what, until, plan, excerpt } = {}) {
   const l = lang === 'en' ? 'en' : 'fr';
   const t = TEXT[l];
   const cta = { href: portalUrl(origin), label: t.open };
@@ -210,9 +224,18 @@ export function buildEmail(kind, { lang = 'fr', name, code, title: itemTitle, de
     case 'access':
       parts = { subject: t.access.subject, title: t.access.title, paragraphs: [t.hello(name), t.access.intro, t.access.how], cta };
       break;
-    case 'update':
-      parts = { subject: t.update.subject(itemTitle), title: t.update.title, paragraphs: [t.hello(name), t.update.intro(itemTitle)], cta };
+    case 'update': {
+      // Members who get this e-mail have no device with notifications on: the
+      // announcement's first lines, then how to install the app.
+      const lines = excerptParagraphs(excerpt);
+      parts = {
+        subject: t.update.subject(itemTitle),
+        title: lines.length ? itemTitle || t.update.title : t.update.title,
+        paragraphs: [t.hello(name), ...(lines.length ? lines : [t.update.intro(itemTitle)]), ...(lines.cut ? [t.update.more] : []), t.update.app],
+        cta
+      };
       break;
+    }
     case 'message':
       parts = { subject: t.message.subject, title: t.message.title, paragraphs: [t.hello(name), t.message.intro], cta };
       break;

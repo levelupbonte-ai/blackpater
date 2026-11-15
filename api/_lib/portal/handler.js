@@ -209,7 +209,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export function emailForOutbox(row, origin) {
   const base = { lang: row.locale, name: row.name, origin };
   if (row.kind === 'access') return buildEmail('access', base);
-  if (row.kind === 'update') return buildEmail('update', { ...base, title: row.item?.title || '' });
+  if (row.kind === 'update') return buildEmail('update', { ...base, title: row.item?.title || '', excerpt: row.item?.excerpt ?? null });
   if (row.kind === 'message') return buildEmail('message', base);
   if (row.kind === 'renew') {
     const stage = [0, 1, 3, 7].includes(row.data?.stage) ? row.data.stage : 7;

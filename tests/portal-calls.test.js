@@ -123,3 +123,18 @@ test('call-cancel: a call id only', async () => {
   await handler(post('call-cancel', { callId: 'nope' }, withSession), bad);
   assert.equal(bad.statusCode, 400);
 });
+
+test('update e-mail: an announcement carries its first lines and how to install the app', async () => {
+  const { buildEmail, excerptParagraphs } = await import('../api/_lib/portal/email.js');
+  const mail = buildEmail('update', { lang: 'fr', name: 'Awa', title: 'Nouveautés', excerpt: 'Ligne 1\n\nLigne <b>2</b>' });
+  assert.match(mail.html, /Ligne 1/);
+  assert.match(mail.html, /Ligne &lt;b&gt;2&lt;\/b&gt;/);
+  assert.match(mail.text, /installez l’application Black Pater/);
+  assert.match(mail.subject, /Nouveautés/);
+  // No excerpt (personal item): the title only, never content.
+  const personal = buildEmail('update', { lang: 'en', name: 'Awa', title: 'Your file' });
+  assert.match(personal.text, /published “Your file”/);
+  assert.match(personal.text, /install the Black Pater app/);
+  assert.equal(excerptParagraphs('x'.repeat(800)).cut, true);
+  assert.equal(excerptParagraphs(null).length, 0);
+});

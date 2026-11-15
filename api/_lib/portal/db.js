@@ -19,6 +19,9 @@ const CODE_STATUS = {
   PT403: [503, 'portal_unavailable'],
   PT402: [402, 'membership_expired'],
   PT404: [404, 'not_found'],
+  PT409: [409, 'slot_taken'],
+  PT412: [403, 'calls_used_up'],
+  PT413: [403, 'plan_required'],
   PT429: [429, 'rate_limited'],
   '22023': [400, 'invalid_request'],
   '22P02': [400, 'invalid_request']

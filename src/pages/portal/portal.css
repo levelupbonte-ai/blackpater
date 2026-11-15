@@ -2664,3 +2664,50 @@ html.is-app .po-hero__bell {
   font-size: 0.8rem;
   font-weight: 700;
 }
+
+/* Calls with Black Pater. */
+.po-calls { display: grid; gap: 16px; }
+.po-calls h3 { margin: 0 0 10px; font-size: 1.02rem; font-weight: 700; color: var(--bone); }
+.po-calls__msg { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 12px; font-size: 0.92rem; }
+.po-calls__msg.is-ok { background: color-mix(in srgb, var(--accent-primary) 12%, transparent); color: var(--bone); }
+.po-calls__msg.is-error { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--bone); }
+.po-calls__locked { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.po-calls__locked > div { flex: 1 1 220px; }
+.po-calls__locked p { margin: 4px 0 0; color: var(--bone-mute); font-size: 0.9rem; }
+.po-calls__quota { display: grid; gap: 10px; }
+.po-calls__quota-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.po-calls__quota-head strong { font-size: 1.1rem; color: var(--bone); }
+.po-calls__quota-head span { color: var(--bone-mute); font-size: 0.85rem; }
+.po-calls__meter { display: flex; gap: 6px; }
+.po-calls__meter span { flex: 1; height: 8px; border-radius: 999px; background: var(--accent-primary); }
+.po-calls__meter span.is-used { background: var(--line-strong); }
+.po-calls__perks, .po-calls__privacy, .po-calls__note { margin: 0; color: var(--bone-dim); font-size: 0.9rem; line-height: 1.5; }
+.po-calls__privacy { display: flex; gap: 8px; align-items: flex-start; color: var(--bone-mute); font-size: 0.84rem; }
+.po-calls__fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; min-width: 0; }
+.po-calls__day { display: grid; gap: 8px; }
+.po-calls__day-name { font-size: 0.82rem; font-weight: 600; color: var(--bone-mute); text-transform: capitalize; }
+.po-calls__times { display: flex; flex-wrap: wrap; gap: 8px; }
+.po-calls__platforms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 640px) { .po-calls__platforms { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.po-calls__platform { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--bone); font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+.po-calls__platform.is-active { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--copper-soft); }
+.po-calls__platform:disabled { opacity: 0.55; cursor: not-allowed; }
+.po-calls__premium { font-size: 0.7rem; font-weight: 700; color: var(--accent-primary); }
+.po-calls__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.po-calls__item { display: flex; gap: 12px; align-items: flex-start; padding: 16px; }
+.po-calls__icon { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border-radius: 12px; background: var(--surface-2); color: var(--accent-primary); }
+.po-calls__item-main { flex: 1; display: grid; gap: 4px; min-width: 0; }
+.po-calls__item-main strong { color: var(--bone); }
+.po-calls__item-main > span { color: var(--bone-mute); font-size: 0.88rem; }
+.po-calls__status { color: var(--bone-dim); font-size: 0.88rem; }
+.po-calls__topic { white-space: pre-wrap; overflow-wrap: anywhere; }
+.po-calls__history summary { cursor: pointer; font-weight: 600; color: var(--bone-dim); padding: 6px 0; }
+.po-calls__history .po-calls__list { margin-top: 10px; }
+.btn--sm { min-height: 34px; padding: 6px 12px; font-size: 0.85rem; }
+.po-calls svg { width: 18px; height: 18px; flex: none; }
+.po-calls__platform svg { width: 24px; height: 24px; }
+.po-calls__locked > svg { width: 26px; height: 26px; color: var(--accent-primary); }
+.po-calls__privacy svg { width: 16px; height: 16px; margin-top: 2px; }
+.po-calls__day-name, .po-calls__item-main strong { text-transform: none; }
+.po-calls__day-name::first-letter, .po-calls__item-main strong::first-letter { text-transform: uppercase; }
+.po-calls__msg svg { margin-top: 2px; }

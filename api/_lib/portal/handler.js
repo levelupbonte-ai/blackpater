@@ -93,10 +93,13 @@ export const PORTAL_ACTIONS = [
   'news',
   'news-guide',
   'news-react',
-  'news-read'
+  'news-read',
+  'calls',
+  'call-book',
+  'call-cancel'
 ];
 
-const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key', 'assistant', 'profile']);
+const GET_ACTIONS = new Set(['status', 'me', 'file', 'push-key', 'assistant', 'profile', 'calls']);
 const NO_SESSION = new Set(['status', 'request-code', 'verify-code', 'password-sign-in', 'outbox', 'dossier']);
 
 function cleanEmail(value) {
@@ -936,6 +939,58 @@ export function createPortalHandler(deps = {}) {
     async 'news-read'(req, res, cfg, ctx) {
       const { item } = pick(await readJsonBody(req, 256), { item: req_.uuid });
       await callNews(cfg.portalKey, { action: 'read', session: ctx.session, item });
+      return sendJson(res, 200, { ok: true });
+    },
+
+    /** Calls with Black Pater: quota of the month, free slots, Premium meetings, my calls. */
+    async calls(req, res, cfg, ctx) {
+      const out = await rpc('portal_calls_home', { p_key: cfg.portalKey, p_session: ctx.session });
+      return sendJson(res, 200, {
+        active: out?.active === true,
+        level: Number(out?.level) || 0,
+        quota: Number(out?.quota) || 0,
+        used: Number(out?.used) || 0,
+        video: out?.video === true,
+        meetings_allowed: out?.meetings_allowed === true,
+        slots: Array.isArray(out?.slots) ? out.slots : [],
+        meetings: Array.isArray(out?.meetings) ? out.meetings : [],
+        calls: Array.isArray(out?.calls) ? out.calls : []
+      });
+    },
+
+    /**
+     * Books a slot (or joins a Premium meeting). The member's number is only
+     * kept for the team; Black Pater's own number is never sent to members.
+     */
+    async 'call-book'(req, res, cfg, ctx) {
+      const { slotId, platform, phone, topic } = pick(await readJsonBody(req, 2048), {
+        slotId: req_.uuid,
+        platform: (v) => (['phone', 'whatsapp', 'zoom', 'meet'].includes(v) ? v : undefined),
+        phone: (v) =>
+          v === undefined || v === null || v === ''
+            ? null
+            : typeof v === 'string' && /^\+?[0-9 ().-]{7,24}$/.test(v.trim())
+              ? v.trim()
+              : undefined,
+        topic: (v) =>
+          v === undefined || v === null ? null : typeof v === 'string' && v.length <= 500 ? v.trim() || null : undefined
+      });
+      if ((platform === 'phone' || platform === 'whatsapp') && !phone) throw new HttpError(400, 'phone_required');
+      const out = await rpc('portal_call_book', {
+        p_key: cfg.portalKey,
+        p_session: ctx.session,
+        p_slot: slotId,
+        p_platform: platform,
+        p_phone: phone,
+        p_topic: topic
+      });
+      await pingStaff();
+      return sendJson(res, 200, { ok: true, id: out?.id ?? null });
+    },
+
+    async 'call-cancel'(req, res, cfg, ctx) {
+      const { callId } = pick(await readJsonBody(req, 256), { callId: req_.uuid });
+      await rpc('portal_call_cancel', { p_key: cfg.portalKey, p_session: ctx.session, p_call: callId });
       return sendJson(res, 200, { ok: true });
     },
 

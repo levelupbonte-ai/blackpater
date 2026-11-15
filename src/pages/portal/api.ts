@@ -201,6 +201,44 @@ export interface NewsFeed {
   updated_at: string | null;
 }
 
+/** Calls with Black Pater (Plus 1, Pro 3, Premium 5 a month; video and group meetings for Premium). */
+export interface CallSlot {
+  id: string;
+  starts_at: string;
+  minutes: number;
+}
+export interface CallMeeting extends CallSlot {
+  title: string | null;
+  call_id: string | null;
+  joined: boolean;
+  full: boolean;
+  link: string | null;
+}
+export type CallPlatform = 'phone' | 'whatsapp' | 'zoom' | 'meet';
+export interface MemberCall {
+  id: string;
+  starts_at: string;
+  minutes: number;
+  mode: 'voice' | 'video';
+  platform: CallPlatform;
+  topic: string | null;
+  status: 'booked' | 'done' | 'missed' | 'canceled';
+  link: string | null;
+  canceled_by: 'member' | 'team' | null;
+  can_cancel: boolean;
+}
+export interface CallsHome {
+  active: boolean;
+  level: number;
+  quota: number;
+  used: number;
+  video: boolean;
+  meetings_allowed: boolean;
+  slots: CallSlot[];
+  meetings: CallMeeting[];
+  calls: MemberCall[];
+}
+
 export class PortalError extends Error {
   code: string;
   status: number;
@@ -273,6 +311,10 @@ export const portalApi = {
     call<{ mine: boolean | null; helpful: number }>('news-react', { item, helpful }),
   newsRead: (item: string) => call<{ ok: true }>('news-read', { item }),
   newsGuide: (country: string, lang: string) => call<{ country: string; links: GuideLink[] }>('news-guide', { country, lang }),
+  calls: () => call<CallsHome>('calls'),
+  callBook: (input: { slotId: string; platform: CallPlatform; phone?: string; topic?: string }) =>
+    call<{ ok: true; id: string | null }>('call-book', input),
+  callCancel: (callId: string) => call<{ ok: true }>('call-cancel', { callId }),
   fileUrl: (itemId: string) => `/api/portal/file?item=${encodeURIComponent(itemId)}`
 };
 

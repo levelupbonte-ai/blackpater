@@ -33,6 +33,7 @@ import { buildPdf, downloadPdf, type PdfBlock } from '../../lib/simple-pdf';
 import { useTheme } from '../../context/ThemeContext';
 import { compressImage, loadLocalImages, saveLocalImages, clearLocalImages } from './local-images';
 import { NewsView } from './NewsView';
+import { CallsView } from './CallsView';
 import './portal.css';
 
 /** "Duo · 2 people" from the catalog, in the visitor's language; the stored name otherwise. */
@@ -272,12 +273,13 @@ const SignIn: React.FC<{ onSignedIn: () => void; notice?: string | null }> = ({ 
 
 /* ------------------------------------------------------------------ dashboard */
 
-type View = 'home' | 'info' | 'news' | 'messages' | 'assistant' | 'dossier' | 'account';
+type View = 'home' | 'info' | 'news' | 'messages' | 'calls' | 'assistant' | 'dossier' | 'account';
 const VIEWS: { id: View; icon: IconName; label: Parameters<T>[0] }[] = [
   { id: 'home', icon: 'home', label: 'po_nav_home' },
   { id: 'info', icon: 'bell', label: 'po_nav_info' },
   { id: 'news', icon: 'globe', label: 'po_nav_news' },
   { id: 'messages', icon: 'chat', label: 'po_nav_messages' },
+  { id: 'calls', icon: 'phone', label: 'po_nav_calls' },
   { id: 'assistant', icon: 'sparkles', label: 'po_nav_assistant' },
   { id: 'dossier', icon: 'file', label: 'po_nav_dossier' },
   { id: 'account', icon: 'user', label: 'po_nav_account' }
@@ -2639,6 +2641,16 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
                 {!!unreadMessages && <span className='po-count'>{unreadMessages}</span>}
                 <Icon name='chevronRight' className='po-shortcut__chev' />
               </button>
+              <button type='button' className='po-card po-shortcut' onClick={() => go('calls')}>
+                <span className='po-shortcut__icon' aria-hidden='true'>
+                  <Icon name='phone' />
+                </span>
+                <span className='po-shortcut__text'>
+                  <strong>{t('po_home_calls')}</strong>
+                  <span>{t('po_home_calls_text')}</span>
+                </span>
+                <Icon name='chevronRight' className='po-shortcut__chev' />
+              </button>
               {assistant?.enabled && !ended && (
                 <button type='button' className='po-card po-shortcut' onClick={() => go('assistant')}>
                   <span className='po-shortcut__icon' aria-hidden='true'>
@@ -2677,6 +2689,8 @@ const Dashboard: React.FC<{ home: PortalHome; reload: () => Promise<void>; onSig
           ))}
 
         {view === 'news' && <NewsView onPlans={() => go('account')} />}
+
+        {view === 'calls' && <CallsView onPlans={() => go('account')} onMessages={() => go('messages')} />}
 
         {view === 'assistant' && assistant && (
           <Assistant thread={assistant} setThread={setAssistant} onRenew={() => go('account')} onDossier={() => go('dossier')} />
